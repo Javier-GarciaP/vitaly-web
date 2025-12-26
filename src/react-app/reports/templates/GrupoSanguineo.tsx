@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const GrupoSanguineo: React.FC<GrupoSanguineoProps> = ({ data, patient, logoUrl, qrImage }) => {
+const GrupoSanguineo: React.FC<GrupoSanguineoProps> = ({ data, patient, logoUrl }) => {
   if (!data?.grupo_sanguineo && !data?.factor_rh) return null;
 
   return (

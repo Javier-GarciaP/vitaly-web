@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { 
   Search, Printer, Save, X, ChevronRight, Beaker, Activity, 
   PlusCircle, CheckCircle2, LayoutGrid
@@ -74,9 +74,9 @@ export default function PanelControlMaster() {
         fetch("/api/examenes"),
         fetch("/api/facturas")
       ]);
-      const dataP = await resP.json();
-      const dataE = await resE.json();
-      const dataF = await resF.json();
+      const dataP = await resP.json() as Paciente[];
+      const dataE = await resE.json() as Examen[];
+      const dataF = await resF.json() as Factura[];
       
       setPacientes(dataP);
       setExamenes(dataE);
@@ -158,7 +158,7 @@ export default function PanelControlMaster() {
         
         // Actualizar el examen activo para reflejar los cambios en la UI central
         const resUpdated = await fetch(`/api/examenes/${activeExamen.id}`);
-        const updatedEx = await resUpdated.json();
+        const updatedEx = await resUpdated.json() as Examen;
         setActiveExamen(updatedEx);
       } else {
         alert("Error al guardar los resultados");
@@ -187,7 +187,7 @@ export default function PanelControlMaster() {
   const renderExamenForm = () => {
     if (!activeExamen) return null;
     const props = { resultados: editResultados, onChange: setEditResultados };
-    const forms: Record<string, JSX.Element> = {
+    const forms: Record<string, React.ReactElement> = {
       "Hematología": <HematologiaForm {...props} />,
       "Química Clínica": <QuimicaClinicaForm {...props} />,
       "Orina": <OrinaForm {...props} />,
@@ -259,7 +259,7 @@ export default function PanelControlMaster() {
                 <nav className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                   <span>Panel Maestro</span> <ChevronRight size={10}/> <span>Paciente Activo</span>
                 </nav>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">{pacienteActivo.nombre}</h1>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">{pacienteActivo?.nombre}</h1>
               </div>
             </header>
 
@@ -387,8 +387,8 @@ export default function PanelControlMaster() {
                 data={activeExamen.resultados}
                 qrImage={qrCodeImage}
                 patient={{
-                  nombre: pacienteActivo.nombre,
-                  cedula: pacienteActivo.cedula,
+                  nombre: pacienteActivo?.nombre || "",
+                  cedula: pacienteActivo?.cedula || "",
                   fecha: new Date(activeExamen.fecha).toLocaleDateString(),
                 }}
               />

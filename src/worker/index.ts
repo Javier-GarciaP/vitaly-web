@@ -2,9 +2,12 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-type Bindings = Env; 
+// Definimos explícitamente qué recursos tiene nuestro Cloudflare Worker
+interface Env {
+  DB: D1Database; // Esto vincula tu base de datos mocha-db
+}
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Env }>();
 
 // ACTUALIZADO: Esquema de examen para incluir el uuid opcional
 const examenSchema = z.object({

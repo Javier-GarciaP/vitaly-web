@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Save, ClipboardList, Plus, Trash2, Beaker, X } from "lucide-react";
 
 interface BacteriologiaFormProps {

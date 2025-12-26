@@ -3,8 +3,7 @@ import { useParams } from "react-router";
 import { 
   CheckCircle2, 
   FileText, 
-  User, 
-  ClipboardList, 
+  User,  
   AlertOctagon, 
   Calendar, 
   ShieldCheck,

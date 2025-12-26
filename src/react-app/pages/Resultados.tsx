@@ -76,7 +76,7 @@ export default function ResultadosPage() {
   const loadExamenes = async () => {
     try {
       const res = await fetch("/api/examenes");
-      const data = await res.json();
+      const data = await res.json() as Examen[];
       setExamenes(data);
     } catch (e) {
       console.error("Error cargando exámenes");

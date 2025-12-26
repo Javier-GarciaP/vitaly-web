@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Save, Trash2, FileText, Plus } from "lucide-react";
+import {MiscelaneosData} from '@/types/types'
 
 interface MiscelaneosFormProps {
   resultados: any;
@@ -15,7 +16,7 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
     try {
       const res = await fetch('/api/plantillas/miscelaneos');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as MiscelaneosData[];
         setPlantillas(data);
       }
     } catch (error) {

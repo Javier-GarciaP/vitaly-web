@@ -36,7 +36,7 @@ export default function PacientesPage() {
 
   const loadPacientes = async () => {
     const res = await fetch("/api/pacientes");
-    const data = await res.json();
+    const data = await res.json() as Paciente[];
     setPacientes(data);
   };
 
@@ -44,7 +44,7 @@ export default function PacientesPage() {
     if (!selectedPaciente || !tipo) return;
     try {
       const res = await fetch(`/api/pacientes/${selectedPaciente.id}/evolucion/${tipo}`);
-      const data = await res.json();
+      const data = await res.json() as Paciente[];
       setEvolucionData(data);
       setParametro("");
     } catch (error) {

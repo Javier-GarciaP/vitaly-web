@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, X, Search, User, AlertCircle, Calendar, CheckCircle2, FlaskConical, ChevronRight, Activity } from "lucide-react";
+import { Plus, X, User, AlertCircle, Calendar, CheckCircle2, FlaskConical, ChevronRight, Activity } from "lucide-react";
 
 interface Paciente {
   id: number;
@@ -33,7 +33,7 @@ export default function ExamenesPage() {
   const loadPacientes = async () => {
     try {
       const res = await fetch("/api/pacientes");
-      const data = await res.json();
+      const data = await res.json() as Paciente[];
       setPacientes(data);
     } catch (e) { console.error("Error cargando pacientes"); }
   };
