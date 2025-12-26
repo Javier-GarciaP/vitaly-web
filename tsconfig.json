@@ -5,7 +5,10 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext", // <--- ASEGÚRATE DE QUE ESTO DIGA ESNext
     "skipLibCheck": true,
-
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     /* Bundler mode */
     "moduleResolution": "bundler", // <--- Aquí es donde salta el error
     "allowImportingTsExtensions": true,
