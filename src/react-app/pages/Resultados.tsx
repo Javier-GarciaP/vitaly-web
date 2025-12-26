@@ -40,6 +40,7 @@ interface Examen {
   resultados: any;
   created_at: string;
   uuid?: string;
+  paciente_edad?: number;
 }
 
 export default function ResultadosPage() {
@@ -510,6 +511,7 @@ export default function ResultadosPage() {
                   nombre: selectedExamen.paciente_nombre,
                   cedula: selectedExamen.paciente_cedula,
                   // Aplicamos la misma lógica de corrección aquí
+                  edad: selectedExamen.paciente_edad,
                   fecha: (() => {
                     const d = new Date(selectedExamen.fecha);
                     const offset = d.getTimezoneOffset() * 60000;

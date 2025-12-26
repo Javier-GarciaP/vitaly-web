@@ -78,7 +78,16 @@ const SectionTitle: React.FC<SectionTitleProps> = ({ title }) => (
 const HematologiaReport: React.FC<HematologiaReportProps> = ({ data, patient, qrImage }) => {
   return (
     <ReportLayout>
-      <CommonHeader patient={patient} title="Análisis Hematológico" qrImage={qrImage}/>
+      <CommonHeader
+        patient={{
+          nombre: patient.nombre,
+          cedula: patient.cedula,
+          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
+          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+        }}
+        title="Bacteriología / Antibiograma"
+        qrImage={qrImage}
+      />
 
       {/* SERIE ROJA - Sincronizado con llaves de BD */}
       <SectionTitle title="Serie Roja" />

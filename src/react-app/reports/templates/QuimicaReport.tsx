@@ -53,7 +53,16 @@ const styles = StyleSheet.create({
 const QuimicaReport: React.FC<QuimicaReportProps> = ({ data, patient, qrImage }) => {
   return (
     <ReportLayout>
-      <CommonHeader patient={patient} title="Química Sanguínea" qrImage={qrImage}/>
+      <CommonHeader
+        patient={{
+          nombre: patient.nombre,
+          cedula: patient.cedula,
+          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
+          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+        }}
+        title="Bacteriología / Antibiograma"
+        qrImage={qrImage}
+      />
 
       {/* Encabezado de la Tabla */}
       <View style={styles.tableHeader}>

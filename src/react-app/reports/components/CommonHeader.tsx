@@ -5,58 +5,114 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottom: '1.5pt solid #6e2020',
-    paddingBottom: 5,
-    marginBottom: 10,
+    borderBottom: '2pt solid #1e293b', // Color pizarra oscuro para un look moderno
+    paddingBottom: 8,
+    marginBottom: 15,
   },
-  labInfo: {
+  leftColumn: {
     flexDirection: 'column',
+    flex: 1,
   },
   labName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#6e2020',
+    color: '#1e40af', // Azul médico profesional
+    letterSpacing: 0.5,
+  },
+  examTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#475569',
+    marginTop: 2,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  patientGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  infoItem: {
+    flexDirection: 'column',
+  },
+  label: {
+    fontSize: 7,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    fontWeight: 'bold',
+  },
+  value: {
+    fontSize: 9,
+    color: '#0f172a',
+    fontWeight: 'medium',
   },
   qrBox: {
     alignItems: 'center',
-    textAlign: 'center',
+    justifyContent: 'center',
+    marginLeft: 15,
+    paddingLeft: 15,
+    borderLeft: '0.5pt solid #e2e8f0',
   },
   qrImage: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
   },
   qrText: {
-    fontSize: 5,
-    color: '#666',
-    marginTop: 1,
-    textTransform: 'uppercase'
+    fontSize: 6,
+    color: '#94a3b8',
+    marginTop: 3,
+    textAlign: 'center',
+    fontWeight: 'bold',
   }
 });
 
 interface CommonHeaderProps {
-  patient: any;
+  patient: {
+    nombre: string;
+    cedula: string;
+    edad?: string | number;
+    fechaExamen: string; // Fecha guardada en el examen
+  };
   title: string;
-  qrImage?: string; // CAMBIO: Recibe directamente el string Base64 generado fuera
+  qrImage?: string;
 }
 
 const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) => {
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.labInfo}>
+      <View style={styles.leftColumn}>
         <Text style={styles.labName}>LABORATORIO VITALY</Text>
-        <Text style={{ fontSize: 10, fontWeight: 'bold' }}>{title}</Text>
-        <Text style={{ fontSize: 8 }}>
-          Paciente: {patient?.nombre} {patient?.cedula}
-        </Text>
+        <Text style={styles.examTitle}>{title}</Text>
+
+        <View style={styles.patientGrid}>
+          {/* Nombre y Cédula */}
+          <View style={[styles.infoItem, { minWidth: '150pt' }]}>
+            <Text style={styles.label}>Paciente</Text>
+            <Text style={styles.value}>{patient?.nombre} ({patient?.cedula})</Text>
+          </View>
+
+          {/* Edad */}
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Edad</Text>
+            <Text style={styles.value}>{patient?.edad ? `${patient.edad} años` : 'N/A'}</Text>
+          </View>
+
+          {/* Fecha del Examen (Real) */}
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Fecha del Análisis</Text>
+            <Text style={styles.value}>{patient?.fechaExamen}</Text>
+          </View>
+        </View>
       </View>
 
-      {/* Solo mostramos el QR si la imagen existe */}
+      {/* Sección QR */}
       {qrImage && (
         <View style={styles.qrBox}>
           <Image src={qrImage} style={styles.qrImage} />
-          <Text style={styles.qrText}>Verificación</Text>
-          <Text style={styles.qrText}>Digital</Text>
+          <View>
+            <Text style={styles.qrText}>RESULTADOS</Text>
+            <Text style={styles.qrText}>VERIFICADOS</Text>
+          </View>
         </View>
       )}
     </View>

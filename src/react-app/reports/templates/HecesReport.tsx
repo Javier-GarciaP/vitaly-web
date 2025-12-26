@@ -109,7 +109,16 @@ const HecesRow: React.FC<HecesRowProps> = ({ label1, value1, label2, value2 }) =
 const HecesReport: React.FC<HecesReportProps> = ({ data, patient, qrImage }) => {
   return (
     <ReportLayout>
-      <CommonHeader patient={patient} title="Examen de Heces (Coprología)" qrImage={qrImage} />
+      <CommonHeader
+        patient={{
+          nombre: patient.nombre,
+          cedula: patient.cedula,
+          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
+          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+        }}
+        title="Bacteriología / Antibiograma"
+        qrImage={qrImage}
+      />
 
       {/* EXAMEN FÍSICO - Ajustado para asegurar visualización */}
       <HecesRow label1="Color" value1={data?.color} label2="Consistencia" value2={data?.consistencia} />

@@ -73,7 +73,16 @@ const MiscelaneosRow: React.FC<MiscelaneosRowProps> = ({ label, value }) => {
 const MiscelaneosReport: React.FC<MiscelaneosReportProps> = ({ data, patient, qrImage }) => {
   return (
     <ReportLayout>
-      <CommonHeader patient={patient} title="Reporte de Examen Especial" qrImage={qrImage}/>
+      <CommonHeader
+        patient={{
+          nombre: patient.nombre,
+          cedula: patient.cedula,
+          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
+          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+        }}
+        title="Bacteriología / Antibiograma"
+        qrImage={qrImage}
+      />
 
       {/* Sección de Datos del Examen - Sincronizado con BD */}
       <View style={styles.infoSection}>

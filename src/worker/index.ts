@@ -152,7 +152,7 @@ app.delete("/api/pacientes/:id", async (c) => {
 // --- EXÁMENES ---
 app.get("/api/examenes", async (c) => {
   const search = c.req.query("search");
-  let sql = `SELECT e.*, p.nombre as paciente_nombre, p.cedula as paciente_cedula FROM examenes e JOIN pacientes p ON e.paciente_id = p.id`;
+  let sql = `SELECT e.*, p.nombre as paciente_nombre, p.cedula as paciente_cedula, p.edad as paciente_edad FROM examenes e JOIN pacientes p ON e.paciente_id = p.id`;
   const stmt = search
     ? c.env.DB.prepare(
         sql + " WHERE p.nombre LIKE ? OR p.cedula LIKE ? ORDER BY e.fecha DESC"

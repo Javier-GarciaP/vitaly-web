@@ -96,7 +96,16 @@ const OrinaRow: React.FC<OrinaRowProps> = ({ label1, value1, label2, value2 }) =
 const OrinaReport: React.FC<OrinaReportProps> = ({ data, patient, qrImage }) => {
   return (
     <ReportLayout>
-      <CommonHeader patient={patient} title="Examen General de Orina" qrImage={qrImage}/>
+      <CommonHeader
+        patient={{
+          nombre: patient.nombre,
+          cedula: patient.cedula,
+          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
+          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+        }}
+        title="Bacteriología / Antibiograma"
+        qrImage={qrImage}
+      />
 
       {/* SECCIÓN 1: CARACTERES GENERALES */}
       <Text style={styles.sectionTitle}>I. Caracteres Generales</Text>
