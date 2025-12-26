@@ -17,11 +17,5 @@
       "database_name": "vitaly-db",
       "database_id": "b3058056-0cac-4335-954a-8ed7b180268e"
     }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "R2_BUCKET",
-      "bucket_name": "019b4c18-c669-7293-9a9d-a9c2441c579d"
-    }
   ]
 }
