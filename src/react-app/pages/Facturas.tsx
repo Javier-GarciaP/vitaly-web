@@ -12,7 +12,6 @@ import {
   CreditCard,
   Layers,
   FileText,
-  AlertCircle,
   ChevronDown,
 } from "lucide-react";
 
@@ -478,7 +477,7 @@ export default function FacturasPage() {
                     {/* Autocompletado de Pacientes */}
                     {showSugerencias && sugerenciasPacientes.length > 0 && (
                       <div className="absolute z-[120] w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        {sugerenciasPacientes.map((p, index) => (
+                        {sugerenciasPacientes.map((p) => (
                           <button
                             key={p.id}
                             type="button"
