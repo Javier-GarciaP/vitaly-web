@@ -185,14 +185,13 @@ export default function PanelControlMaster() {
 
   const handleOpenPrint = async (ex: Examen) => {
     try {
-      const baseUrl = window.location.origin;
-      const validationUrl = `${baseUrl}/verificar/${ex.uuid || ex.id}`;
+      const validationUrl = ex.uuid || "";
       const qr = await generateQRBase64(validationUrl);
       setQrCodeImage(qr);
       setActiveExamen(ex);
       setShowPrintModal(true);
     } catch (e) { alert("Error generando QR"); }
-  };
+  }; 
 
   const renderExamenForm = () => {
     if (!activeExamen) return null;

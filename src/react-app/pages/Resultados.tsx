@@ -86,10 +86,7 @@ export default function ResultadosPage() {
   const handleOpenPrint = async () => {
     if (!selectedExamen) return;
     try {
-      const baseUrl = window.location.origin;
-      const validationUrl = `${baseUrl}/verificar/${
-        selectedExamen.uuid || selectedExamen.id
-      }`;
+      const validationUrl = selectedExamen.uuid || "";
       const qrBase64 = await generateQRBase64(validationUrl);
       setQrCodeImage(qrBase64);
       setShowPrintModal(true);
