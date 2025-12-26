@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 export const generateQRBase64 = async (uuid: string): Promise<string> => {
   // Cambia esta URL por la URL real donde publicarás tu web
   const baseUrl = window.location.origin; 
-  const validationUrl = `${baseUrl}/varificar/${uuid}`;
+  const validationUrl = `${baseUrl}/verificar/${uuid}`;
 
   try {
     return await QRCode.toDataURL(validationUrl, {
