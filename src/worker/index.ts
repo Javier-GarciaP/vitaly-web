@@ -2,7 +2,9 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-const app = new Hono<{ Bindings: Env }>();
+type Bindings = Env; 
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 // ACTUALIZADO: Esquema de examen para incluir el uuid opcional
 const examenSchema = z.object({
