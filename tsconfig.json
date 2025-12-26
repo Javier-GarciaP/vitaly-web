@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "moduleResolution": "bundler", // O "node" dependiendo de tu versión de Vite/Next
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+    // ... resto de tu configuración
+  }
+}
