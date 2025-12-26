@@ -60,9 +60,16 @@ export default function FacturasPage() {
   const [busquedaExamen, setBusquedaExamen] = useState("");
   const [showExamenesSug, setShowExamenesSug] = useState(false);
 
+  const getLocalDate = () => {
+    const date = new Date();
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().split("T")[0];
+  };
+
   const [formData, setFormData] = useState({
     paciente_id: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: getLocalDate(),
   });
 
   const [examenesSeleccionados, setExamenesSeleccionados] = useState<
@@ -204,7 +211,7 @@ export default function FacturasPage() {
     setEditingId(null);
     setFormData({
       paciente_id: "",
-      fecha: new Date().toISOString().split("T")[0],
+      fecha: getLocalDate(),
     });
     setPacienteInput("");
     setExamenesSeleccionados([]);
@@ -333,7 +340,7 @@ export default function FacturasPage() {
                   <td className="px-8 py-5">
                     <span className="text-xs font-bold text-slate-600 flex items-center gap-2">
                       <Calendar size={14} className="text-slate-300" />
-                      {new Date(f.fecha).toLocaleDateString()}
+                      {f.fecha.split("-").reverse().join("/")}
                     </span>
                   </td>
                   <td className="px-8 py-5">

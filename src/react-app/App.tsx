@@ -7,6 +7,7 @@ import ExamenesPage from "@/react-app/pages/Examenes";
 import ResultadosPage from "@/react-app/pages/Resultados";
 import PublicVerify from "./pages/PublicVerify";
 import PanelMaestro from "./pages/PanelMaestro";
+import ConfiguracionPage from "./pages/ConfiguracionPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="examenes" element={<ExamenesPage />} />
           <Route path="resultados" element={<ResultadosPage />} />
           <Route path="panel" element={<PanelMaestro/>}/>
+          <Route path="configuracion" element={<ConfiguracionPage/>} />
         </Route>
         <Route path="/verificar/:uuid" element={<PublicVerify />} />
       </Routes>

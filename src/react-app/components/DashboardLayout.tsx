@@ -9,6 +9,7 @@ import {
   X,
   ChevronRight,
   Crown,
+  Settings,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -36,6 +37,7 @@ export default function DashboardLayout() {
     { path: "/examenes", label: "Estudios", icon: TestTube },
     { path: "/resultados", label: "Resultados", icon: ClipboardList },
     { path: "/panel", label: "Panel Maestro", icon: Crown },
+    { path: "/configuracion", label: "Configuracion", icon: Settings}
   ];
 
   const isActive = (path: string) => {

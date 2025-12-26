@@ -169,6 +169,7 @@ app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
   return c.json({ success: true }, 201);
 });
 
+
 // (Agrega aquí el resto de tus rutas de pacientes y plantillas siguiendo este mismo estilo limpio)
 
 app.get("/api/estadisticas", async (c) => {
@@ -908,6 +909,44 @@ app.get("/api/estadisticas", async (c) => {
     examenesPendientes: (examenesPendientes as any)?.count || 0,
     facturasHoy: (facturasHoy as any)?.count || 0,
   });
+});
+
+// POST: Crear examen
+app.post("/api/examenes-predefinidos", async (c) => {
+  const db = c.env.DB;
+  const { nombre, precio, categoria } = await c.req.json();
+  const result = await db
+    .prepare(
+      "INSERT INTO examenes_predefinidos (nombre, precio, categoria) VALUES (?, ?, ?)"
+    )
+    .bind(nombre, precio, categoria)
+    .run();
+  return c.json({ success: true, id: result.meta.last_row_id }, 201);
+});
+
+// PUT: Actualizar examen
+app.put("/api/examenes-predefinidos/:id", async (c) => {
+  const db = c.env.DB;
+  const id = c.req.param("id");
+  const { nombre, precio, categoria } = await c.req.json();
+  await db
+    .prepare(
+      "UPDATE examenes_predefinidos SET nombre = ?, precio = ?, categoria = ? WHERE id = ?"
+    )
+    .bind(nombre, precio, categoria, id)
+    .run();
+  return c.json({ success: true });
+});
+
+// DELETE: Eliminar examen
+app.delete("/api/examenes-predefinidos/:id", async (c) => {
+  const db = c.env.DB;
+  const id = c.req.param("id");
+  await db
+    .prepare("DELETE FROM examenes_predefinidos WHERE id = ?")
+    .bind(id)
+    .run();
+  return c.json({ success: true });
 });
 
 export default app;
