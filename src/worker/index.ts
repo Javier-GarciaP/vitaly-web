@@ -25,10 +25,12 @@ const facturaSchema = z.object({
     z.object({
       nombre: z.string(),
       precio: z.number(),
+      categoria: z.string().optional(), // Ahora es opcional
     })
   ),
   total: z.number(),
   fecha: z.string(),
+  categorias: z.array(z.string()).optional(), // Añadido como opcional para evitar el 400/404
 });
 
 const pacienteSchema = z.object({
@@ -308,40 +310,183 @@ app.get("/api/facturas/:id", async (c) => {
 
 app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
   const data = c.req.valid("json");
-  const res = await c.env.DB.prepare(
-    "INSERT INTO facturas (paciente_id, examenes, total, fecha) VALUES (?, ?, ?, ?)"
-  )
-    .bind(
-      data.paciente_id,
-      JSON.stringify(data.examenes),
-      data.total,
-      data.fecha
-    )
-    .run();
-  return c.json({ success: true, id: res.meta.last_row_id }, 201);
+  const db = c.env.DB;
+
+  try {
+    // 1. Insertar la Factura (Igual que antes)
+    const resFactura = await db
+      .prepare(
+        "INSERT INTO facturas (paciente_id, examenes, total, fecha) VALUES (?, ?, ?, ?)"
+      )
+      .bind(
+        data.paciente_id,
+        JSON.stringify(data.examenes),
+        data.total,
+        data.fecha
+      )
+      .run();
+
+    const facturaId = resFactura.meta.last_row_id;
+
+    // 2. CREAR ÓRDENES AUTOMÁTICAS (Solo si vienen categorías en el JSON)
+    if (data.categorias && data.categorias.length > 0) {
+      for (const cat of data.categorias) {
+        // Usamos crypto.randomUUID() o una alternativa si falla en tu entorno
+        const examenUuid = crypto.randomUUID
+          ? crypto.randomUUID()
+          : `fac-${facturaId}-${Math.random().toString(36).substr(2, 9)}`;
+
+        await db
+          .prepare(
+            `INSERT INTO examenes 
+          (paciente_id, tipo, fecha, estado, uuid, resultados) 
+          VALUES (?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            data.paciente_id,
+            cat,
+            data.fecha,
+            "pendiente",
+            examenUuid,
+            JSON.stringify({}) // Resultados vacíos iniciales
+          )
+          .run();
+      }
+    }
+
+    return c.json({ success: true, id: facturaId }, 201);
+  } catch (error: any) {
+    console.error("Error en facturación:", error.message);
+    return c.json(
+      { error: "No se pudo procesar la factura", details: error.message },
+      500
+    );
+  }
 });
 
 app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
+  const id = c.req.param("id");
   const data = c.req.valid("json");
-  await c.env.DB.prepare(
-    "UPDATE facturas SET paciente_id = ?, examenes = ?, total = ?, fecha = ? WHERE id = ?"
-  )
-    .bind(
-      data.paciente_id,
-      JSON.stringify(data.examenes),
-      data.total,
-      data.fecha,
-      c.req.param("id")
-    )
-    .run();
-  return c.json({ success: true });
+  const db = c.env.DB;
+
+  try {
+    const facturaActual = await db
+      .prepare("SELECT examenes FROM facturas WHERE id = ?")
+      .bind(id)
+      .first<{ examenes: string }>(); // Tipado directamente en la consulta
+
+    if (!facturaActual) return c.json({ error: "Factura no encontrada" }, 404);
+
+    const examenesPrevios = JSON.parse(facturaActual.examenes || "[]");
+    const categoriasPrevias = [
+      ...new Set(
+        examenesPrevios.map((ex: any) => ex.categoria).filter(Boolean)
+      ),
+    ] as string[];
+    const categoriasNuevas = data.categorias || [];
+
+    // Actualizar factura
+    await db
+      .prepare(
+        "UPDATE facturas SET paciente_id = ?, examenes = ?, total = ?, fecha = ? WHERE id = ?"
+      )
+      .bind(
+        data.paciente_id,
+        JSON.stringify(data.examenes),
+        data.total,
+        data.fecha,
+        id
+      )
+      .run();
+
+    // Sincronizar Exámenes (Eliminar obsoletos)
+    for (const catPrev of categoriasPrevias) {
+      if (!categoriasNuevas.includes(catPrev)) {
+        await db
+          .prepare(
+            "DELETE FROM examenes WHERE paciente_id = ? AND tipo = ? AND fecha = ? AND estado = 'pendiente'"
+          )
+          .bind(data.paciente_id, catPrev, data.fecha)
+          .run();
+      }
+    }
+
+    // Sincronizar Exámenes (Crear nuevos)
+    for (const catNueva of categoriasNuevas) {
+      if (!categoriasPrevias.includes(catNueva)) {
+        const examenUuid = crypto.randomUUID();
+        await db
+          .prepare(
+            "INSERT INTO examenes (paciente_id, tipo, fecha, estado, uuid, resultados) VALUES (?, ?, ?, ?, ?, ?)"
+          )
+          .bind(
+            data.paciente_id,
+            catNueva,
+            data.fecha,
+            "pendiente",
+            examenUuid,
+            JSON.stringify({})
+          )
+          .run();
+      }
+    }
+
+    return c.json({ success: true });
+  } catch (error: any) {
+    return c.json(
+      { error: "Error de sincronización", details: error.message },
+      500
+    );
+  }
 });
 
 app.delete("/api/facturas/:id", async (c) => {
-  await c.env.DB.prepare("DELETE FROM facturas WHERE id = ?")
-    .bind(c.req.param("id"))
-    .run();
-  return c.json({ success: true });
+  const id = c.req.param("id");
+  const db = c.env.DB;
+
+  try {
+    // 1. Obtener la información de la factura antes de borrarla
+    const factura = await db
+      .prepare("SELECT paciente_id, fecha, examenes FROM facturas WHERE id = ?")
+      .bind(id)
+      .first<{ paciente_id: number; fecha: string; examenes: string }>();
+
+    if (!factura) {
+      return c.json({ error: "Factura no encontrada" }, 404);
+    }
+
+    // 2. Extraer las categorías únicas de los exámenes de esa factura
+    const examenesList = JSON.parse(factura.examenes || "[]");
+    const categorias = [...new Set(examenesList.map((ex: any) => ex.categoria).filter(Boolean))] as string[];
+
+    // 3. Eliminar los exámenes vinculados que estén en estado 'pendiente'
+    // Usamos el paciente_id, la fecha y el tipo (categoría) para identificarlos
+    if (categorias.length > 0) {
+      for (const cat of categorias) {
+        await db
+          .prepare(
+            "DELETE FROM examenes WHERE paciente_id = ? AND tipo = ? AND fecha = ? AND estado = 'pendiente'"
+          )
+          .bind(factura.paciente_id, cat, factura.fecha)
+          .run();
+      }
+    }
+
+    // 4. Finalmente, borrar la factura
+    await db.prepare("DELETE FROM facturas WHERE id = ?").bind(id).run();
+
+    return c.json({ 
+      success: true, 
+      message: "Factura y exámenes pendientes eliminados correctamente" 
+    });
+
+  } catch (error: any) {
+    console.error("Error al eliminar factura:", error.message);
+    return c.json(
+      { error: "No se pudo eliminar la factura", details: error.message },
+      500
+    );
+  }
 });
 
 // --- PLANTILLAS Y EXÁMENES PREDEFINIDOS ---
@@ -368,6 +513,41 @@ app.get("/api/plantillas/bacteriologia", async (c) => {
     "SELECT * FROM plantillas_bacteriologia ORDER BY nombre_plantilla ASC"
   ).all();
   return c.json(results);
+});
+
+// --- AGREGAR ESTO AL BACKEND ---
+
+// Actualizar un examen predefinido
+app.put("/api/examenes-predefinidos/:id", async (c) => {
+  const id = c.req.param("id");
+  const { nombre, precio } = await c.req.json();
+  
+  try {
+    await c.env.DB.prepare(
+      "UPDATE examenes_predefinidos SET nombre = ?, precio = ?, categoria = ? WHERE id = ?"
+    )
+    .bind(nombre, precio, precio, id)
+    .run();
+    
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ error: "Error al actualizar" }, 500);
+  }
+});
+
+// Eliminar un examen predefinido
+app.delete("/api/examenes-predefinidos/:id", async (c) => {
+  const id = c.req.param("id");
+  
+  try {
+    await c.env.DB.prepare("DELETE FROM examenes_predefinidos WHERE id = ?")
+      .bind(id)
+      .run();
+      
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ error: "Error al eliminar" }, 500);
+  }
 });
 
 app.post(

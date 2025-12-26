@@ -9,7 +9,8 @@ import {
   Layout, 
   FlaskConical,
   DollarSign,
-  Tag
+  Tag,
+  Search
 } from "lucide-react";
 
 interface ExamenPredefinido {
@@ -22,6 +23,7 @@ interface ExamenPredefinido {
 export default function ConfiguracionPage() {
   const [examenes, setExamenes] = useState<ExamenPredefinido[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [footerText, setFooterText] = useState("© 2024 Laboratorio Clínico - Todos los derechos reservados");
   
   // Estado para Modal/Formulario
@@ -35,11 +37,12 @@ export default function ConfiguracionPage() {
 
   const loadExamenes = async () => {
     try {
+      setLoading(true);
       const res = await fetch("/api/examenes-predefinidos");
       const data = await res.json() as ExamenPredefinido[];
       setExamenes(data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error cargando exámenes:", error);
     } finally {
       setLoading(false);
     }
@@ -70,15 +73,37 @@ export default function ConfiguracionPage() {
         loadExamenes();
       }
     } catch (error) {
-      alert("Error al guardar");
+      alert("Error de conexión al guardar");
     }
   };
 
   const deleteExamen = async (id: number) => {
     if (!confirm("¿Eliminar este examen permanentemente?")) return;
-    await fetch(`/api/examenes-predefinidos/${id}`, { method: "DELETE" });
-    loadExamenes();
+    
+    try {
+      const res = await fetch(`/api/examenes-predefinidos/${id}`, { 
+        method: "DELETE" 
+      });
+      
+      if (res.ok) {
+        loadExamenes();
+      } else {
+        alert("No se pudo eliminar el registro. Verifica que el ID existe.");
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error de red al intentar eliminar");
+    }
   };
+
+  // Lógica de búsqueda filtrada
+  const filteredExamenes = examenes.filter((ex) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      ex.nombre.toLowerCase().includes(term) || 
+      ex.categoria.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -122,11 +147,24 @@ export default function ConfiguracionPage() {
         {/* COLUMNA DERECHA: EXÁMENES PREDEFINIDOS */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+            <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
               <div>
                 <h2 className="text-xl font-black text-slate-800 tracking-tight">Catálogo de Exámenes</h2>
                 <p className="text-sm text-slate-400">Define nombres y precios base</p>
               </div>
+
+              {/* BARRA DE BÚSQUEDA */}
+              <div className="relative flex-1 max-w-sm w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input 
+                  type="text"
+                  placeholder="Buscar examen o categoría..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-medium text-sm transition-all"
+                />
+              </div>
+
               <button 
                 onClick={() => {
                   setEditingExamen(null);
@@ -150,40 +188,50 @@ export default function ConfiguracionPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {examenes.map((ex) => (
-                    <tr key={ex.id} className="hover:bg-slate-50/80 transition-colors group">
-                      <td className="px-8 py-4 font-bold text-slate-700">{ex.nombre}</td>
-                      <td className="px-8 py-4">
-                        <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                          {ex.categoria}
-                        </span>
-                      </td>
-                      <td className="px-8 py-4 text-right font-black text-blue-600">${ex.precio.toFixed(2)}</td>
-                      <td className="px-8 py-4 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => {
-                              setEditingExamen(ex);
-                              setFormData({ nombre: ex.nombre, precio: ex.precio.toString(), categoria: ex.categoria });
-                              setIsModalOpen(true);
-                            }}
-                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button 
-                            onClick={() => deleteExamen(ex.id)}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredExamenes.length > 0 ? (
+                    filteredExamenes.map((ex) => (
+                      <tr key={ex.id} className="hover:bg-slate-50/80 transition-colors group">
+                        <td className="px-8 py-4 font-bold text-slate-700">{ex.nombre}</td>
+                        <td className="px-8 py-4">
+                          <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                            {ex.categoria}
+                          </span>
+                        </td>
+                        <td className="px-8 py-4 text-right font-black text-blue-600">${ex.precio.toFixed(2)}</td>
+                        <td className="px-8 py-4 text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => {
+                                setEditingExamen(ex);
+                                setFormData({ nombre: ex.nombre, precio: ex.precio.toString(), categoria: ex.categoria });
+                                setIsModalOpen(true);
+                              }}
+                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => deleteExamen(ex.id)}
+                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    !loading && (
+                      <tr>
+                        <td colSpan={4} className="p-12 text-center text-slate-400 font-medium italic">
+                          No se encontraron resultados para "{searchTerm}"
+                        </td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
-              {loading && <div className="p-20 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Cargando catálogo...</div>}
+              {loading && <div className="p-20 text-center text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando catálogo...</div>}
             </div>
           </div>
         </div>
@@ -223,9 +271,8 @@ export default function ConfiguracionPage() {
                   <select 
                     value={formData.categoria}
                     onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 outline-none font-bold appearance-none"
+                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 outline-none font-bold appearance-none cursor-pointer"
                   >
-
                     <option>Hematología</option>
                     <option>Química Clínica</option>
                     <option>Heces</option>

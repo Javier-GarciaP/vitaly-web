@@ -5,16 +5,18 @@ import {
   X,
   Search,
   Edit2,
-  ChevronRight,
   Check,
   Receipt,
   User,
   Calendar,
   CreditCard,
   Layers,
+  FileText,
+  AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
-// --- Interfaces ---
+// --- Interfaces Actualizadas ---
 interface Paciente {
   id: number;
   cedula: string;
@@ -31,6 +33,7 @@ interface ExamenPredefinido {
 interface ExamenFactura {
   nombre: string;
   precio: number;
+  categoria: string; // Campo crucial para la lógica que pides
 }
 
 interface Factura {
@@ -59,6 +62,9 @@ export default function FacturasPage() {
 
   const [busquedaExamen, setBusquedaExamen] = useState("");
   const [showExamenesSug, setShowExamenesSug] = useState(false);
+
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [openCategories, setOpenCategories] = useState<string[]>([]); // Para controlar qué listas están abiertas
 
   const getLocalDate = () => {
     const date = new Date();
@@ -145,26 +151,27 @@ export default function FacturasPage() {
       .slice(0, 8);
   }, [busquedaExamen, examenesPredefinidos]);
 
+  // --- Lógica de categorías para el Backend ---
+  const categoriasPresentes = useMemo(() => {
+    const cats = examenesSeleccionados
+      .map((ex) => ex.categoria)
+      .filter((c) => c !== "Otros"); // Opcional: filtrar si no quieres crear exámenes para "Varios"
+    return [...new Set(cats)];
+  }, [examenesSeleccionados]);
+
   const seleccionarPaciente = (p: Paciente) => {
     setFormData({ ...formData, paciente_id: p.id.toString() });
     setPacienteInput(`${p.nombre} (${p.cedula})`);
     setShowSugerencias(false);
   };
 
-  const agregarExamen = (nombre: string, precio: number) => {
-    setExamenesSeleccionados((prev) => [...prev, { nombre, precio }]);
+  const agregarExamen = (nombre: string, precio: number, categoria: string) => {
+    setExamenesSeleccionados((prev) => [
+      ...prev,
+      { nombre, precio, categoria },
+    ]);
     setBusquedaExamen("");
     setShowExamenesSug(false);
-  };
-
-  const handleKeyDownExamen = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && sugerenciasExamenes.length > 0) {
-      e.preventDefault();
-      agregarExamen(
-        sugerenciasExamenes[0].nombre,
-        sugerenciasExamenes[0].precio
-      );
-    }
   };
 
   const eliminarExamen = (index: number) => {
@@ -183,6 +190,7 @@ export default function FacturasPage() {
     const payload = {
       paciente_id: parseInt(formData.paciente_id),
       examenes: examenesSeleccionados,
+      categorias: categoriasPresentes, // Esta lista le dice al backend qué exámenes de laboratorio crear
       total: calcularTotal(),
       fecha: formData.fecha,
     };
@@ -197,7 +205,9 @@ export default function FacturasPage() {
 
       if (res.ok) {
         showNotification(
-          editingId ? "Factura actualizada" : "Factura generada con éxito"
+          editingId
+            ? "Factura actualizada correctamente"
+            : "Factura y órdenes generadas"
         );
         loadFacturas();
         closeModal();
@@ -209,10 +219,7 @@ export default function FacturasPage() {
 
   const openModal = () => {
     setEditingId(null);
-    setFormData({
-      paciente_id: "",
-      fecha: getLocalDate(),
-    });
+    setFormData({ paciente_id: "", fecha: getLocalDate() });
     setPacienteInput("");
     setExamenesSeleccionados([]);
     setShowModal(true);
@@ -229,24 +236,24 @@ export default function FacturasPage() {
     setTimeout(() => setNotification(""), 3000);
   };
 
-  // Función para eliminar factura
   const handleEliminarFactura = async (id: number) => {
-    if (!confirm("¿Estás seguro de que deseas eliminar esta factura?")) return;
-
+    if (
+      !confirm(
+        "¿Estás seguro de que deseas eliminar esta factura? Esto podría afectar los exámenes vinculados."
+      )
+    )
+      return;
     try {
       const res = await fetch(`/api/facturas/${id}`, { method: "DELETE" });
       if (res.ok) {
-        showNotification("Factura eliminada correctamente");
-        loadFacturas(); // Recargar la lista
-      } else {
-        alert("Error al eliminar la factura");
+        showNotification("Factura eliminada");
+        loadFacturas();
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error(error);
     }
   };
 
-  // Función para cargar datos en el modal y editar
   const handleEditarFactura = (factura: Factura) => {
     setEditingId(factura.id);
     setFormData({
@@ -258,7 +265,34 @@ export default function FacturasPage() {
     setShowModal(true);
   };
 
-  const categorias = [...new Set(examenesPredefinidos.map((e) => e.categoria))];
+  const listaCategorias = [
+    ...new Set(examenesPredefinidos.map((e) => e.categoria)),
+  ];
+
+  // Función para alternar categorías
+  const toggleCategory = (cat: string) => {
+    setOpenCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
+  // 2. Manejador de teclado actualizado
+  const handleKeyDownExamen = (e: React.KeyboardEvent) => {
+    if (sugerenciasExamenes.length > 0) {
+      if (e.key === "ArrowDown") {
+        setSelectedIndex((prev) =>
+          prev < sugerenciasExamenes.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === "ArrowUp") {
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        const ex = sugerenciasExamenes[selectedIndex];
+        agregarExamen(ex.nombre, ex.precio, ex.categoria);
+        setBusquedaExamen("");
+        setSelectedIndex(-1);
+      }
+    }
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-700">
@@ -366,15 +400,12 @@ export default function FacturasPage() {
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {/* BOTÓN EDITAR */}
                       <button
                         onClick={() => handleEditarFactura(f)}
                         className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-xl shadow-sm transition-all"
                       >
                         <Edit2 size={16} />
                       </button>
-
-                      {/* BOTÓN ELIMINAR */}
                       <button
                         onClick={() => handleEliminarFactura(f.id)}
                         className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-white rounded-xl shadow-sm transition-all"
@@ -390,49 +421,51 @@ export default function FacturasPage() {
         </div>
       </div>
 
-      {/* MODAL POS (Punto de Venta) */}
+      {/* MODAL POS - MEJORADO */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col h-[90vh] animate-in zoom-in-95">
-            {/* Header Modal */}
-            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-7xl overflow-hidden flex flex-col h-[90vh] animate-in zoom-in-95 duration-300">
+            {/* HEADER MODAL */}
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
                   <Receipt size={24} />
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                    Nueva Factura
+                    {editingId ? "Editar Factura" : "Nueva Factura"}
                   </h2>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                    Módulo de facturación electrónica
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">
+                      <Check size={10} /> Terminal Activa
+                    </span>
+                  </div>
                 </div>
               </div>
               <button
                 onClick={closeModal}
-                className="p-4 hover:bg-white rounded-[1.5rem] text-slate-300 hover:text-red-500 shadow-sm transition-all"
+                className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-red-500 transition-all"
               >
                 <X size={24} />
               </button>
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-              {/* LADO IZQUIERDO: SELECCIÓN Y CATÁLOGO */}
-              <div className="flex-1 p-10 overflow-y-auto space-y-10 custom-scrollbar">
-                {/* Selección de Paciente */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* LADO IZQUIERDO: SELECCIÓN Y CATÁLOGO (CON SCROLL) */}
+              <div className="flex-1 p-8 overflow-y-auto space-y-8 custom-scrollbar bg-slate-50/30">
+                {/* Info Cliente y Fecha */}
+                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="relative">
-                    <label className="text-[11px] font-black text-slate-400 uppercase mb-3 block ml-1 tracking-widest">
-                      Información del Cliente
+                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest ml-2">
+                      Paciente
                     </label>
-                    <div className="group relative">
+                    <div className="relative group">
                       <User
                         className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
                         size={18}
                       />
                       <input
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-[1.5rem] outline-none font-bold text-slate-700 transition-all placeholder:text-slate-300"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold text-slate-700 transition-all"
                         placeholder="Buscar paciente..."
                         value={pacienteInput}
                         onChange={(e) => {
@@ -441,29 +474,38 @@ export default function FacturasPage() {
                         }}
                       />
                     </div>
+
+                    {/* Autocompletado de Pacientes */}
                     {showSugerencias && sugerenciasPacientes.length > 0 && (
-                      <div className="absolute z-[110] w-full mt-3 bg-white border border-slate-100 rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2">
-                        {sugerenciasPacientes.map((p) => (
+                      <div className="absolute z-[120] w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {sugerenciasPacientes.map((p, index) => (
                           <button
                             key={p.id}
                             type="button"
                             onClick={() => seleccionarPaciente(p)}
-                            className="w-full px-6 py-4 text-left hover:bg-blue-50 flex justify-between items-center border-b border-slate-50 last:border-0 group transition-colors"
+                            className="w-full px-5 py-3 text-left hover:bg-blue-600 hover:text-white flex justify-between items-center border-b border-slate-50 last:border-0 transition-colors group"
                           >
-                            <span className="font-bold text-slate-700 group-hover:text-blue-600">
-                              {p.nombre}
-                            </span>
-                            <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-                              {p.cedula}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm group-hover:text-white">
+                                {p.nombre}
+                              </span>
+                              <span className="text-[9px] font-black text-slate-400 group-hover:text-blue-200 uppercase">
+                                {p.cedula}
+                              </span>
+                            </div>
+                            <Check
+                              size={14}
+                              className="text-emerald-500 group-hover:text-white"
+                            />
                           </button>
                         ))}
                       </div>
                     )}
                   </div>
+
                   <div>
-                    <label className="text-[11px] font-black text-slate-400 uppercase mb-3 block ml-1 tracking-widest">
-                      Fecha de Cobro
+                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest ml-2">
+                      Fecha Contable
                     </label>
                     <div className="relative">
                       <Calendar
@@ -476,39 +518,65 @@ export default function FacturasPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, fecha: e.target.value })
                         }
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-[1.5rem] outline-none font-bold text-slate-700 transition-all"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold text-slate-700 transition-all"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Buscador de Exámenes */}
-                <div className="space-y-4">
-                  <label className="text-[11px] font-black text-slate-400 uppercase mb-1 block ml-1 tracking-widest">
-                    Buscador Rápido de Estudios
-                  </label>
+                {/* Buscador de Estudios (Autocompletado con Teclado) */}
+                <div className="space-y-3">
                   <div className="relative">
+                    <Search
+                      className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-400"
+                      size={20}
+                    />
                     <input
-                      className="w-full px-6 py-6 bg-blue-50/30 border-2 border-dashed border-blue-100 rounded-[2rem] focus:ring-0 focus:border-blue-500 focus:border-solid outline-none font-bold text-lg text-slate-700 placeholder:text-blue-200 transition-all"
-                      placeholder="Escriba el análisis clínico y presione Enter..."
+                      className="w-full pl-14 pr-6 py-5 bg-white border-2 border-dashed border-blue-100 rounded-[2rem] focus:ring-0 focus:border-blue-500 focus:border-solid outline-none font-bold text-lg text-slate-700 placeholder:text-blue-200 transition-all shadow-sm"
+                      placeholder="Buscar análisis (Ej: Glicemia, Orina...)"
                       value={busquedaExamen}
                       onChange={(e) => {
                         setBusquedaExamen(e.target.value);
                         setShowExamenesSug(true);
+                        setSelectedIndex(-1);
                       }}
                       onKeyDown={handleKeyDownExamen}
                     />
+
                     {showExamenesSug && sugerenciasExamenes.length > 0 && (
-                      <div className="absolute z-[110] w-full mt-3 bg-white border border-slate-100 rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-top-2">
-                        {sugerenciasExamenes.map((ex) => (
+                      <div className="absolute z-[110] w-full mt-3 bg-white border border-slate-100 rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in duration-200">
+                        {sugerenciasExamenes.map((ex, index) => (
                           <button
                             key={ex.id}
                             type="button"
-                            onClick={() => agregarExamen(ex.nombre, ex.precio)}
-                            className="w-full px-8 py-4 text-left hover:bg-blue-600 hover:text-white flex justify-between items-center transition-colors group"
+                            onClick={() =>
+                              agregarExamen(ex.nombre, ex.precio, ex.categoria)
+                            }
+                            className={`w-full px-8 py-4 text-left flex justify-between items-center transition-colors ${
+                              selectedIndex === index
+                                ? "bg-blue-600 text-white"
+                                : "hover:bg-blue-50"
+                            }`}
                           >
-                            <span className="font-bold">{ex.nombre}</span>
-                            <span className="font-black text-blue-600 group-hover:text-white">
+                            <div className="flex flex-col">
+                              <span className="font-bold">{ex.nombre}</span>
+                              <span
+                                className={`text-[10px] uppercase font-black ${
+                                  selectedIndex === index
+                                    ? "text-blue-100"
+                                    : "text-slate-400"
+                                }`}
+                              >
+                                {ex.categoria}
+                              </span>
+                            </div>
+                            <span
+                              className={`font-black ${
+                                selectedIndex === index
+                                  ? "text-white"
+                                  : "text-blue-600"
+                              }`}
+                            >
                               ${ex.precio.toFixed(2)}
                             </span>
                           </button>
@@ -518,21 +586,45 @@ export default function FacturasPage() {
                   </div>
                 </div>
 
-                {/* Catálogo por Categorías */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2">
-                    <Layers size={16} className="text-slate-400" />
-                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                      Catálogo Disponible
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
-                    {categorias.map((cat) => (
-                      <div key={cat} className="space-y-3">
-                        <p className="text-[10px] font-black text-blue-500 uppercase flex items-center gap-2 border-b border-blue-50 pb-2">
-                          <ChevronRight size={14} /> {cat}
-                        </p>
-                        <div className="grid gap-2">
+                {/* Catálogo por Categorías (Acordeón/Lista Desplegable) */}
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">
+                    Navegar Catálogo
+                  </h3>
+                  {listaCategorias.map((cat) => (
+                    <div
+                      key={cat}
+                      className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory(cat)}
+                        className="w-full px-6 py-4 flex justify-between items-center hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-xl ${
+                              openCategories.includes(cat)
+                                ? "bg-blue-600 text-white"
+                                : "bg-blue-50 text-blue-500"
+                            }`}
+                          >
+                            <Layers size={16} />
+                          </div>
+                          <span className="font-black text-slate-700 text-sm uppercase tracking-tight">
+                            {cat}
+                          </span>
+                        </div>
+                        <ChevronDown
+                          size={20}
+                          className={`text-slate-300 transition-transform duration-300 ${
+                            openCategories.includes(cat) ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {openCategories.includes(cat) && (
+                        <div className="border-t border-slate-50 bg-slate-50/30 divide-y divide-slate-50 animate-in slide-in-from-top-2">
                           {examenesPredefinidos
                             .filter((e) => e.categoria === cat)
                             .map((ex) => (
@@ -540,33 +632,37 @@ export default function FacturasPage() {
                                 key={ex.id}
                                 type="button"
                                 onClick={() =>
-                                  agregarExamen(ex.nombre, ex.precio)
+                                  agregarExamen(
+                                    ex.nombre,
+                                    ex.precio,
+                                    ex.categoria
+                                  )
                                 }
-                                className="w-full text-left p-4 rounded-2xl border-2 border-slate-50 hover:border-blue-200 hover:bg-white transition-all flex justify-between items-center group"
+                                className="w-full px-10 py-4 flex justify-between items-center hover:bg-white group transition-all"
                               >
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900">
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-blue-700">
                                   {ex.nombre}
                                 </span>
-                                <span className="text-xs font-black text-slate-300 group-hover:text-blue-600 transition-colors">
+                                <span className="text-xs font-black text-slate-400 group-hover:text-blue-500">
                                   ${ex.precio.toFixed(2)}
                                 </span>
                               </button>
                             ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
 
-                {/* Manual */}
-                <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl shadow-slate-200 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10" />
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">
-                    Ítem personalizado
+                {/* Item Personalizado */}
+                <div className="p-6 bg-slate-900 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-10 -mt-10" />
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest flex items-center gap-2">
+                    <FileText size={12} /> Servicio Especial No Catalogado
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 relative z-10">
                     <input
-                      placeholder="Descripción del servicio"
+                      placeholder="Descripción del servicio..."
                       value={examenPersonalizado.nombre}
                       onChange={(e) =>
                         setExamenPersonalizado({
@@ -574,14 +670,14 @@ export default function FacturasPage() {
                           nombre: e.target.value,
                         })
                       }
-                      className="flex-[3] bg-white/10 border-transparent border-2 focus:border-white/30 rounded-xl px-5 py-3 text-sm outline-none transition-all placeholder:text-slate-500"
+                      className="flex-[3] bg-white/5 border-white/10 border-2 focus:border-blue-500 focus:bg-white/10 rounded-xl px-5 py-3 text-sm outline-none transition-all"
                     />
                     <div className="flex-[1] relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">
                         $
                       </span>
                       <input
-                        placeholder="Precio"
+                        placeholder="0.00"
                         type="number"
                         value={examenPersonalizado.precio}
                         onChange={(e) =>
@@ -590,7 +686,7 @@ export default function FacturasPage() {
                             precio: e.target.value,
                           })
                         }
-                        className="w-full bg-white/10 border-transparent border-2 focus:border-white/30 rounded-xl pl-8 pr-4 py-3 text-sm outline-none transition-all"
+                        className="w-full bg-white/5 border-white/10 border-2 focus:border-blue-500 focus:bg-white/10 rounded-xl pl-8 pr-4 py-3 text-sm outline-none transition-all"
                       />
                     </div>
                     <button
@@ -602,84 +698,103 @@ export default function FacturasPage() {
                         ) {
                           agregarExamen(
                             examenPersonalizado.nombre,
-                            parseFloat(examenPersonalizado.precio)
+                            parseFloat(examenPersonalizado.precio),
+                            "Otros"
                           );
                           setExamenPersonalizado({ nombre: "", precio: "" });
                         }
                       }}
-                      className="bg-white text-slate-900 px-6 py-3 rounded-xl hover:bg-blue-400 hover:text-white transition-all font-black flex items-center justify-center"
+                      className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-500 transition-all font-black flex items-center justify-center"
                     >
-                      <Check size={20} />
+                      <Plus size={20} />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* LADO DERECHO: TICKET DE COBRO */}
-              <div className="w-full lg:w-[420px] bg-slate-50/80 p-10 flex flex-col border-l border-slate-100 relative">
-                <div className="absolute top-0 left-0 w-full h-2 bg-[radial-gradient(circle_at_center,_#e2e8f0_1px,_transparent_1px)] bg-[length:12px_12px]" />
-
-                <div className="flex-1">
-                  <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 text-center">
-                    Detalle de Operación
-                  </h3>
-
-                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {examenesSeleccionados.map((ex, i) => (
-                      <div
-                        key={i}
-                        className="flex justify-between items-start group animate-in slide-in-from-right-5 duration-300"
-                      >
-                        <div className="flex gap-4">
-                          <button
-                            onClick={() => eliminarExamen(i)}
-                            className="mt-1 text-slate-200 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                          <div>
-                            <p className="text-sm font-black text-slate-800 leading-tight">
-                              {ex.nombre}
-                            </p>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">
-                              Servicio Profesional
-                            </p>
-                          </div>
-                        </div>
-                        <p className="font-black text-slate-700 text-sm">
-                          ${ex.precio.toFixed(2)}
-                        </p>
-                      </div>
-                    ))}
-                    {examenesSeleccionados.length === 0 && (
-                      <div className="text-center py-20 opacity-20">
-                        <Receipt size={64} className="mx-auto mb-4" />
-                        <p className="text-xs font-black uppercase tracking-widest">
-                          Esperando ítems
-                        </p>
-                      </div>
-                    )}
+              {/* LADO DERECHO: TICKET DE COBRO (ESTÁTICO CON SCROLL INTERNO) */}
+              <div className="w-full lg:w-[450px] bg-white flex flex-col border-l border-slate-100 h-full">
+                {/* Resumen Header */}
+                <div className="p-8 pb-4 shrink-0">
+                  <div className="text-center">
+                    <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                      Resumen de Factura
+                    </h3>
+                    <div className="h-1 w-12 bg-blue-600 mx-auto rounded-full" />
                   </div>
                 </div>
 
-                <div className="mt-10 pt-10 border-t-2 border-dashed border-slate-200 space-y-6">
-                  <div className="flex justify-between items-center text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                    <span>Subtotal Neto</span>
+                {/* Lista de Items Seleccionados (Scroll independiente) */}
+                <div className="flex-1 overflow-y-auto px-8 space-y-3 custom-scrollbar min-h-0">
+                  {examenesSeleccionados.map((ex, i) => (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl group animate-in slide-in-from-right-5"
+                    >
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => eliminarExamen(i)}
+                          className="p-2 bg-white text-slate-300 hover:text-red-500 hover:shadow-md rounded-lg transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                        <div>
+                          <p className="text-sm font-black text-slate-800 leading-tight">
+                            {ex.nombre}
+                          </p>
+                          <span className="text-[9px] font-bold text-blue-500 uppercase tracking-tighter">
+                            {ex.categoria}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="font-black text-slate-700">
+                        ${ex.precio.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+
+                  {examenesSeleccionados.length === 0 && (
+                    <div className="text-center py-20 opacity-20">
+                      <Receipt size={64} className="mx-auto mb-4" />
+                      <p className="text-xs font-black uppercase tracking-widest">
+                        Carrito Vacío
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bloque de Totales y Botón (Fijo al fondo) */}
+                <div className="p-8 bg-white border-t border-slate-50 shrink-0 space-y-4">
+                  {categoriasPresentes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {categoriasPresentes.map((cat) => (
+                        <span
+                          key={cat}
+                          className="text-[8px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 uppercase"
+                        >
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center text-slate-400 font-bold uppercase text-[10px] tracking-widest px-2">
+                    <span>Subtotal</span>
                     <span>${calcularTotal().toFixed(2)}</span>
                   </div>
 
-                  <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-slate-900 font-black uppercase text-xs tracking-tighter">
-                        Total a Pagar
+                  <div className="bg-slate-900 p-6 rounded-[2.5rem] text-white shadow-xl">
+                    <div className="flex justify-between items-center mb-1 opacity-60">
+                      <span className="font-black uppercase text-[10px] tracking-widest">
+                        Total Neto
                       </span>
-                      <CreditCard size={18} className="text-blue-500" />
+                      <CreditCard size={16} />
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-black text-blue-600">
+                      <span className="text-2xl font-black text-blue-400">
                         $
                       </span>
-                      <span className="text-5xl font-black text-slate-900 tracking-tighter tabular-nums">
+                      <span className="text-5xl font-black tracking-tighter tabular-nums">
                         {calcularTotal().toFixed(2)}
                       </span>
                     </div>
@@ -691,13 +806,13 @@ export default function FacturasPage() {
                       examenesSeleccionados.length === 0 ||
                       !formData.paciente_id
                     }
-                    className={`w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs transition-all shadow-2xl active:scale-[0.97] ${
+                    className={`w-full py-6 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-sm transition-all shadow-2xl active:scale-[0.97] ${
                       examenesSeleccionados.length > 0 && formData.paciente_id
                         ? "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"
-                        : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                        : "bg-slate-100 text-slate-300 cursor-not-allowed"
                     }`}
                   >
-                    Emitir Factura
+                    Finalizar y Procesar
                   </button>
                 </div>
               </div>
@@ -706,12 +821,11 @@ export default function FacturasPage() {
         </div>
       )}
 
-      {/* Estilos para scrollbars limpios */}
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
       `}</style>
     </div>
   );

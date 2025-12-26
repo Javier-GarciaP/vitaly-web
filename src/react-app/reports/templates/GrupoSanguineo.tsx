@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   signatureArea: {
     backgroundColor: '#f2f2f2',
-    height: 25,
+    height: 45,
     width: '100%',
     borderWidth: 0.5,
     borderColor: '#ccc',
@@ -167,7 +167,7 @@ const GrupoSanguineo: React.FC<GrupoSanguineoProps> = ({ data, patient, logoUrl 
 
         {/* REVERSO (DORSO) */}
         <View style={[styles.creditCard, styles.backCard]}>
-          <View style={styles.magneticStripe} />
+          {/* <View style={styles.magneticStripe} /> */}
           
           <View>
             <Text style={{ fontSize: 6, fontWeight: 'bold', marginLeft: 5 }}>FIRMA BIOANALISTA:</Text>
