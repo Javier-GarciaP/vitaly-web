@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Save, Trash2, FileText, Plus } from "lucide-react";
-import {MiscelaneosData} from '@/types/types'
+import { Save, Trash2, Plus, Beaker, ClipboardList, Layers } from "lucide-react";
+import { MiscelaneosData } from '@/types/types';
 
 interface MiscelaneosFormProps {
   resultados: any;
@@ -8,7 +8,6 @@ interface MiscelaneosFormProps {
 }
 
 export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFormProps) {
-  // Estado local para las plantillas cargadas de la DB
   const [plantillas, setPlantillas] = useState<any[]>([]);
 
   // 1. CARGA REAL DESDE LA API
@@ -32,7 +31,6 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
     onChange({ ...resultados, [field]: value });
   };
 
-  // 2. APLICAR PLANTILLA (Mapeo de columnas DB -> Formulario)
   const aplicarPlantilla = (p: any) => {
     onChange({
       ...resultados,
@@ -43,7 +41,6 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
     });
   };
 
-  // 3. GUARDAR COMO PLANTILLA (Envío con nombres de columna exactos)
   const guardarComoPlantilla = async () => {
     if (!resultados.examen_solicitado) {
       alert("Asigne un nombre al examen solicitado para guardar la plantilla");
@@ -66,143 +63,166 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
 
       if (res.ok) {
         alert("Plantilla guardada correctamente");
-        cargarPlantillas(); // Recargar lista lateral automáticamente
+        cargarPlantillas();
       } else {
-        alert("Error al guardar la plantilla en el servidor");
+        alert("Error al guardar la plantilla");
       }
     } catch (error) {
-      alert("Error de conexión con el servidor");
+      alert("Error de conexión");
     }
   };
 
-  // 4. ELIMINAR PLANTILLA
   const eliminarPlantilla = async (id: number) => {
     if (!confirm("¿Seguro que desea eliminar esta plantilla?")) return;
-
     try {
-      const res = await fetch(`/api/plantillas/miscelaneos/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (res.ok) {
-        // Actualizar estado local eliminando el item sin recargar todo
-        setPlantillas(plantillas.filter(p => p.id !== id));
-      }
+      const res = await fetch(`/api/plantillas/miscelaneos/${id}`, { method: 'DELETE' });
+      if (res.ok) setPlantillas(plantillas.filter(p => p.id !== id));
     } catch (error) {
       console.error("Error al eliminar:", error);
     }
   };
 
   const limpiarCampos = () => {
-    onChange({
-      examen_solicitado: "",
-      metodo: "",
-      muestra: "",
-      resultado_texto: ""
-    });
+    onChange({ examen_solicitado: "", metodo: "", muestra: "", resultado_texto: "" });
   };
 
-  const inputStyle = "w-full px-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none";
-  const labelStyle = "block text-sm font-bold text-blue-900 mb-1";
+  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
+  const inputBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto pb-10">
       
       {/* SECCIÓN PRINCIPAL: EDITOR */}
-      <div className="flex-1 space-y-4">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-100 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="flex-1 space-y-6">
+        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-8">
+          
+          <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+              <Beaker size={24} />
+            </div>
             <div>
-              <label className={labelStyle}>Examen Solicitado:</label>
+              <h3 className="text-xl font-black text-slate-800 tracking-tight">Editor de Resultados</h3>
+              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Exámenes Especiales / Misceláneos</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <label className={labelBase}>Examen Solicitado</label>
               <input
                 type="text"
                 value={resultados?.examen_solicitado || ""}
                 onChange={(e) => handleChange("examen_solicitado", e.target.value)}
-                className={inputStyle}
-                placeholder="Nombre del examen..."
+                className={inputBase}
+                placeholder="Ej. Prueba de Esfuerzo"
               />
             </div>
             <div>
-              <label className={labelStyle}>Método:</label>
+              <label className={labelBase}>Método</label>
               <input
                 type="text"
                 value={resultados?.metodo || ""}
                 onChange={(e) => handleChange("metodo", e.target.value)}
-                className={inputStyle}
+                className={inputBase}
+                placeholder="Inmunoensayo..."
               />
             </div>
             <div>
-              <label className={labelStyle}>Muestra:</label>
+              <label className={labelBase}>Muestra</label>
               <input
                 type="text"
                 value={resultados?.muestra || ""}
                 onChange={(e) => handleChange("muestra", e.target.value)}
-                className={inputStyle}
+                className={inputBase}
+                placeholder="Suero, Orina..."
               />
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className={labelStyle}>Resultado:</label>
+          <div className="space-y-3">
+            <div className="flex justify-between items-end px-1">
+              <div>
+                <label className={labelBase}>Desarrollo del Informe</label>
+                <p className="text-[10px] text-slate-400 font-medium">Use este espacio para detallar hallazgos clínicos</p>
+              </div>
               <button 
                 onClick={guardarComoPlantilla}
-                className="flex items-center gap-2 text-xs bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
+                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100"
               >
-                <Save size={14} /> Guardar como plantilla
+                <Save size={14} /> Guardar Plantilla
               </button>
             </div>
+            
             <textarea
               value={resultados?.resultado_texto || ""}
               onChange={(e) => handleChange("resultado_texto", e.target.value)}
-              className="w-full px-4 py-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 min-h-[300px] font-mono text-sm"
-              placeholder="Diseñe el resultado aquí..."
+              className="w-full p-8 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:border-indigo-500 focus:bg-white outline-none min-h-[400px] font-mono text-sm leading-relaxed text-slate-600 shadow-inner"
+              placeholder="Comience a escribir el informe final..."
             />
           </div>
         </div>
       </div>
 
       {/* SECCIÓN LATERAL: GESTOR DE PLANTILLAS */}
-      <div className="w-full md:w-72 space-y-4">
-        <div className="bg-blue-900 text-white p-4 rounded-t-xl flex items-center gap-2">
-          <FileText size={18} />
-          <span className="font-bold">Plantillas</span>
-        </div>
-        <div className="bg-blue-50 p-4 rounded-b-xl border border-blue-100 max-h-[500px] overflow-y-auto">
-          {plantillas.length === 0 ? (
-            <p className="text-xs text-blue-400 text-center italic">No hay plantillas guardadas</p>
-          ) : (
-            <div className="space-y-2">
-              {plantillas.map((p) => (
-                <div key={p.id} className="group relative">
+      <div className="w-full lg:w-80 flex flex-col gap-4">
+        <div className="bg-slate-900 rounded-[2rem] overflow-hidden shadow-xl flex flex-col h-full max-h-[750px]">
+          <div className="p-6 border-b border-slate-800">
+            <div className="flex items-center gap-3 text-white mb-1">
+              <Layers size={18} className="text-indigo-400" />
+              <span className="font-black text-sm uppercase tracking-wider">Biblioteca</span>
+            </div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Plantillas Guardadas</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+            {plantillas.length === 0 ? (
+              <div className="py-10 text-center space-y-3">
+                <ClipboardList size={32} className="mx-auto text-slate-700 opacity-50" />
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sin plantillas</p>
+              </div>
+            ) : (
+              plantillas.map((p) => (
+                <div key={p.id} className="group relative animate-in fade-in slide-in-from-right-2 duration-300">
                   <button
                     onClick={() => aplicarPlantilla(p)}
-                    className="w-full text-left p-3 bg-white border border-blue-200 rounded-lg text-sm hover:border-blue-500 hover:bg-blue-100 transition pr-8"
+                    className="w-full text-left p-4 bg-slate-800/50 border border-slate-800 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800 transition-all pr-10"
                   >
-                    <div className="font-bold text-blue-900 truncate">{p.nombre_examen}</div>
-                    <div className="text-[10px] text-blue-500 uppercase">{p.metodo}</div>
+                    <div className="font-black text-xs text-indigo-100 truncate mb-1 uppercase tracking-tight">
+                      {p.nombre_examen}
+                    </div>
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+                      Met: {p.metodo || 'N/A'}
+                    </div>
                   </button>
                   <button 
                     onClick={(e) => {
-                      e.stopPropagation(); // Evita que se aplique la plantilla al intentar borrarla
+                      e.stopPropagation();
                       eliminarPlantilla(p.id);
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-red-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
-                    title="Eliminar plantilla"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all p-1"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
-          
-          <button 
-            onClick={limpiarCampos}
-            className="w-full mt-4 flex items-center justify-center gap-2 py-2 border-2 border-dashed border-blue-300 text-blue-500 rounded-lg hover:bg-blue-100 transition text-sm font-semibold"
-          >
-            <Plus size={16} /> Nueva en blanco
-          </button>
+              ))
+            )}
+          </div>
+
+          <div className="p-4 bg-slate-800/30 border-t border-slate-800">
+            <button 
+              onClick={limpiarCampos}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]"
+            >
+              <Plus size={16} /> Nueva en Blanco
+            </button>
+          </div>
+        </div>
+
+        {/* INFO CARD */}
+        <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
+          <p className="text-[10px] font-bold text-indigo-400 uppercase leading-relaxed text-center">
+            Las plantillas guardadas incluyen formato de texto, método y tipo de muestra.
+          </p>
         </div>
       </div>
     </div>
