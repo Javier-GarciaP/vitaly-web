@@ -1,9 +1,24 @@
 {
   "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext", // <--- ASEGÚRATE DE QUE ESTO DIGA ESNext
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler", // <--- Aquí es donde salta el error
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "moduleResolution": "bundler", // O "node" dependiendo de tu versión de Vite/Next
-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
-    // ... resto de tu configuración
-  }
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
 }
