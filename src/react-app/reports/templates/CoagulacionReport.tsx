@@ -105,7 +105,7 @@ const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qr
           edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
           fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
         }}
-        title="Bacteriología / Antibiograma"
+        title="HEMOSTASIA Y COAGULACIÓN"
         qrImage={qrImage}
       />
 

@@ -85,7 +85,7 @@ const HematologiaReport: React.FC<HematologiaReportProps> = ({ data, patient, qr
           edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
           fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
         }}
-        title="Bacteriología / Antibiograma"
+        title="HEMATOLOGÍA COMPLETA"
         qrImage={qrImage}
       />
 

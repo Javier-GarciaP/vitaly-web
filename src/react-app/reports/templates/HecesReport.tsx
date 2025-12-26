@@ -116,7 +116,7 @@ const HecesReport: React.FC<HecesReportProps> = ({ data, patient, qrImage }) => 
           edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
           fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
         }}
-        title="Bacteriología / Antibiograma"
+        title="COPROANÁLISIS"
         qrImage={qrImage}
       />
 
