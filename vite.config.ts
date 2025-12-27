@@ -28,6 +28,7 @@ export default defineConfig({
       workbox: {
         // Cachear todos los recursos para que abran sin internet
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        maximumFileSizeToCacheInBytes: 3000000,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith("/api"), // Tus llamadas a D1
