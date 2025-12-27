@@ -129,7 +129,6 @@ export default function PanelControlMaster() {
   });
 
   const hoy = formateador.format(fecha);
-  console.log(hoy); // Resultado: 2025-12-26
 
   useEffect(() => {
     loadInitialData();
@@ -296,6 +295,47 @@ export default function PanelControlMaster() {
     );
   };
 
+  /** AQUI SE ESTA TRABAJANDO CON BOTON MASIVO */
+
+  // 1. Verificamos si todos los exámenes del paciente activo están completados
+  const isPacienteListoParaImprimir = useMemo(() => {
+    if (!pacienteActivo || examenesHoyPaciente.length === 0) return false;
+    return examenesHoyPaciente.every((ex) => ex.estado === "completado");
+  }, [pacienteActivo, examenesHoyPaciente]);
+
+  // 2. Función para manejar la impresión masiva
+  const handlePrintMasivo = async () => {
+    if (!pacienteActivo) return;
+    setIsSaving(true);
+    try {
+      // Generamos los QRs individuales para cada examen basados en su UUID
+      const examenesConQR = await Promise.all(
+        examenesHoyPaciente.map(async (ex) => {
+          const qr = await generateQRBase64(ex.uuid || "");
+          return { examen: ex, qr };
+        })
+      );
+
+      // Configuramos el activeExamen con el tipo especial que agregamos al ReportViewer
+      setActiveExamen({
+        id: 0, // ID ficticio
+        paciente_id: selectedPacienteId!,
+        tipo: "IMPRESION_MASIVA",
+        fecha: hoy,
+        estado: "completado",
+        resultados: examenesConQR, // Pasamos el array con los QRs
+      });
+
+      setShowPrintModal(true);
+    } catch (e) {
+      alert("Error preparando la impresión masiva");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /** FIN BOTON MASIVO */
+
   return (
     <div className="flex h-screen bg-[#F1F5F9] overflow-hidden font-sans">
       {/* NOTIFICACIONES */}
@@ -398,6 +438,28 @@ export default function PanelControlMaster() {
                   </p>
                 </div>
               </div>
+
+              {/* BOTÓN DE IMPRESIÓN MASIVA CONDICIONAL */}
+              {isPacienteListoParaImprimir && (
+                <button
+                  onClick={handlePrintMasivo}
+                  disabled={isSaving}
+                  className="flex items-center gap-4 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white rounded-2xl shadow-lg shadow-emerald-100 transition-all animate-in zoom-in-90 duration-300 group"
+                >
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      Entregar Resultados
+                    </span>
+                    <span className="text-[8px] opacity-80 uppercase font-bold">
+                      Portada + {examenesHoyPaciente.length} Análisis
+                    </span>
+                  </div>
+                  <Printer
+                    size={22}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                </button>
+              )}
             </header>
 
             <div className="flex-1 grid grid-cols-12 gap-8 overflow-hidden">

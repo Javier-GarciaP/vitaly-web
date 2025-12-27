@@ -13,6 +13,8 @@ import HematologiaReport from './templates/HematologiaReport';
 import GrupoSanguineo from './templates/GrupoSanguineo';
 import BacteriologiaCompletoReport from './templates/BacteriologiaCompletoReport';
 
+import BulkReport from "./BulkReport"
+
 import { Paciente } from '@/types/types';
 
 interface ReportViewerProps {
@@ -61,6 +63,9 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ type, data, patient, qrImag
         return <MiscelaneosReport {...commonProps} />;
       case "PORTADA":
         return <PortadaGeneral patient={patient} logoUrl={LOGO_URL} />;
+      case "IMPRESION_MASIVA":
+        // Aquí 'data' será el array 'bulkData' que enviaremos desde el Panel
+        return <BulkReport bulkData={data} patient={patient} logoUrl={LOGO_URL} />;
       default:
         return null;
     }

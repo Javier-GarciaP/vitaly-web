@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, Text } from '@react-pdf/renderer';
-import ReportLayout from '../components/ReportLayout';
-import CommonHeader from '../components/CommonHeader';
-import CommonFooter from '../components/CommonFooter';
+import React from "react";
+import { View, StyleSheet, Text } from "@react-pdf/renderer";
+import ReportLayout from "../components/ReportLayout";
+import CommonHeader from "../components/CommonHeader";
+import CommonFooter from "../components/CommonFooter";
 // 1. Importamos los tipos centralizados
-import { MiscelaneosData, Paciente } from '@/types/types';
+import { MiscelaneosData, Paciente } from "@/types/types";
 
 interface MiscelaneosReportProps {
   data: MiscelaneosData;
@@ -21,16 +21,16 @@ const styles = StyleSheet.create({
   infoSection: {
     marginTop: 5,
     borderBottomWidth: 1,
-    borderBottomColor: '#6e2020', // Sincronizado con el color del lab
+    borderBottomColor: "#6e2020", // Sincronizado con el color del lab
     paddingBottom: 5,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 3,
   },
   label: {
     fontSize: 9,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     width: 110,
   },
   value: {
@@ -39,24 +39,24 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     marginTop: 20,
-    flex: 1, 
+    flex: 1,
     padding: 10,
     borderWidth: 0.5,
-    borderColor: '#eee',
+    borderColor: "#eee",
     borderRadius: 4,
   },
   resultTitle: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#6e2020',
+    fontWeight: "bold",
+    color: "#6e2020",
     marginBottom: 8,
-    textDecoration: 'underline',
+    textDecoration: "underline",
   },
   resultText: {
     fontSize: 10,
     lineHeight: 1.6,
-    textAlign: 'justify',
-    whiteSpace: 'pre-wrap', // Importante para respetar los saltos de línea del JSON
+    textAlign: "justify",
+    whiteSpace: "pre-wrap", // Importante para respetar los saltos de línea del JSON
   },
 });
 
@@ -70,7 +70,11 @@ const MiscelaneosRow: React.FC<MiscelaneosRowProps> = ({ label, value }) => {
   );
 };
 
-const MiscelaneosReport: React.FC<MiscelaneosReportProps> = ({ data, patient, qrImage }) => {
+const MiscelaneosReport: React.FC<MiscelaneosReportProps> = ({
+  data,
+  patient,
+  qrImage,
+}) => {
   return (
     <ReportLayout>
       <CommonHeader
@@ -86,7 +90,10 @@ const MiscelaneosReport: React.FC<MiscelaneosReportProps> = ({ data, patient, qr
 
       {/* Sección de Datos del Examen - Sincronizado con BD */}
       <View style={styles.infoSection}>
-        <MiscelaneosRow label="Examen Solicitado" value={data?.examen_solicitado} />
+        <MiscelaneosRow
+          label="Examen Solicitado"
+          value={data?.examen_solicitado}
+        />
         <MiscelaneosRow label="Método" value={data?.metodo} />
         <MiscelaneosRow label="Muestra" value={data?.muestra} />
       </View>
@@ -95,9 +102,7 @@ const MiscelaneosReport: React.FC<MiscelaneosReportProps> = ({ data, patient, qr
       {data?.resultado_texto && (
         <View style={styles.resultContainer}>
           <Text style={styles.resultTitle}>RESULTADO:</Text>
-          <Text style={styles.resultText}>
-            {data.resultado_texto}
-          </Text>
+          <Text style={styles.resultText}>{data.resultado_texto}</Text>
         </View>
       )}
 
