@@ -6,12 +6,16 @@
   "dependencies": {
     "@hono/zod-validator": "^0.5.0",
     "@react-pdf/renderer": "^4.3.1",
+    "@stytch/react": "^19.18.0",
+    "@stytch/vanilla-js": "^5.44.0",
     "buffer": "^6.0.3",
+    "firebase": "^12.7.0",
     "hono": "4.7.7",
     "lucide-react": "^0.510.0",
     "qrcode": "^1.5.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-firebase-hooks": "^5.1.1",
     "react-router": "^7.5.3",
     "recharts": "^3.6.0",
     "zod": "^3.24.3"
