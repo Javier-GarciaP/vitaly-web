@@ -57,6 +57,8 @@ export default function ResultadosPage() {
   const [notification, setNotification] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const [showPortadaModal, setShowPortadaModal] = useState(false);
+
   useEffect(() => {
     loadExamenes();
   }, []);
@@ -227,6 +229,11 @@ export default function ResultadosPage() {
         </div>
       )
     );
+  };
+
+  const handleOpenPortada = () => {
+    if (!selectedExamen) return;
+    setShowPortadaModal(true);
   };
 
   return (
@@ -446,6 +453,15 @@ export default function ResultadosPage() {
                   >
                     <Trash2 size={20} /> ELIMINAR REGISTRO
                   </button>
+                  {/* Botón Imprimir Portada - Añadir en Acciones de Control */}
+                  {/* Botón Imprimir Portada */}
+                  <button
+                    onClick={handleOpenPortada}
+                    className="w-full flex items-center justify-center gap-3 bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white py-4 rounded-2xl font-black text-sm transition-all border border-indigo-500/20 group"
+                  >
+                    <Printer size={20} className="group-hover:animate-bounce" />
+                    IMPRIMIR PORTADA
+                  </button>
                 </div>
               </div>
 
@@ -591,6 +607,51 @@ export default function ResultadosPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PORTADA GENERAL */}
+      {showPortadaModal && selectedExamen && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-[250] p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-black text-slate-800">
+                  Carátula del Informe
+                </h2>
+                <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">
+                  Documento de presentación - {selectedExamen.paciente_nombre}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPortadaModal(false)}
+                className="p-3 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-2xl transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 bg-slate-50">
+              <ReportViewer
+                type="PORTADA"
+                data={{}}
+                patient={{
+                  nombre: selectedExamen.paciente_nombre,
+                  cedula: selectedExamen.paciente_cedula,
+                  edad: selectedExamen.paciente_edad,
+                  // Usamos la lógica de corrección de zona horaria que ya tienes
+                  fecha: (() => {
+                    const d = new Date(); // Fecha actual de emisión
+                    return new Intl.DateTimeFormat("es-ES", {
+                      timeZone: "America/Caracas", // Ajusta según tu país
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }).format(d);
+                  })(),
+                }}
+              />
             </div>
           </div>
         </div>

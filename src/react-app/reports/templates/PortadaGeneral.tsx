@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text, Image } from '@react-pdf/renderer';
 import ReportLayout from '../components/ReportLayout';
-import CommonFooter from '../components/CommonFooter';
 // 1. Usamos tu tipo centralizado de paciente
 import { Paciente } from '@/types/types';
 
@@ -18,9 +17,10 @@ const styles = StyleSheet.create({
     paddingBottom: 60, 
   },
   logo: {
-    width: 140, // Un poco más grande para la portada
+    width: 500, // Un poco más grande para la portada
     height: 'auto',
     marginBottom: 25,
+    marginRight: 170,
   },
   labName: {
     fontSize: 24,
@@ -95,7 +95,7 @@ const PortadaGeneral: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
           <Image src={logoUrl} style={styles.logo} />
         )}
 
-        <Text style={styles.labName}>Laboratorio Clínico Central</Text>
+        <Text style={styles.labName}>Laboratorio Vitaly</Text>
         <Text style={styles.subtitle}>INFORME MÉDICO DE LABORATORIO</Text>
 
         {/* Tarjeta de Presentación del Paciente */}
@@ -134,8 +134,6 @@ const PortadaGeneral: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
           interpretados por un médico profesional.
         </Text>
       </View>
-
-      <CommonFooter />
     </ReportLayout>
   );
 };
