@@ -1,21 +1,31 @@
 import { useState, useEffect } from "react";
-import { Save, Trash2, Plus, Beaker, ClipboardList, Layers } from "lucide-react";
-import { MiscelaneosData } from '@/types/types';
+import {
+  Save,
+  Trash2,
+  Plus,
+  Beaker,
+  ClipboardList,
+  Layers,
+} from "lucide-react";
+import { MiscelaneosData } from "@/types/types";
 
 interface MiscelaneosFormProps {
   resultados: any;
   onChange: (resultados: any) => void;
 }
 
-export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFormProps) {
+export default function MiscelaneosForm({
+  resultados,
+  onChange,
+}: MiscelaneosFormProps) {
   const [plantillas, setPlantillas] = useState<any[]>([]);
 
   // 1. CARGA REAL DESDE LA API
   const cargarPlantillas = async () => {
     try {
-      const res = await fetch('/api/plantillas/miscelaneos');
+      const res = await fetch("/api/plantillas/miscelaneos");
       if (res.ok) {
-        const data = await res.json() as MiscelaneosData[];
+        const data = (await res.json()) as MiscelaneosData[];
         setPlantillas(data);
       }
     } catch (error) {
@@ -37,7 +47,7 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
       examen_solicitado: p.nombre_examen,
       metodo: p.metodo,
       muestra: p.muestra,
-      resultado_texto: p.contenido_plantilla
+      resultado_texto: p.contenido_plantilla,
     });
   };
 
@@ -51,14 +61,14 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
       nombre_examen: resultados.examen_solicitado,
       metodo: resultados.metodo || "",
       muestra: resultados.muestra || "",
-      contenido_plantilla: resultados.resultado_texto || ""
+      contenido_plantilla: resultados.resultado_texto || "",
     };
 
     try {
-      const res = await fetch('/api/plantillas/miscelaneos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const res = await fetch("/api/plantillas/miscelaneos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -74,35 +84,54 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
 
   const eliminarPlantilla = async (id: number) => {
     if (!confirm("¿Seguro que desea eliminar esta plantilla?")) return;
+
     try {
-      const res = await fetch(`/api/plantillas/miscelaneos/${id}`, { method: 'DELETE' });
-      if (res.ok) setPlantillas(plantillas.filter(p => p.id !== id));
+      const res = await fetch(`/api/plantillas/miscelaneos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        // Filtramos por ID para removerla de la UI instantáneamente
+        setPlantillas((prev) => prev.filter((p) => p.id !== id));
+        // Si tienes un sistema de notificaciones:
+        // notify("Plantilla eliminada correctamente");
+      }
     } catch (error) {
-      console.error("Error al eliminar:", error);
+      console.error("Error de red al eliminar:", error);
+      alert("No se pudo conectar con el servidor.");
     }
   };
 
   const limpiarCampos = () => {
-    onChange({ examen_solicitado: "", metodo: "", muestra: "", resultado_texto: "" });
+    onChange({
+      examen_solicitado: "",
+      metodo: "",
+      muestra: "",
+      resultado_texto: "",
+    });
   };
 
-  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
-  const inputBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
+  const labelBase =
+    "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
+  const inputBase =
+    "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto pb-10">
-      
       {/* SECCIÓN PRINCIPAL: EDITOR */}
       <div className="flex-1 space-y-6">
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-8">
-          
           <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
             <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
               <Beaker size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-800 tracking-tight">Editor de Resultados</h3>
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Exámenes Especiales / Misceláneos</p>
+              <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                Editor de Resultados
+              </h3>
+              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">
+                Exámenes Especiales / Misceláneos
+              </p>
             </div>
           </div>
 
@@ -112,7 +141,9 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
               <input
                 type="text"
                 value={resultados?.examen_solicitado || ""}
-                onChange={(e) => handleChange("examen_solicitado", e.target.value)}
+                onChange={(e) =>
+                  handleChange("examen_solicitado", e.target.value)
+                }
                 className={inputBase}
                 placeholder="Ej. Prueba de Esfuerzo"
               />
@@ -143,16 +174,18 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
             <div className="flex justify-between items-end px-1">
               <div>
                 <label className={labelBase}>Desarrollo del Informe</label>
-                <p className="text-[10px] text-slate-400 font-medium">Use este espacio para detallar hallazgos clínicos</p>
+                <p className="text-[10px] text-slate-400 font-medium">
+                  Use este espacio para detallar hallazgos clínicos
+                </p>
               </div>
-              <button 
+              <button
                 onClick={guardarComoPlantilla}
                 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100"
               >
                 <Save size={14} /> Guardar Plantilla
               </button>
             </div>
-            
+
             <textarea
               value={resultados?.resultado_texto || ""}
               onChange={(e) => handleChange("resultado_texto", e.target.value)}
@@ -169,20 +202,32 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
           <div className="p-6 border-b border-slate-800">
             <div className="flex items-center gap-3 text-white mb-1">
               <Layers size={18} className="text-indigo-400" />
-              <span className="font-black text-sm uppercase tracking-wider">Biblioteca</span>
+              <span className="font-black text-sm uppercase tracking-wider">
+                Biblioteca
+              </span>
             </div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase">Plantillas Guardadas</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">
+              Plantillas Guardadas
+            </p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             {plantillas.length === 0 ? (
               <div className="py-10 text-center space-y-3">
-                <ClipboardList size={32} className="mx-auto text-slate-700 opacity-50" />
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sin plantillas</p>
+                <ClipboardList
+                  size={32}
+                  className="mx-auto text-slate-700 opacity-50"
+                />
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                  Sin plantillas
+                </p>
               </div>
             ) : (
               plantillas.map((p) => (
-                <div key={p.id} className="group relative animate-in fade-in slide-in-from-right-2 duration-300">
+                <div
+                  key={p.id}
+                  className="group relative animate-in fade-in slide-in-from-right-2 duration-300"
+                >
                   <button
                     onClick={() => aplicarPlantilla(p)}
                     className="w-full text-left p-4 bg-slate-800/50 border border-slate-800 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800 transition-all pr-10"
@@ -191,10 +236,10 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
                       {p.nombre_examen}
                     </div>
                     <div className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
-                      Met: {p.metodo || 'N/A'}
+                      Met: {p.metodo || "N/A"}
                     </div>
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       eliminarPlantilla(p.id);
@@ -209,7 +254,7 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
           </div>
 
           <div className="p-4 bg-slate-800/30 border-t border-slate-800">
-            <button 
+            <button
               onClick={limpiarCampos}
               className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]"
             >
@@ -221,7 +266,8 @@ export default function MiscelaneosForm({ resultados, onChange }: MiscelaneosFor
         {/* INFO CARD */}
         <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
           <p className="text-[10px] font-bold text-indigo-400 uppercase leading-relaxed text-center">
-            Las plantillas guardadas incluyen formato de texto, método y tipo de muestra.
+            Las plantillas guardadas incluyen formato de texto, método y tipo de
+            muestra.
           </p>
         </div>
       </div>

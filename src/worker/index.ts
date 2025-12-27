@@ -517,8 +517,7 @@ app.get("/api/plantillas/bacteriologia", async (c) => {
       "SELECT * FROM plantillas_bacteriologia ORDER BY nombre_plantilla ASC"
     ).all();
     return c.json(results);
-  } catch (e) {
-  }
+  } catch (e) {}
 });
 
 // 2. CREAR NUEVA (POST)
@@ -543,8 +542,7 @@ app.post("/api/plantillas/bacteriologia", async (c) => {
 
     // res.meta.last_row_id es el ID que generó SQLite
     return c.json({ success: true, id: res.meta.last_row_id }, 201);
-  } catch (e) {
-  }
+  } catch (e) {}
 });
 
 // 3. ACTUALIZAR (PUT)
@@ -578,8 +576,7 @@ app.put("/api/plantillas/bacteriologia/:id", async (c) => {
       )
       .run();
     return c.json({ success: true });
-  } catch (e) {
-  }
+  } catch (e) {}
 });
 
 // 4. ELIMINAR (DELETE)
@@ -587,14 +584,19 @@ app.put("/api/plantillas/bacteriologia/:id", async (c) => {
 app.delete("/api/plantillas/bacteriologia/:id", async (c) => {
   const id = c.req.param("id");
   console.log("Intentando eliminar ID:", id); // Para debug
-  
+
   try {
-    const result = await c.env.DB.prepare("DELETE FROM plantillas_bacteriologia WHERE id = ?")
+    const result = await c.env.DB.prepare(
+      "DELETE FROM plantillas_bacteriologia WHERE id = ?"
+    )
       .bind(id)
       .run();
 
     if (result.meta.changes === 0) {
-      return c.json({ success: false, error: "No se encontró la plantilla" }, 404);
+      return c.json(
+        { success: false, error: "No se encontró la plantilla" },
+        404
+      );
     }
 
     return c.json({ success: true });
@@ -676,7 +678,7 @@ app.post(
   zValidator("json", plantillaMiscelaneoSchema),
   async (c) => {
     const data = c.req.valid("json");
-    await c.env.DB.prepare(
+    const result = await c.env.DB.prepare(
       "INSERT INTO plantillas_miscelaneos (nombre_examen, metodo, muestra, contenido_plantilla) VALUES (?, ?, ?, ?)"
     )
       .bind(
@@ -686,8 +688,37 @@ app.post(
         data.contenido_plantilla || ""
       )
       .run();
-    return c.json({ success: true }, 201);
+
+    // Importante: Devolver el ID generado para que el frontend lo tenga
+    return c.json(
+      {
+        success: true,
+        id: result.meta.last_row_id, // D1 devuelve aquí el ID creado
+      },
+      201
+    );
   }
 );
+
+// DELETE: Eliminar una plantilla de misceláneos
+app.delete("/api/plantillas/miscelaneos/:id", async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    const result = await c.env.DB.prepare(
+      "DELETE FROM plantillas_miscelaneos WHERE id = ?"
+    )
+      .bind(id)
+      .run();
+
+    if (result.success) {
+      return c.json({ success: true, message: "Plantilla eliminada" });
+    } else {
+      return c.json({ error: "No se pudo eliminar la plantilla" }, 500);
+    }
+  } catch (e) {
+    return c.json({ error: "Error de base de datos", details: e }, 500);
+  }
+});
 
 export default app;

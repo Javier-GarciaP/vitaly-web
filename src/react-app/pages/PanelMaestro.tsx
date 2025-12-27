@@ -117,7 +117,19 @@ export default function PanelControlMaster() {
   const [qrCodeImage, setQrCodeImage] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const hoy = new Date().toISOString().split("T")[0];
+  const fecha = new Date();
+
+  // Configuramos el formateador para tu zona horaria (ejemplo: America/Caracas)
+  const formateador = new Intl.DateTimeFormat("en-CA", {
+    // 'en-CA' genera formato YYYY-MM-DD
+    timeZone: "America/Caracas", // Ajusta a tu zona horaria local
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  const hoy = formateador.format(fecha);
+  console.log(hoy); // Resultado: 2025-12-26
 
   useEffect(() => {
     loadInitialData();
