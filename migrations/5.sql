@@ -1,5 +1,5 @@
 CREATE TABLE plantillas_miscelaneos (
-    id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY AUTOINCREMENT,
     nombre_examen VARCHAR(255) NOT NULL, -- Ej: "Perfil Tiroideo"
     metodo VARCHAR(100),                -- Ej: "ELISA"
     muestra VARCHAR(100),               -- Ej: "Suero"
