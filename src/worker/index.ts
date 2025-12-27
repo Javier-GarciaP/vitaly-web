@@ -457,7 +457,9 @@ app.delete("/api/facturas/:id", async (c) => {
 
     // 2. Extraer las categorías únicas de los exámenes de esa factura
     const examenesList = JSON.parse(factura.examenes || "[]");
-    const categorias = [...new Set(examenesList.map((ex: any) => ex.categoria).filter(Boolean))] as string[];
+    const categorias = [
+      ...new Set(examenesList.map((ex: any) => ex.categoria).filter(Boolean)),
+    ] as string[];
 
     // 3. Eliminar los exámenes vinculados que estén en estado 'pendiente'
     // Usamos el paciente_id, la fecha y el tipo (categoría) para identificarlos
@@ -475,11 +477,10 @@ app.delete("/api/facturas/:id", async (c) => {
     // 4. Finalmente, borrar la factura
     await db.prepare("DELETE FROM facturas WHERE id = ?").bind(id).run();
 
-    return c.json({ 
-      success: true, 
-      message: "Factura y exámenes pendientes eliminados correctamente" 
+    return c.json({
+      success: true,
+      message: "Factura y exámenes pendientes eliminados correctamente",
     });
-
   } catch (error: any) {
     console.error("Error al eliminar factura:", error.message);
     return c.json(
@@ -508,11 +509,99 @@ app.post("/api/examenes-predefinidos", async (c) => {
 });
 
 // --- PLANTILLAS ESPECÍFICAS ---
+
+// 1. OBTENER TODAS (GET)
 app.get("/api/plantillas/bacteriologia", async (c) => {
-  const { results } = await c.env.DB.prepare(
-    "SELECT * FROM plantillas_bacteriologia ORDER BY nombre_plantilla ASC"
-  ).all();
-  return c.json(results);
+  try {
+    const { results } = await c.env.DB.prepare(
+      "SELECT * FROM plantillas_bacteriologia ORDER BY nombre_plantilla ASC"
+    ).all();
+    return c.json(results);
+  } catch (e) {
+  }
+});
+
+// 2. CREAR NUEVA (POST)
+app.post("/api/plantillas/bacteriologia", async (c) => {
+  const body = await c.req.json();
+  try {
+    const res = await c.env.DB.prepare(
+      `INSERT INTO plantillas_bacteriologia 
+      (nombre_plantilla, muestra_default, observacion_directa, tincion_gram, recuento_colonias, cultivo, cultivo_hongos)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+      .bind(
+        body.nombre_plantilla,
+        body.muestra_default,
+        body.observacion_directa,
+        body.tincion_gram,
+        body.recuento_colonias,
+        body.cultivo,
+        body.cultivo_hongos
+      )
+      .run();
+
+    // res.meta.last_row_id es el ID que generó SQLite
+    return c.json({ success: true, id: res.meta.last_row_id }, 201);
+  } catch (e) {
+  }
+});
+
+// 3. ACTUALIZAR (PUT)
+app.put("/api/plantillas/bacteriologia/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  try {
+    await c.env.DB.prepare(
+      `
+      UPDATE plantillas_bacteriologia 
+      SET 
+        nombre_plantilla = ?, 
+        muestra_default = ?, 
+        observacion_directa = ?, 
+        tincion_gram = ?, 
+        recuento_colonias = ?, 
+        cultivo = ?, 
+        cultivo_hongos = ?
+      WHERE id = ?
+    `
+    )
+      .bind(
+        body.nombre_plantilla,
+        body.muestra_default,
+        body.observacion_directa,
+        body.tincion_gram,
+        body.recuento_colonias,
+        body.cultivo,
+        body.cultivo_hongos,
+        id
+      )
+      .run();
+    return c.json({ success: true });
+  } catch (e) {
+  }
+});
+
+// 4. ELIMINAR (DELETE)
+// 4. ELIMINAR (DELETE) - CORREGIDO
+app.delete("/api/plantillas/bacteriologia/:id", async (c) => {
+  const id = c.req.param("id");
+  console.log("Intentando eliminar ID:", id); // Para debug
+  
+  try {
+    const result = await c.env.DB.prepare("DELETE FROM plantillas_bacteriologia WHERE id = ?")
+      .bind(id)
+      .run();
+
+    if (result.meta.changes === 0) {
+      return c.json({ success: false, error: "No se encontró la plantilla" }, 404);
+    }
+
+    return c.json({ success: true });
+  } catch (e) {
+    console.error("Error en DELETE:", e);
+    return c.json({ success: false, error: "Error interno del servidor" }, 500);
+  }
 });
 
 // --- AGREGAR ESTO AL BACKEND ---
@@ -521,14 +610,14 @@ app.get("/api/plantillas/bacteriologia", async (c) => {
 app.put("/api/examenes-predefinidos/:id", async (c) => {
   const id = c.req.param("id");
   const { nombre, precio } = await c.req.json();
-  
+
   try {
     await c.env.DB.prepare(
       "UPDATE examenes_predefinidos SET nombre = ?, precio = ?, categoria = ? WHERE id = ?"
     )
-    .bind(nombre, precio, precio, id)
-    .run();
-    
+      .bind(nombre, precio, precio, id)
+      .run();
+
     return c.json({ success: true });
   } catch (e) {
     return c.json({ error: "Error al actualizar" }, 500);
@@ -538,12 +627,12 @@ app.put("/api/examenes-predefinidos/:id", async (c) => {
 // Eliminar un examen predefinido
 app.delete("/api/examenes-predefinidos/:id", async (c) => {
   const id = c.req.param("id");
-  
+
   try {
     await c.env.DB.prepare("DELETE FROM examenes_predefinidos WHERE id = ?")
       .bind(id)
       .run();
-      
+
     return c.json({ success: true });
   } catch (e) {
     return c.json({ error: "Error al eliminar" }, 500);

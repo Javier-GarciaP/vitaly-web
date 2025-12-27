@@ -103,6 +103,7 @@ export interface CoagulacionData {
 }
 
 export interface BacteriologiaData {
+  id?: number;
   muestra?: string;
   germen_a?: string;
   germen_b?: string;
