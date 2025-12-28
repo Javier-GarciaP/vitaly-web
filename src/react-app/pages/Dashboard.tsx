@@ -8,6 +8,8 @@ import {
   PieChart as PieIcon,
   ArrowUpRight,
   Calendar,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import {
   PieChart,
@@ -25,6 +27,58 @@ interface Estadisticas {
   facturasHoy: number;
   distribucion: { name: string; value: number }[];
 }
+
+const ConnectionStatus = () => {
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== "undefined" ? window.navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const handleStatusChange = () => setIsOnline(window.navigator.onLine);
+
+    window.addEventListener("online", handleStatusChange);
+    window.addEventListener("offline", handleStatusChange);
+
+    return () => {
+      window.removeEventListener("online", handleStatusChange);
+      window.removeEventListener("offline", handleStatusChange);
+    };
+  }, []);
+
+  return (
+    <div
+      className={`flex items-center gap-3 bg-white p-1.5 pr-4 rounded-2xl shadow-sm border transition-all duration-500 ${
+        isOnline ? "border-emerald-100" : "border-red-100"
+      }`}
+    >
+      <div
+        className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg transition-colors duration-500 ${
+          isOnline
+            ? "bg-emerald-500 text-white shadow-emerald-200"
+            : "bg-red-500 text-white shadow-red-200"
+        }`}
+      >
+        {isOnline ? (
+          <Wifi size={20} />
+        ) : (
+          <WifiOff size={20} className="animate-pulse" />
+        )}
+      </div>
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">
+          Conexión
+        </p>
+        <p
+          className={`text-sm font-bold leading-tight ${
+            isOnline ? "text-emerald-700" : "text-red-700"
+          }`}
+        >
+          {isOnline ? "Sincronizado" : "Modo Offline"}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Estadisticas | null>(null);
@@ -95,19 +149,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white p-1.5 pr-4 rounded-2xl shadow-sm border border-slate-100 w-fit">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-200">
-            <Activity size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">
-              Status
-            </p>
-            <p className="text-sm font-bold text-slate-700 leading-tight">
-              Servidor Activo
-            </p>
-          </div>
-        </div>
+        <ConnectionStatus />
       </div>
 
       {/* CARDS PRINCIPALES */}
