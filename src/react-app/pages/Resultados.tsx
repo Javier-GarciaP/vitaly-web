@@ -15,6 +15,8 @@ import {
   Clock,
   AlertCircle,
   User,
+  Calendar,
+  Fingerprint,
 } from "lucide-react";
 
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
@@ -56,7 +58,6 @@ export default function ResultadosPage() {
   const [editEstado, setEditEstado] = useState("");
   const [notification, setNotification] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
   const [showPortadaModal, setShowPortadaModal] = useState(false);
 
   useEffect(() => {
@@ -102,6 +103,12 @@ export default function ResultadosPage() {
     setSelectedExamen(examen);
     setCurrentIndex(index);
     setQrCodeImage("");
+    // En móvil, hacer scroll suave hacia las acciones si se selecciona uno
+    if (window.innerWidth < 1280) {
+        setTimeout(() => {
+            document.getElementById('action-panel')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    }
   };
 
   const handleEdit = () => {
@@ -111,19 +118,15 @@ export default function ResultadosPage() {
     setShowEditModal(true);
   };
 
-  // --- FUNCIÓN CORREGIDA ---
   const handleSaveResults = async () => {
     if (!selectedExamen || isSaving) return;
-
     setIsSaving(true);
-    // Creamos un payload limpio enviando solo lo que el backend necesita actualizar
     const payload = {
       paciente_id: selectedExamen.paciente_id,
       tipo: selectedExamen.tipo,
       fecha: selectedExamen.fecha,
       resultados: editResultados,
       estado: editEstado,
-      // El uuid se mantiene si ya existe en el objeto original, pero no se genera uno nuevo aquí
     };
 
     try {
@@ -136,11 +139,7 @@ export default function ResultadosPage() {
       if (res.ok) {
         showNotification("Cambios aplicados correctamente");
         setShowEditModal(false);
-
-        // Cargamos los datos de nuevo para asegurar sincronía
         await loadExamenes();
-
-        // Actualizamos la vista previa lateral con los nuevos datos
         setSelectedExamen({
           ...selectedExamen,
           resultados: editResultados,
@@ -222,12 +221,10 @@ export default function ResultadosPage() {
       Bacteriología: <BacteriologiaForm {...props} />,
       Misceláneos: <MiscelaneosForm {...props} />,
     };
-    return (
-      forms[selectedExamen.tipo] || (
-        <div className="p-10 text-center text-slate-400">
-          Formulario no definido
-        </div>
-      )
+    return forms[selectedExamen.tipo] || (
+      <div className="p-10 text-center text-slate-400 font-bold">
+        Formulario no definido para {selectedExamen.tipo}
+      </div>
     );
   };
 
@@ -237,20 +234,20 @@ export default function ResultadosPage() {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto pb-10 px-4">
+    <div className="max-w-[1600px] mx-auto pb-10 px-4 md:px-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 mt-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 mt-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             <FileText className="text-blue-600" size={32} />
             Gestión de Resultados
           </h1>
-          <p className="text-slate-500 font-medium">
+          <p className="text-sm md:text-base text-slate-500 font-medium">
             Validación, edición y despacho de informes médicos
           </p>
         </div>
 
-        <div className="relative w-full md:w-96 group">
+        <div className="relative w-full lg:w-96 group">
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
             size={18}
@@ -266,34 +263,27 @@ export default function ResultadosPage() {
       </div>
 
       {notification && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-5">
-          <div className="bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-700">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] animate-in fade-in slide-in-from-bottom-5 w-[90%] md:w-auto">
+          <div className="bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-center gap-3 border border-slate-700">
             <CheckCircle2 className="text-emerald-400" size={20} />
-            <span className="font-bold">{notification}</span>
+            <span className="font-bold text-sm md:text-base">{notification}</span>
           </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        {/* Tabla de Registros */}
+        {/* Tabla / Lista de Registros */}
         <div className="xl:col-span-8 space-y-4">
-          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
-            <div className="overflow-x-auto max-h-[650px]">
+          <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto max-h-[650px]">
               <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md border-b border-slate-100">
                   <tr>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Información Paciente
-                    </th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Tipo de Estudio
-                    </th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Estado
-                    </th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Información Paciente</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo de Estudio</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -304,57 +294,34 @@ export default function ResultadosPage() {
                         key={examen.id}
                         onClick={() => handleSelectExamen(examen, index)}
                         className={`group cursor-pointer transition-all ${
-                          selectedExamen?.id === examen.id
-                            ? "bg-blue-50/80"
-                            : "hover:bg-slate-50"
+                          selectedExamen?.id === examen.id ? "bg-blue-50/80" : "hover:bg-slate-50"
                         }`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div
-                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                                selectedExamen?.id === examen.id
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                                selectedExamen?.id === examen.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
+                              }`}>
                               {examen.paciente_nombre.charAt(0)}
                             </div>
                             <div>
-                              <div className="font-bold text-slate-800 leading-tight">
-                                {examen.paciente_nombre}
-                              </div>
-                              <div className="text-xs font-medium text-slate-400">
-                                CI: {examen.paciente_cedula}
-                              </div>
+                              <div className="font-bold text-slate-800 leading-tight">{examen.paciente_nombre}</div>
+                              <div className="text-xs font-medium text-slate-400">CI: {examen.paciente_cedula}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-bold text-slate-600">
-                          {examen.tipo}
-                        </td>
+                        <td className="px-6 py-4 text-sm font-bold text-slate-600">{examen.tipo}</td>
                         <td className="px-6 py-4 text-sm font-medium text-slate-400">
-                          {/* Usamos split y Date.UTC o simplemente mostramos la cadena si solo es YYYY-MM-DD */}
                           {(() => {
                             const dateObj = new Date(examen.fecha);
-                            // Añadimos el desfase para que se vea la fecha local correcta
-                            const userTimezoneOffset =
-                              dateObj.getTimezoneOffset() * 60000;
-                            const correctedDate = new Date(
-                              dateObj.getTime() + userTimezoneOffset
-                            );
-
-                            return correctedDate.toLocaleDateString("es-ES", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric", // Opcional
+                            const offset = dateObj.getTimezoneOffset() * 60000;
+                            return new Date(dateObj.getTime() + offset).toLocaleDateString("es-ES", {
+                              day: "2-digit", month: "short", year: "numeric"
                             });
                           })()}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black border uppercase tracking-wider ${status.bg}`}
-                          >
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black border uppercase tracking-wider ${status.bg}`}>
                             {status.icon} {status.label}
                           </span>
                         </td>
@@ -364,76 +331,94 @@ export default function ResultadosPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile List Cards */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredExamenes.map((examen, index) => {
+                const status = getStatusConfig(examen.estado);
+                const isSelected = selectedExamen?.id === examen.id;
+                return (
+                  <div
+                    key={examen.id}
+                    onClick={() => handleSelectExamen(examen, index)}
+                    className={`p-5 active:bg-slate-100 transition-colors ${isSelected ? "bg-blue-50 ring-2 ring-inset ring-blue-500" : ""}`}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black text-sm ${isSelected ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"}`}>
+                          {examen.paciente_nombre.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-black text-slate-900 leading-tight">{examen.paciente_nombre}</p>
+                          <p className="text-xs font-bold text-slate-400">CI: {examen.paciente_cedula}</p>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border uppercase tracking-tighter ${status.bg}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                       <div className="flex items-center gap-1 font-bold text-blue-600">
+                         <FileText size={14}/> {examen.tipo}
+                       </div>
+                       <div className="flex items-center gap-1 font-medium text-slate-400">
+                         <Calendar size={14}/> 
+                         {new Date(examen.fecha + "T12:00:00").toLocaleDateString("es-ES")}
+                       </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Navegación */}
+          {/* Navegación - Desktop & Mobile */}
           {selectedExamen && (
-            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-3 border border-slate-200 flex items-center justify-between">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-4">
-                Expediente{" "}
-                <span className="text-blue-600 font-black">
-                  {currentIndex + 1}
-                </span>{" "}
-                de {filteredExamenes.length}
+            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-3 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest md:ml-4">
+                Expediente <span className="text-blue-600 font-black">{currentIndex + 1}</span> de {filteredExamenes.length}
               </div>
               <div className="flex gap-1">
                 <button
                   onClick={() => handleSelectExamen(filteredExamenes[0], 0)}
                   disabled={currentIndex === 0}
-                  className="p-2 disabled:opacity-30"
+                  className="p-3 md:p-2 disabled:opacity-30 text-slate-600"
                 >
-                  <ChevronFirst size={18} />
+                  <ChevronFirst size={20} />
                 </button>
                 <button
-                  onClick={() =>
-                    handleSelectExamen(
-                      filteredExamenes[currentIndex - 1],
-                      currentIndex - 1
-                    )
-                  }
+                  onClick={() => handleSelectExamen(filteredExamenes[currentIndex - 1], currentIndex - 1)}
                   disabled={currentIndex === 0}
-                  className="p-2 disabled:opacity-30"
+                  className="p-3 md:p-2 disabled:opacity-30 text-slate-600"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={20} />
                 </button>
                 <button
-                  onClick={() =>
-                    handleSelectExamen(
-                      filteredExamenes[currentIndex + 1],
-                      currentIndex + 1
-                    )
-                  }
+                  onClick={() => handleSelectExamen(filteredExamenes[currentIndex + 1], currentIndex + 1)}
                   disabled={currentIndex === filteredExamenes.length - 1}
-                  className="p-2 disabled:opacity-30"
+                  className="p-3 md:p-2 disabled:opacity-30 text-slate-600"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={20} />
                 </button>
                 <button
-                  onClick={() =>
-                    handleSelectExamen(
-                      filteredExamenes[filteredExamenes.length - 1],
-                      filteredExamenes.length - 1
-                    )
-                  }
+                  onClick={() => handleSelectExamen(filteredExamenes[filteredExamenes.length - 1], filteredExamenes.length - 1)}
                   disabled={currentIndex === filteredExamenes.length - 1}
-                  className="p-2 disabled:opacity-30"
+                  className="p-3 md:p-2 disabled:opacity-30 text-slate-600"
                 >
-                  <ChevronLast size={18} />
+                  <ChevronLast size={20} />
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Panel Lateral */}
-        <div className="xl:col-span-4 space-y-6">
+        {/* Panel Lateral (Acciones y Detalles) */}
+        <div id="action-panel" className="xl:col-span-4 space-y-6">
           {selectedExamen ? (
             <div className="sticky top-6 space-y-6">
-              <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl text-white">
-                <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-6">
-                  Acciones de Control
-                </h3>
-                <div className="space-y-3">
+              <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl text-white">
+                <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-6">Acciones de Control</h3>
+                <div className="grid grid-cols-1 gap-3">
                   <button
                     onClick={handleOpenPrint}
                     disabled={selectedExamen.estado !== "completado"}
@@ -448,46 +433,38 @@ export default function ResultadosPage() {
                     <Edit3 size={20} /> EDITAR RESULTADOS
                   </button>
                   <button
-                    onClick={handleDeleteExamen}
-                    className="w-full flex items-center justify-center gap-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl font-black text-sm transition-all border border-red-500/20"
-                  >
-                    <Trash2 size={20} /> ELIMINAR REGISTRO
-                  </button>
-                  {/* Botón Imprimir Portada - Añadir en Acciones de Control */}
-                  {/* Botón Imprimir Portada */}
-                  <button
                     onClick={handleOpenPortada}
                     className="w-full flex items-center justify-center gap-3 bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white py-4 rounded-2xl font-black text-sm transition-all border border-indigo-500/20 group"
                   >
                     <Printer size={20} className="group-hover:animate-bounce" />
                     IMPRIMIR PORTADA
                   </button>
+                  <button
+                    onClick={handleDeleteExamen}
+                    className="w-full flex items-center justify-center gap-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl font-black text-sm transition-all border border-red-500/20"
+                  >
+                    <Trash2 size={20} /> ELIMINAR REGISTRO
+                  </button>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-xl">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">
-                  Detalles del Estudio
-                </h3>
+              <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 border border-slate-200 shadow-xl">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Detalles del Estudio</h3>
                 <div className="space-y-5">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 flex-shrink-0">
                       <User size={20} />
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">
-                        Paciente
-                      </p>
-                      <p className="font-bold text-slate-800">
-                        {selectedExamen.paciente_nombre}
-                      </p>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Paciente</p>
+                      <p className="font-bold text-slate-800 truncate">{selectedExamen.paciente_nombre}</p>
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">
-                      ID Único de Validación
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 overflow-hidden">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
+                      <Fingerprint size={10} /> ID Único de Validación
                     </p>
-                    <p className="text-[10px] font-mono font-bold text-slate-700 truncate">
+                    <p className="text-[10px] font-mono font-bold text-slate-700 break-all">
                       {selectedExamen.uuid || "PENDIENTE DE ASIGNACIÓN"}
                     </p>
                   </div>
@@ -495,10 +472,12 @@ export default function ResultadosPage() {
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-[400px] flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[3rem] p-10 text-center">
-              <Search className="text-slate-200 mb-4" size={50} />
-              <p className="text-slate-500 font-bold uppercase text-xs tracking-widest">
-                Selecciona un registro para gestionar
+            <div className="h-full min-h-[300px] flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] md:rounded-[3rem] p-10 text-center">
+              <div className="bg-white p-6 rounded-full shadow-sm mb-4">
+                 <Search className="text-slate-200" size={40} />
+              </div>
+              <p className="text-slate-500 font-bold uppercase text-[10px] md:text-xs tracking-widest max-w-[200px]">
+                Selecciona un registro para gestionar acciones
               </p>
             </div>
           )}
@@ -507,15 +486,18 @@ export default function ResultadosPage() {
 
       {/* MODAL IMPRESIÓN */}
       {showPrintModal && selectedExamen && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-black">Vista Previa de Impresión</h2>
+        <div className="fixed inset-0 bg-black/95 md:bg-black/70 flex items-center justify-center z-[500] md:p-4 backdrop-blur-sm">
+          <div className="bg-white md:rounded-2xl w-full max-w-5xl h-full md:h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 md:p-6 border-b bg-white">
+              <div>
+                <h2 className="text-lg md:text-xl font-black">Vista Previa</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedExamen.tipo}</p>
+              </div>
               <button
                 onClick={() => setShowPrintModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-full"
+                className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
               >
-                <X />
+                <X size={20} />
               </button>
             </div>
             <div className="flex-1 bg-slate-100 overflow-y-auto">
@@ -526,14 +508,11 @@ export default function ResultadosPage() {
                 patient={{
                   nombre: selectedExamen.paciente_nombre,
                   cedula: selectedExamen.paciente_cedula,
-                  // Aplicamos la misma lógica de corrección aquí
                   edad: selectedExamen.paciente_edad,
                   fecha: (() => {
                     const d = new Date(selectedExamen.fecha);
                     const offset = d.getTimezoneOffset() * 60000;
-                    return new Date(d.getTime() + offset).toLocaleDateString(
-                      "es-ES"
-                    );
+                    return new Date(d.getTime() + offset).toLocaleDateString("es-ES");
                   })(),
                 }}
               />
@@ -544,37 +523,36 @@ export default function ResultadosPage() {
 
       {/* MODAL EDICIÓN */}
       {showEditModal && selectedExamen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 overflow-y-auto">
-          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-4xl my-auto">
-            <div className="px-10 py-8 border-b flex justify-between items-center">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[400] md:p-4 overflow-y-auto">
+          <div className="bg-white md:rounded-[3rem] shadow-2xl w-full max-w-4xl min-h-screen md:min-h-0 my-auto flex flex-col">
+            <div className="px-6 py-6 md:px-10 md:py-8 border-b flex justify-between items-center sticky top-0 bg-white z-10 md:rounded-t-[3rem]">
               <div>
-                <h2 className="text-2xl font-black text-slate-900">
-                  Editor de Resultados
-                </h2>
-                <p className="text-sm font-medium text-slate-500">
-                  Paciente: {selectedExamen.paciente_nombre}
+                <h2 className="text-xl md:text-2xl font-black text-slate-900">Editor de Resultados</h2>
+                <p className="text-xs md:text-sm font-medium text-slate-500 truncate max-w-[200px] md:max-w-none">
+                  {selectedExamen.paciente_nombre}
                 </p>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="p-3 hover:bg-slate-100 rounded-2xl"
+                className="p-3 hover:bg-slate-100 rounded-2xl transition-colors"
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-10 max-h-[60vh] overflow-y-auto custom-scrollbar">
-              <div className="mb-10">{renderExamenForm()}</div>
-              <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+            <div className="p-6 md:p-10 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="mb-8">{renderExamenForm()}</div>
+              
+              <div className="bg-slate-50 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 block">
                   Estatus del Informe
                 </label>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-2 md:gap-3">
                   {["pendiente", "en_proceso", "completado"].map((status) => (
                     <button
                       key={status}
                       onClick={() => setEditEstado(status)}
-                      className={`px-6 py-3 rounded-xl font-bold text-xs uppercase border-2 transition-all ${
+                      className={`flex-1 min-w-[100px] px-4 py-3 rounded-xl font-bold text-[10px] md:text-xs uppercase border-2 transition-all ${
                         editEstado === status
                           ? "bg-blue-600 border-blue-600 text-white shadow-lg"
                           : "bg-white border-slate-100 text-slate-400"
@@ -587,52 +565,44 @@ export default function ResultadosPage() {
               </div>
             </div>
 
-            <div className="px-10 py-8 bg-slate-50 border-t flex gap-4">
+            <div className="px-6 py-6 md:px-10 md:py-8 bg-slate-50 border-t flex flex-col md:flex-row gap-4 sticky bottom-0 md:rounded-b-[3rem]">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="flex-1 py-4 font-black text-sm text-slate-400"
+                className="order-2 md:order-1 flex-1 py-4 font-black text-sm text-slate-400 hover:text-slate-600"
               >
                 DESCARTAR
               </button>
               <button
                 onClick={handleSaveResults}
                 disabled={isSaving}
-                className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2"
+                className="order-1 md:order-2 flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2"
               >
-                {isSaving ? (
-                  "GUARDANDO..."
-                ) : (
-                  <>
-                    <Save size={20} /> ACTUALIZAR EXPEDIENTE
-                  </>
-                )}
+                {isSaving ? "GUARDANDO..." : <><Save size={20} /> ACTUALIZAR EXPEDIENTE</>}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL PORTADA GENERAL */}
+      {/* MODAL PORTADA */}
       {showPortadaModal && selectedExamen && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-[250] p-4">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-xl font-black text-slate-800">
-                  Carátula del Informe
-                </h2>
-                <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest">
-                  Documento de presentación - {selectedExamen.paciente_nombre}
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-[600] md:p-4">
+          <div className="bg-white md:rounded-[2.5rem] w-full max-w-5xl h-full md:h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-5 md:px-8 md:py-6 border-b border-slate-100 bg-white">
+              <div className="min-w-0">
+                <h2 className="text-lg md:text-xl font-black text-slate-800 truncate">Carátula del Informe</h2>
+                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest truncate">
+                  {selectedExamen.paciente_nombre}
                 </p>
               </div>
               <button
                 onClick={() => setShowPortadaModal(false)}
-                className="p-3 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-2xl transition-all"
+                className="p-3 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-2xl transition-all flex-shrink-0"
               >
                 <X size={24} />
               </button>
             </div>
-            <div className="flex-1 bg-slate-50">
+            <div className="flex-1 bg-slate-50 overflow-y-auto">
               <ReportViewer
                 type="PORTADA"
                 data={{}}
@@ -640,16 +610,9 @@ export default function ResultadosPage() {
                   nombre: selectedExamen.paciente_nombre,
                   cedula: selectedExamen.paciente_cedula,
                   edad: selectedExamen.paciente_edad,
-                  // Usamos la lógica de corrección de zona horaria que ya tienes
-                  fecha: (() => {
-                    const d = new Date(); // Fecha actual de emisión
-                    return new Intl.DateTimeFormat("es-ES", {
-                      timeZone: "America/Caracas", // Ajusta según tu país
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }).format(d);
-                  })(),
+                  fecha: new Intl.DateTimeFormat("es-ES", {
+                    year: "numeric", month: "long", day: "numeric",
+                  }).format(new Date()),
                 }}
               />
             </div>

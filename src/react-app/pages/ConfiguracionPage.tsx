@@ -271,6 +271,7 @@ export default function ConfiguracionPage() {
                     <option>Coagulación</option>
                     <option>Bacteriología</option>
                     <option>Misceláneos</option>
+                    <option>Grupo Sanguíneo</option>
                   </select>
                 </div>
                 <div className="space-y-1">
