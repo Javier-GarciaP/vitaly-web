@@ -7,7 +7,6 @@ interface GrupoSanguineoProps {
   data: GrupoSanguineoData;
   patient: Paciente;
   logoUrl?: string;
-  qrImage?: string;
 }
 
 const styles = StyleSheet.create({
@@ -16,20 +15,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: '100%',
-    gap: 20, // Espacio entre frente y dorso para el corte
+    gap: 20,
   },
-  // Formato Tarjeta de Crédito (85.6mm x 54mm aprox)
   creditCard: {
-    width: 242,
+    width: 242, 
     height: 153,
     borderRadius: 12,
     border: '1pt solid #6e2020',
     backgroundColor: '#ffffff',
-    position: 'relative',
+    position: 'relative', // Obligatorio para que los hijos absolutos se orienten aquí
     overflow: 'hidden',
     padding: 12,
   },
-  // Decoración de fondo (Simula chip o diseño moderno)
+  // LOGO: Ahora flota sobre el diseño
+  logoCard: {
+    position: 'absolute',
+    bottom: 20,
+    left: -50,
+    width: 190,  // Puedes amp0liarlo y no moverá los textos
+    height: 190,
+    objectFit: 'contain',
+  },
   cardDecor: {
     position: 'absolute',
     right: -20,
@@ -40,40 +46,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f1f1',
     zIndex: -1,
   },
-  // Frente de la tarjeta
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  logoCard: {
-    width: 55,
-    height: 55,
-    marginRight: 8,
+  // Header alineado a la derecha para no chocar con el logo absoluto
+  headerContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-end', 
+    width: '100%',
+    marginBottom: 15,
   },
   labName: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#6e2020',
   },
   cardTitle: {
-    fontSize: 7,
-    letterSpacing: 1,
+    fontSize: 6,
+    letterSpacing: 0.5,
     color: '#666',
-    textTransform: 'uppercase',
+  },
+  patientInfo: {
+    marginTop: 25, // Espacio para que el nombre empiece debajo del área del logo
   },
   patientName: {
     fontSize: 12,
     fontWeight: 'bold',
-    marginTop: 15,
     color: '#222',
+    textTransform: 'uppercase',
   },
   patientId: {
     fontSize: 9,
     color: '#555',
-    marginBottom: 10,
   },
-  // Bloque de resultados estilo "Chip/SmartCard"
   resultsContainer: {
     flexDirection: 'row',
     marginTop: 'auto',
@@ -88,40 +90,26 @@ const styles = StyleSheet.create({
   resultLabel: {
     fontSize: 6,
     color: '#ffcccc',
-    marginBottom: 2,
   },
   resultValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#ffffff',
   },
-  // Dorso de la tarjeta
+  // Dorso
   backCard: {
     justifyContent: 'space-between',
   },
-  magneticStripe: {
-    backgroundColor: '#333',
-    height: 30,
-    width: '120%',
-    marginLeft: -20,
-    marginTop: 5,
-  },
-  infoText: {
-    fontSize: 6,
-    textAlign: 'center',
-    color: '#666',
-    paddingHorizontal: 10,
-  },
   signatureArea: {
-    backgroundColor: '#f2f2f2',
-    height: 45,
+    backgroundColor: '#f5f5f5',
+    height: 40,
     width: '100%',
     borderWidth: 0.5,
     borderColor: '#ccc',
+    borderStyle: 'dashed',
     marginTop: 5,
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingLeft: 10,
   }
 });
 
@@ -132,20 +120,22 @@ const GrupoSanguineo: React.FC<GrupoSanguineoProps> = ({ data, patient, logoUrl 
     <ReportLayout>
       <View style={styles.masterContainer}>
         
-        {/* ANVERSO (FRENTE) */}
+        {/* ANVERSO */}
         <View style={styles.creditCard}>
           <View style={styles.cardDecor} />
           
-          <View style={styles.headerRow}>
-            {logoUrl && <Image src={logoUrl} style={styles.logoCard} />}
-            <View>
-              <Text style={styles.labName}>LABORATORIO VITALY</Text>
-              <Text style={styles.cardTitle}>Blood Group Identification</Text>
-            </View>
+          {/* EL LOGO: Al ser absolute, no empuja el resto de los View */}
+          {logoUrl && <Image src={logoUrl} style={styles.logoCard} />}
+
+          <View style={styles.headerContainer}>
+            <Text style={styles.labName}>LABORATORIO VITALY</Text>
+            <Text style={styles.cardTitle}>IDENTIFICACIÓN SANGUÍNEA</Text>
           </View>
 
-          <Text style={styles.patientName}>{patient?.nombre || 'NOMBRE DEL PACIENTE'}</Text>
-          <Text style={styles.patientId}>ID: {patient?.cedula || 'S/C'}</Text>
+          <View style={styles.patientInfo}>
+            <Text style={styles.patientName}>{patient?.nombre || 'PACIENTE NO REGISTRADO'}</Text>
+            <Text style={styles.patientId}>C.I.: {patient?.cedula || 'S/C'}</Text>
+          </View>
 
           <View style={styles.resultsContainer}>
             <View style={styles.resultBlock}>
@@ -156,34 +146,25 @@ const GrupoSanguineo: React.FC<GrupoSanguineoProps> = ({ data, patient, logoUrl 
               <Text style={styles.resultLabel}>FACTOR RH</Text>
               <Text style={styles.resultValue}>{data?.factor_rh || '-'}</Text>
             </View>
-            {data?.du && (
-              <View style={styles.resultBlock}>
-                <Text style={styles.resultLabel}>DU</Text>
-                <Text style={styles.resultValue}>{data?.du}</Text>
-              </View>
-            )}
           </View>
         </View>
 
-        {/* REVERSO (DORSO) */}
+        {/* REVERSO */}
         <View style={[styles.creditCard, styles.backCard]}>
-          {/* <View style={styles.magneticStripe} /> */}
-          
           <View>
-            <Text style={{ fontSize: 6, fontWeight: 'bold', marginLeft: 5 }}>FIRMA BIOANALISTA:</Text>
+            <Text style={{ fontSize: 7, fontWeight: 'bold' }}>FIRMA BIOANALISTA:</Text>
             <View style={styles.signatureArea}>
-              <Text style={{ fontSize: 5, color: '#aaa' }}>Válido con sello del laboratorio</Text>
+              <Text style={{ fontSize: 5, color: '#999' }}>Sello del Laboratorio</Text>
             </View>
           </View>
 
-          <View style={styles.infoText}>
-            <Text>Este documento es de carácter informativo y personal.</Text>
-            <Text>En caso de emergencia, presente esta tarjeta al personal médico.</Text>
-            <Text style={{ marginTop: 4, fontWeight: 'bold' }}>San José de Bolívar, Táchira • RIF: J-50413383-3</Text>
+          <View style={{ fontSize: 6, textAlign: 'center', color: '#666' }}>
+            <Text>Este documento es personal e intransferible.</Text>
+            <Text>San José de Bolívar, Táchira • RIF: J-50413383-3</Text>
           </View>
           
           <Text style={{ fontSize: 5, textAlign: 'right', color: '#999' }}>
-            Emitido: {new Date().toLocaleDateString()}
+            Emisión: {patient.fecha}
           </Text>
         </View>
 

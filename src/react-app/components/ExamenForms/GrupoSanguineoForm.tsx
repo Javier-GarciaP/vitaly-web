@@ -17,7 +17,7 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
         ...resultados, 
         grupo_sanguineo: resultados.grupo_sanguineo || "O", // Valor común por defecto
         factor_rh: resultados.factor_rh || "Post.(+)",
-        du: resultados.du || "Neg.(-)"
+        du: resultados.du || ""
       });
     }
   }, []);
@@ -101,6 +101,7 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
                 onChange={(e) => handleChange("du", e.target.value)} 
                 className={selectBase}
               >
+                <option value=" ">Seleccionar...</option>
                 <option value="Neg.(-)">No Detectado / Negativo</option>
                 <option value="Post.(+)">Detectado / Positivo</option>
               </select>

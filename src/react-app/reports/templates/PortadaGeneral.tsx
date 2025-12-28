@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text, Image } from '@react-pdf/renderer';
 import ReportLayout from '../components/ReportLayout';
-// 1. Usamos tu tipo centralizado de paciente
 import { Paciente } from '@/types/types';
 
 interface PortadaGeneralProps {
@@ -10,129 +9,158 @@ interface PortadaGeneralProps {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 60, 
+  pageContainer: {
+    flexDirection: 'row',
+    height: '100%',
+    backgroundColor: '#ffffff',
+    position: 'relative', // Contexto para posicionamiento absoluto
   },
-  logo: {
-    width: 500, // Un poco más grande para la portada
-    height: 'auto',
-    marginBottom: 25,
-    marginRight: 170,
+  sidebar: {
+    width: 25,
+    backgroundColor: '#6e2020',
+    height: '100%',
+  },
+  mainContent: {
+    flex: 1,
+    padding: 40,
+    // Este padding superior reserva el espacio donde "flotará" el logo
+    paddingTop: 160, 
+    flexDirection: 'column',
+  },
+  // EL LOGO: Ahora es independiente del resto de los elementos
+  logoAbsolute: {
+    position: 'absolute',
+    top: -150,
+    left: -60,
+    width: 450,      // Puedes subirlo a 200 o más y no moverá nada
+    height: 450,
+    objectFit: 'contain',
+  },
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 30,
+    width: '100%',
   },
   labName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#6e2020', 
+    color: '#6e2020',
     textAlign: 'center',
-    marginBottom: 8,
     textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: 11,
+    fontSize: 9,
     color: '#666',
-    marginBottom: 50,
-    letterSpacing: 4, // Espaciado elegante
-    fontWeight: 'light',
+    letterSpacing: 3,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
   patientCard: {
-    width: '85%',
-    borderWidth: 1.5,
-    borderColor: '#6e2020',
-    borderRadius: 8,
     padding: 20,
-    backgroundColor: '#fff',
-    // Sombra visual simulada con bordes
+    borderRadius: 5,
+    backgroundColor: '#f9f9f9',
+    borderLeftWidth: 4,
+    borderLeftColor: '#6e2020',
+    width: '100%',
   },
   cardTitle: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#6e2020',
     marginBottom: 15,
-    textAlign: 'center',
-    letterSpacing: 1,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#6e2020',
-    paddingBottom: 5,
+    textTransform: 'uppercase',
   },
   infoRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-    borderBottomWidth: 0.3,
-    borderBottomColor: '#eee',
-    paddingBottom: 3,
+    marginBottom: 10,
   },
   label: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#444',
-    width: 90,
-  },
-  value: {
-    fontSize: 10,
-    flex: 1,
-    textTransform: 'uppercase',
-    color: '#000',
-  },
-  notice: {
-    marginTop: 40,
     fontSize: 8,
     color: '#888',
+    textTransform: 'uppercase',
+  },
+  value: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    textTransform: 'uppercase',
+  },
+  footer: {
+    marginTop: 'auto',
+    alignItems: 'center',
+  },
+  notice: {
+    fontSize: 7.5,
+    color: '#999',
     textAlign: 'center',
-    width: '70%',
-    lineHeight: 1.4,
+    marginBottom: 15,
+    paddingHorizontal: 30,
+  },
+  bottomLine: {
+    width: '100%',
+    borderTopWidth: 0.5,
+    borderTopColor: '#eee',
+    paddingTop: 10,
+    textAlign: 'center',
+    fontSize: 7,
+    color: '#bbb',
   }
 });
 
 const PortadaGeneral: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => {
   return (
     <ReportLayout>
-      <View style={styles.container}>
-        {/* Identidad Visual */}
+      <View style={styles.pageContainer}>
+        {/* Barra Lateral */}
+        <View style={styles.sidebar} />
+
+        {/* LOGO FLOTANTE (Encima de todo) */}
         {logoUrl && (
-          <Image src={logoUrl} style={styles.logo} />
+          <Image src={logoUrl} style={styles.logoAbsolute} />
         )}
 
-        <Text style={styles.labName}>Laboratorio Vitaly</Text>
-        <Text style={styles.subtitle}>INFORME MÉDICO DE LABORATORIO</Text>
-
-        {/* Tarjeta de Presentación del Paciente */}
-        <View style={styles.patientCard}>
-          <Text style={styles.cardTitle}>DATOS DE IDENTIFICACIÓN</Text>
+        <View style={styles.mainContent}>
           
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>PACIENTE:</Text>
-            <Text style={styles.value}>{patient?.nombre || 'S/N'}</Text>
+          {/* TÍTULOS (Ubicados debajo del espacio del logo gracias al paddingTop) */}
+          <View style={styles.headerSection}>
+            <Text style={styles.labName}>LABORATORIO VITALY</Text>
+            <Text style={styles.subtitle}>Resultados de Laboratorio</Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>CÉDULA / ID:</Text>
-            <Text style={styles.value}>{patient?.cedula || 'S/C'}</Text>
+          {/* FICHA DEL PACIENTE */}
+          <View style={styles.patientCard}>
+            <Text style={styles.cardTitle}>Datos del Paciente</Text>
+            
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Nombre Completo</Text>
+              <Text style={styles.value}>{patient?.nombre || 'YULI GARCIA'}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Cédula de Identidad</Text>
+              <Text style={styles.value}>{patient?.cedula || '17527149'}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Edad / Fecha</Text>
+              <Text style={styles.value}>
+                {patient?.edad || '39'} AÑOS  |  {new Date().toLocaleDateString('es-ES')}
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>EDAD:</Text>
-            <Text style={styles.value}>{patient?.edad || 'N/A'}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>FECHA EMISIÓN:</Text>
-            <Text style={styles.value}>
-              {new Date().toLocaleDateString('es-ES', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+          {/* PIE DE PÁGINA */}
+          <View style={styles.footer}>
+            <Text style={styles.notice}>
+              Este documento es un reporte médico oficial. La confidencialidad de los 
+              datos está garantizada bajo las normativas de salud vigentes.
+            </Text>
+            <Text style={styles.bottomLine}>
+              San José de Bolívar, Táchira • RIF: J-50413383-3
             </Text>
           </View>
-        </View>
 
-        <Text style={styles.notice}>
-          Este informe es estrictamente confidencial y los resultados deben ser 
-          interpretados por un médico profesional.
-        </Text>
+        </View>
       </View>
     </ReportLayout>
   );
