@@ -86,7 +86,7 @@ export default function DashboardLayout() {
     <div className="relative min-h-screen bg-[#f8fafc] flex font-sans antialiased text-slate-900 overflow-x-hidden">
       
       {/* OVERLAY PARA MÓVIL */}
-      {isMobile && sidebarOpen && (
+      {isMobile && sidebarOpen &&  (
         <div 
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
