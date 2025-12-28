@@ -6,6 +6,8 @@ import {
   Beaker,
   ClipboardList,
   Layers,
+  Search,
+  X
 } from "lucide-react";
 import { MiscelaneosData } from "@/types/types";
 
@@ -19,8 +21,8 @@ export default function MiscelaneosForm({
   onChange,
 }: MiscelaneosFormProps) {
   const [plantillas, setPlantillas] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState(""); // NUEVO: Estado para el buscador
 
-  // 1. CARGA REAL DESDE LA API
   const cargarPlantillas = async () => {
     try {
       const res = await fetch("/api/plantillas/miscelaneos");
@@ -36,6 +38,12 @@ export default function MiscelaneosForm({
   useEffect(() => {
     cargarPlantillas();
   }, []);
+
+  // FILTRO LÓGICO: Filtra plantillas por nombre de examen o método
+  const plantillasFiltradas = plantillas.filter((p) =>
+    p.nombre_examen?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.metodo?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleChange = (field: string, value: string) => {
     onChange({ ...resultados, [field]: value });
@@ -91,10 +99,7 @@ export default function MiscelaneosForm({
       });
 
       if (res.ok) {
-        // Filtramos por ID para removerla de la UI instantáneamente
         setPlantillas((prev) => prev.filter((p) => p.id !== id));
-        // Si tienes un sistema de notificaciones:
-        // notify("Plantilla eliminada correctamente");
       }
     } catch (error) {
       console.error("Error de red al eliminar:", error);
@@ -111,10 +116,8 @@ export default function MiscelaneosForm({
     });
   };
 
-  const labelBase =
-    "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
-  const inputBase =
-    "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
+  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
+  const inputBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto pb-10">
@@ -126,12 +129,8 @@ export default function MiscelaneosForm({
               <Beaker size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                Editor de Resultados
-              </h3>
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">
-                Exámenes Especiales / Misceláneos
-              </p>
+              <h3 className="text-xl font-black text-slate-800 tracking-tight">Editor de Resultados</h3>
+              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Exámenes Especiales / Misceláneos</p>
             </div>
           </div>
 
@@ -141,9 +140,7 @@ export default function MiscelaneosForm({
               <input
                 type="text"
                 value={resultados?.examen_solicitado || ""}
-                onChange={(e) =>
-                  handleChange("examen_solicitado", e.target.value)
-                }
+                onChange={(e) => handleChange("examen_solicitado", e.target.value)}
                 className={inputBase}
                 placeholder="Ej. Prueba de Esfuerzo"
               />
@@ -174,15 +171,13 @@ export default function MiscelaneosForm({
             <div className="flex justify-between items-end px-1">
               <div>
                 <label className={labelBase}>Desarrollo del Informe</label>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  Use este espacio para detallar hallazgos clínicos
-                </p>
+                <p className="text-[10px] text-slate-400 font-medium">Use este espacio para detallar hallazgos clínicos</p>
               </div>
               <button
                 onClick={guardarComoPlantilla}
-                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100"
+                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-2 py-1 rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100"
               >
-                <Save size={14} /> Guardar Plantilla
+                <Save size={18} /> Guardar Plantilla
               </button>
             </div>
 
@@ -196,38 +191,47 @@ export default function MiscelaneosForm({
         </div>
       </div>
 
-      {/* SECCIÓN LATERAL: GESTOR DE PLANTILLAS */}
+      {/* SECCIÓN LATERAL: GESTOR DE PLANTILLAS CON BUSCADOR */}
       <div className="w-full lg:w-80 flex flex-col gap-4">
         <div className="bg-slate-900 rounded-[2rem] overflow-hidden shadow-xl flex flex-col h-full max-h-[750px]">
-          <div className="p-6 border-b border-slate-800">
-            <div className="flex items-center gap-3 text-white mb-1">
+          <div className="p-6 border-b border-slate-800 space-y-4">
+            <div className="flex items-center gap-3 text-white">
               <Layers size={18} className="text-indigo-400" />
-              <span className="font-black text-sm uppercase tracking-wider">
-                Biblioteca
-              </span>
+              <span className="font-black text-sm uppercase tracking-wider">Biblioteca</span>
             </div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase">
-              Plantillas Guardadas
-            </p>
+            
+            {/* BUSCADOR IMPLEMENTADO */}
+            <div className="relative group">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+              <input 
+                type="text"
+                placeholder="BUSCAR EXAMEN..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2 pl-9 pr-8 text-[10px] font-black text-slate-300 outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-600 uppercase tracking-widest"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {plantillas.length === 0 ? (
+            {plantillasFiltradas.length === 0 ? (
               <div className="py-10 text-center space-y-3">
-                <ClipboardList
-                  size={32}
-                  className="mx-auto text-slate-700 opacity-50"
-                />
+                <ClipboardList size={32} className="mx-auto text-slate-700 opacity-50" />
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                  Sin plantillas
+                  {searchTerm ? "No hay coincidencias" : "Sin plantillas"}
                 </p>
               </div>
             ) : (
-              plantillas.map((p) => (
-                <div
-                  key={p.id}
-                  className="group relative animate-in fade-in slide-in-from-right-2 duration-300"
-                >
+              plantillasFiltradas.map((p) => (
+                <div key={p.id} className="group relative animate-in fade-in slide-in-from-right-2 duration-300">
                   <button
                     onClick={() => aplicarPlantilla(p)}
                     className="w-full text-left p-4 bg-slate-800/50 border border-slate-800 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800 transition-all pr-10"
@@ -235,7 +239,7 @@ export default function MiscelaneosForm({
                     <div className="font-black text-xs text-indigo-100 truncate mb-1 uppercase tracking-tight">
                       {p.nombre_examen}
                     </div>
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter truncate">
                       Met: {p.metodo || "N/A"}
                     </div>
                   </button>
@@ -263,11 +267,9 @@ export default function MiscelaneosForm({
           </div>
         </div>
 
-        {/* INFO CARD */}
         <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
           <p className="text-[10px] font-bold text-indigo-400 uppercase leading-relaxed text-center">
-            Las plantillas guardadas incluyen formato de texto, método y tipo de
-            muestra.
+            Utilice el buscador para localizar rápidamente exámenes específicos por nombre o técnica.
           </p>
         </div>
       </div>
