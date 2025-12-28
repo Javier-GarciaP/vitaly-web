@@ -19,7 +19,6 @@ import {
   Stethoscope,
   BeakerIcon,
   Menu,
-  ChevronRight,
 } from "lucide-react";
 
 // --- COMPONENTES EXTERNOS ---
