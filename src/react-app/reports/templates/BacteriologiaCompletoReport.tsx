@@ -11,7 +11,7 @@ interface BacteriologiaCompletoReportProps {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 5,
     backgroundColor: '#fff',
   },
   mainContainer: {
@@ -39,7 +39,7 @@ const BacteriologiaCompletoReport: React.FC<BacteriologiaCompletoReportProps> = 
   <Document title={`Reporte Bacteriología - ${patient.nombre}`}>
     
     {/* HOJA 1: CULTIVO */}
-    <Page size="A4" orientation="landscape" style={styles.page}>
+    <Page size="LETTER" orientation="landscape" style={styles.page}>
       <View style={styles.mainContainer}>
         <View style={styles.leftColumn}>
           <BacteriologiaReport data={data} patient={patient} qrImage={qrImage}/>

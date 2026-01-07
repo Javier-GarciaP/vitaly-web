@@ -7,7 +7,7 @@ interface ReportLayoutProps {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20, // Margen general de la hoja
+    padding: 5, // Margen general de la hoja
     backgroundColor: '#fff',
   },
   // Contenedor principal para el diseño de media hoja
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
  */
 const ReportLayout: React.FC<ReportLayoutProps> = ({ children }) => (
   <Document title="Reporte de Laboratorio Clínico">
-    <Page size="A4" orientation="landscape" style={styles.page}>
+    <Page size="LETTER" orientation="landscape" style={styles.page}>
       <View style={styles.mainContainer}>
         {/* Lado izquierdo: El reporte real */}
         <View style={styles.leftColumn}>
