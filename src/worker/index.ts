@@ -292,6 +292,7 @@ app.get("/api/pacientes/:id/evolucion/:tipo", async (c) => {
 });
 
 // --- FACTURAS ---
+// GET: Obtener todas las facturas
 app.get("/api/facturas", async (c) => {
   const { results } = await c.env.DB.prepare(
     `
@@ -304,6 +305,7 @@ app.get("/api/facturas", async (c) => {
   );
 });
 
+// GET: Obtener una factura por ID
 app.get("/api/facturas/:id", async (c) => {
   const f = await c.env.DB.prepare(
     `
@@ -318,12 +320,13 @@ app.get("/api/facturas/:id", async (c) => {
     : c.json({ error: "No encontrado" }, 404);
 });
 
+// POST: Crear factura y generar órdenes (omitiendo Materiales)
 app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
   const data = c.req.valid("json");
   const db = c.env.DB;
 
   try {
-    // 1. Insertar la Factura (Igual que antes)
+    // 1. Insertar la Factura (Guarda TODO, incluyendo materiales en el JSON)
     const resFactura = await db
       .prepare(
         "INSERT INTO facturas (paciente_id, examenes, total, fecha) VALUES (?, ?, ?, ?)"
@@ -338,10 +341,11 @@ app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
 
     const facturaId = resFactura.meta.last_row_id;
 
-    // 2. CREAR ÓRDENES AUTOMÁTICAS (Solo si vienen categorías en el JSON)
-    if (data.categorias && data.categorias.length > 0) {
-      for (const cat of data.categorias) {
-        // Usamos crypto.randomUUID() o una alternativa si falla en tu entorno
+    // 2. CREAR ÓRDENES AUTOMÁTICAS (Filtrando Materiales)
+    const categoriasValidas = (data.categorias || []).filter(cat => cat !== "Materiales");
+
+    if (categoriasValidas.length > 0) {
+      for (const cat of categoriasValidas) {
         const examenUuid = crypto.randomUUID
           ? crypto.randomUUID()
           : `fac-${facturaId}-${Math.random().toString(36).substr(2, 9)}`;
@@ -358,7 +362,7 @@ app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
             data.fecha,
             "pendiente",
             examenUuid,
-            JSON.stringify({}) // Resultados vacíos iniciales
+            JSON.stringify({})
           )
           .run();
       }
@@ -374,6 +378,7 @@ app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
   }
 });
 
+// PUT: Actualizar factura y sincronizar órdenes (omitiendo Materiales)
 app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
   const id = c.req.param("id");
   const data = c.req.valid("json");
@@ -383,19 +388,25 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
     const facturaActual = await db
       .prepare("SELECT examenes FROM facturas WHERE id = ?")
       .bind(id)
-      .first<{ examenes: string }>(); // Tipado directamente en la consulta
+      .first<{ examenes: string }>();
 
     if (!facturaActual) return c.json({ error: "Factura no encontrada" }, 404);
 
     const examenesPrevios = JSON.parse(facturaActual.examenes || "[]");
+    
+    // Filtrar categorías previas para ignorar materiales en la sincronización
     const categoriasPrevias = [
       ...new Set(
-        examenesPrevios.map((ex: any) => ex.categoria).filter(Boolean)
+        examenesPrevios
+          .map((ex: any) => ex.categoria)
+          .filter((cat: any) => cat && cat !== "Materiales")
       ),
     ] as string[];
-    const categoriasNuevas = data.categorias || [];
 
-    // Actualizar factura
+    // Filtrar nuevas categorías de la petición
+    const categoriasNuevas = (data.categorias || []).filter(cat => cat !== "Materiales");
+
+    // Actualizar factura (mantiene el registro completo de lo cobrado)
     await db
       .prepare(
         "UPDATE facturas SET paciente_id = ?, examenes = ?, total = ?, fecha = ? WHERE id = ?"
@@ -409,7 +420,7 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
       )
       .run();
 
-    // Sincronizar Exámenes (Eliminar obsoletos)
+    // Sincronizar Exámenes: Eliminar los que ya no están (ignorando materiales)
     for (const catPrev of categoriasPrevias) {
       if (!categoriasNuevas.includes(catPrev)) {
         await db
@@ -421,7 +432,7 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
       }
     }
 
-    // Sincronizar Exámenes (Crear nuevos)
+    // Sincronizar Exámenes: Crear los nuevos (ignorando materiales)
     for (const catNueva of categoriasNuevas) {
       if (!categoriasPrevias.includes(catNueva)) {
         const examenUuid = crypto.randomUUID();
@@ -450,12 +461,12 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
   }
 });
 
+// DELETE: Eliminar factura y órdenes pendientes (omitiendo Materiales)
 app.delete("/api/facturas/:id", async (c) => {
   const id = c.req.param("id");
   const db = c.env.DB;
 
   try {
-    // 1. Obtener la información de la factura antes de borrarla
     const factura = await db
       .prepare("SELECT paciente_id, fecha, examenes FROM facturas WHERE id = ?")
       .bind(id)
@@ -465,14 +476,17 @@ app.delete("/api/facturas/:id", async (c) => {
       return c.json({ error: "Factura no encontrada" }, 404);
     }
 
-    // 2. Extraer las categorías únicas de los exámenes de esa factura
     const examenesList = JSON.parse(factura.examenes || "[]");
+    
+    // Filtrar para solo buscar órdenes reales en la tabla 'examenes'
     const categorias = [
-      ...new Set(examenesList.map((ex: any) => ex.categoria).filter(Boolean)),
+      ...new Set(
+        examenesList
+          .map((ex: any) => ex.categoria)
+          .filter((cat: any) => cat && cat !== "Materiales")
+      ),
     ] as string[];
 
-    // 3. Eliminar los exámenes vinculados que estén en estado 'pendiente'
-    // Usamos el paciente_id, la fecha y el tipo (categoría) para identificarlos
     if (categorias.length > 0) {
       for (const cat of categorias) {
         await db
@@ -484,15 +498,13 @@ app.delete("/api/facturas/:id", async (c) => {
       }
     }
 
-    // 4. Finalmente, borrar la factura
     await db.prepare("DELETE FROM facturas WHERE id = ?").bind(id).run();
 
     return c.json({
       success: true,
-      message: "Factura y exámenes pendientes eliminados correctamente",
+      message: "Factura y órdenes de examen eliminadas correctamente",
     });
   } catch (error: any) {
-    console.error("Error al eliminar factura:", error.message);
     return c.json(
       { error: "No se pudo eliminar la factura", details: error.message },
       500
