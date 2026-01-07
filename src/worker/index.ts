@@ -9,6 +9,16 @@ interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 
+const valorReferenciaItemSchema = z.object({
+  id: z.number(),
+  nombre_examen: z.string(),
+  valor_referencia: z.string(),
+});
+
+const valoresReferenciaBulkSchema = z.object({
+  valores: z.array(valorReferenciaItemSchema),
+});
+
 // --- ESQUEMAS DE VALIDACIÓN (ZOD) ---
 const examenSchema = z.object({
   paciente_id: z.number(),
@@ -611,14 +621,14 @@ app.delete("/api/plantillas/bacteriologia/:id", async (c) => {
 // Actualizar un examen predefinido
 app.put("/api/examenes-predefinidos/:id", async (c) => {
   const id = c.req.param("id");
-  const { nombre, precio } = await c.req.json();
+  const { nombre, precio, categoria } = await c.req.json(); // Ahora extraemos categoria
 
   try {
     await c.env.DB.prepare(
       "UPDATE examenes_predefinidos SET nombre = ?, precio = ?, categoria = ? WHERE id = ?"
     )
-      .bind(nombre, precio, precio, id)
-      .run();
+    .bind(nombre, precio, categoria, id) // Bind correcto
+    .run();
 
     return c.json({ success: true });
   } catch (e) {
@@ -718,6 +728,64 @@ app.delete("/api/plantillas/miscelaneos/:id", async (c) => {
     }
   } catch (e) {
     return c.json({ error: "Error de base de datos", details: e }, 500);
+  }
+});
+
+// --- GESTIÓN DE VALORES DE REFERENCIA ---
+
+// GET: Obtener valores según la tabla (quimica, hematologia, coagulacion)
+app.get("/api/valores-referencia", async (c) => {
+  const tablaInput = c.req.query("tabla");
+  const db = c.env.DB;
+
+  // Validamos que la tabla solicitada sea una de las permitidas para evitar SQL Injection
+  let tableName = "";
+  switch (tablaInput) {
+    case "quimica": tableName = "quimica_valores_referencia"; break;
+    case "hematologia": tableName = "hematologia_valores_referencia"; break;
+    case "coagulacion": tableName = "coagulacion_valores_referencia"; break;
+    default:
+      return c.json({ error: "Tabla de referencia no válida" }, 400);
+  }
+
+  try {
+    const { results } = await db.prepare(`SELECT * FROM ${tableName} ORDER BY id ASC`).all();
+    return c.json(results);
+  } catch (error: any) {
+    return c.json({ error: "Error al obtener valores", details: error.message }, 500);
+  }
+});
+
+// PUT: Actualización masiva (Bulk Update)
+app.put("/api/valores-referencia", zValidator("json", valoresReferenciaBulkSchema), async (c) => {
+  const tablaInput = c.req.query("tabla");
+  const { valores } = c.req.valid("json");
+  const db = c.env.DB;
+
+  let tableName = "";
+  switch (tablaInput) {
+    case "quimica": tableName = "quimica_valores_referencia"; break;
+    case "hematologia": tableName = "hematologia_valores_referencia"; break;
+    case "coagulacion": tableName = "coagulacion_valores_referencia"; break;
+    default:
+      return c.json({ error: "Tabla no válida" }, 400);
+  }
+
+  try {
+    // En Cloudflare D1, la mejor forma de hacer bulk update es con batch()
+    // Preparamos todas las sentencias de actualización
+    const statements = valores.map((item) => 
+      db.prepare(`UPDATE ${tableName} SET valor_referencia = ? WHERE id = ?`)
+        .bind(item.valor_referencia, item.id)
+    );
+
+    // Ejecutamos todas en una sola transacción atómica
+    await db.batch(statements);
+
+    return c.json({ success: true, message: "Valores actualizados correctamente" });
+  } catch (error: any) {
+    console.error("Error en bulk update:", error.message);
+    return c.json({ error: "No se pudieron actualizar los valores", details: error.message }, 500);
   }
 });
 

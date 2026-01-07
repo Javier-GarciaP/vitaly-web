@@ -3,18 +3,25 @@ import { View, StyleSheet, Text } from '@react-pdf/renderer';
 import ReportLayout from '../components/ReportLayout';
 import CommonHeader from '../components/CommonHeader';
 import CommonFooter from '../components/CommonFooter';
-// 1. Importamos los tipos centralizados
 import { CoagulacionData, Paciente } from '@/types/types';
+
+// Interfaz para las referencias dinámicas
+interface ValorReferencia {
+  nombre_examen: string;
+  valor_referencia: string;
+}
 
 interface CoagulacionReportProps {
   data: CoagulacionData;
   patient: Paciente;
   qrImage?: string;
+  references?: ValorReferencia[]; // Nueva prop
 }
 
 interface FieldProps {
   label: string;
   value?: string;
+  reference?: string; // Añadido para mostrar el valor de referencia
 }
 
 const styles = StyleSheet.create({
@@ -62,13 +69,15 @@ const styles = StyleSheet.create({
   },
   inlineField: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 3,
     borderBottomWidth: 0.3,
     borderBottomColor: '#eee',
     paddingBottom: 2,
   },
   inlineLabel: { fontSize: 8, fontWeight: 'bold', width: 90 },
-  inlineValue: { fontSize: 9, flex: 1 },
+  inlineValue: { fontSize: 9, width: 80 },
+  inlineRef: { fontSize: 8, color: '#666', flex: 1, textAlign: 'right', fontStyle: 'italic' },
 });
 
 const BoxField: React.FC<FieldProps> = ({ label, value }) => {
@@ -81,20 +90,30 @@ const BoxField: React.FC<FieldProps> = ({ label, value }) => {
   );
 };
 
-const InlineField: React.FC<FieldProps> = ({ label, value }) => {
+const InlineField: React.FC<FieldProps> = ({ label, value, reference }) => {
   if (!value || value.trim() === "" || value === "null") return null;
   return (
     <View style={styles.inlineField}>
       <Text style={styles.inlineLabel}>{label}:</Text>
       <Text style={styles.inlineValue}>{value}</Text>
+      {reference && <Text style={styles.inlineRef}>Ref: {reference}</Text>}
     </View>
   );
 };
 
-const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qrImage }) => {
-  // Validación basada en las llaves reales de la BD
-  const hasTP = !!(data?.tp_control || data?.tp_paciente || data?.tp_act || data?.tp_razon || data?.tp_inr || data?.tp_isi);
-  const hasTPT = !!(data?.tpt_control || data?.tpt_paciente || data?.fibrinogeno);
+const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qrImage, references }) => {
+  
+  // Función para buscar referencias en la BD
+  const getRef = (nombre: string, fallback: string) => {
+    if (!references) return fallback;
+    const refObj = references.find(r => 
+      r.nombre_examen.toLowerCase() === nombre.toLowerCase()
+    );
+    return refObj ? refObj.valor_referencia : fallback;
+  };
+
+  const hasTP = !!(data?.tp_control || data?.tp_paciente || data?.tp_act || data?.tp_razon || data?.tp_inr);
+  const hasTPT = !!(data?.tpt_control || data?.tpt_paciente);
 
   return (
     <ReportLayout>
@@ -102,14 +121,14 @@ const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qr
         patient={{
           nombre: patient.nombre,
           cedula: patient.cedula,
-          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
-          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+          edad: patient.edad,
+          fechaExamen: patient.fecha || "",
         }}
         title="COAGULACIÓN"
         qrImage={qrImage}
       />
 
-      {/* SECCIÓN: TIEMPO DE PROTROMBINA (TP) */}
+      {/* SECCIÓN: TP */}
       {hasTP && (
         <View style={styles.groupContainer}>
           <Text style={styles.groupTitle}>Tiempo de Protrombina (TP)</Text>
@@ -124,7 +143,7 @@ const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qr
         </View>
       )}
 
-      {/* SECCIÓN: TIEMPO DE TROMBOPLASTINA (TPT) */}
+      {/* SECCIÓN: TPT */}
       {hasTPT && (
         <View style={styles.groupContainer}>
           <Text style={styles.groupTitle}>Tiempo de Tromboplastina Parcial Activa (TPT)</Text>
@@ -135,30 +154,35 @@ const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qr
         </View>
       )}
 
+      {/* SECCIÓN: FIBRINÓGENO (Dinamizado) */}
       {data.fibrinogeno && (
         <View style={styles.groupContainer}>
-          <Text style={styles.groupTitle}>Fibrinogeno</Text>
+          <Text style={styles.groupTitle}>Fibrinógeno</Text>
           <View style={styles.verticalList}>
-            <InlineField label="Fibrinógeno" value={data?.fibrinogeno} />
+            <InlineField 
+              label="Resultado" 
+              value={`${data.fibrinogeno} mg/dL`} 
+              reference={getRef("Fibrinógeno", "200 - 400 mg/dL")} 
+            />
           </View>
         </View>
       )}
 
-      {/* Otros datos adicionales */}
-      <View style={{ marginTop: 5, paddingLeft: 5 }}>
+      {/* Información Adicional */}
+      <View style={{ marginTop: 5, paddingLeft: 8, flexDirection: 'row' }}>
         {data?.anticoagulado && (
-           <Text style={{ fontSize: 8 }}>Anticoagulado: {data.anticoagulado}</Text>
+           <Text style={{ fontSize: 8, marginRight: 15 }}>Anticoagulado: <Text style={{fontWeight: 'bold'}}>{data.anticoagulado}</Text></Text>
         )}
         {data?.medicamento && (
-           <Text style={{ fontSize: 8 }}>Medicamento: {data.medicamento}</Text>
+           <Text style={{ fontSize: 8 }}>Medicamento: <Text style={{fontWeight: 'bold'}}>{data.medicamento}</Text></Text>
         )}
       </View>
 
       {/* Observaciones */}
       {typeof data?.observacion === 'string' && data.observacion.trim() !== "" && (
-        <View style={{ marginTop: 10, padding: 5, borderTopWidth: 0.5, borderTopColor: '#eee' }}>
-          <Text style={{ fontSize: 8, fontWeight: 'bold' }}>Observaciones:</Text>
-          <Text style={{ fontSize: 8 }}>{data.observacion}</Text>
+        <View style={{ marginTop: 10, padding: 8, backgroundColor: '#f9f9f9', borderLeftWidth: 2, borderLeftColor: '#6e2020' }}>
+          <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#6e2020' }}>Observaciones:</Text>
+          <Text style={{ fontSize: 8, marginTop: 2 }}>{data.observacion}</Text>
         </View>
       )}
 

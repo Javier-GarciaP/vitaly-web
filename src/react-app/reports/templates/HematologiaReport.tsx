@@ -4,13 +4,19 @@ import ReportLayout from '../components/ReportLayout';
 import CommonHeader from '../components/CommonHeader';
 import CommonFooter from '../components/CommonFooter';
 import ExamRow from '../components/ExamRow';
-// 1. Importamos los tipos centralizados
 import { HematologiaData, Paciente } from '@/types/types';
+
+// Definimos la interfaz para las referencias dinámicas
+interface ValorReferencia {
+  nombre_examen: string;
+  valor_referencia: string;
+}
 
 interface HematologiaReportProps {
   data: HematologiaData;
   patient: Paciente;
   qrImage?: string;
+  references?: ValorReferencia[]; // Prop para recibir los valores de la BD
 }
 
 interface SectionTitleProps {
@@ -75,43 +81,53 @@ const SectionTitle: React.FC<SectionTitleProps> = ({ title }) => (
   </View>
 );
 
-const HematologiaReport: React.FC<HematologiaReportProps> = ({ data, patient, qrImage }) => {
+const HematologiaReport: React.FC<HematologiaReportProps> = ({ data, patient, qrImage, references }) => {
+  
+  // Función auxiliar para buscar el valor de referencia
+  const getRef = (nombre: string, fallback: string) => {
+    if (!references) return fallback;
+    const refObj = references.find(r => 
+      r.nombre_examen.toLowerCase() === nombre.toLowerCase()
+    );
+    return refObj ? refObj.valor_referencia : fallback;
+  };
+
   return (
     <ReportLayout>
       <CommonHeader
         patient={{
           nombre: patient.nombre,
           cedula: patient.cedula,
-          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
-          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+          edad: patient.edad,
+          fechaExamen: patient.fecha || "",
         }}
         title="HEMATOLOGÍA COMPLETA"
         qrImage={qrImage}
       />
 
-      {/* SERIE ROJA - Sincronizado con llaves de BD */}
+      {/* SERIE ROJA */}
       <SectionTitle title="Serie Roja" />
-      <ExamRow label="Hematíes" result={data?.hematies} reference="4.5 - 5.5 mill/mm³" />
-      <ExamRow label="Hemoglobina" result={data?.hemoglobina} reference="12.0 - 16.0 g/dL" />
-      <ExamRow label="Hematocrito" result={data?.hematocrito} reference="37.0 - 47.0 %" />
-      <ExamRow label="V.C.M" result={data?.vcm} reference="80 - 100 fL" />
-      <ExamRow label="H.C.M" result={data?.hcm} reference="27 - 31 pg" />
-      <ExamRow label="C.H.C.M" result={data?.chcm} reference="32 - 36 g/dL" />
+      <ExamRow label="Hematíes" result={data?.hematies} reference={getRef("Hematíes", "4.5 - 5.5 mill/mm³")} />
+      <ExamRow label="Hemoglobina" result={data?.hemoglobina} reference={getRef("Hemoglobina", "12.0 - 16.0 g/dL")} />
+      <ExamRow label="Hematocrito" result={data?.hematocrito} reference={getRef("Hematocrito", "37.0 - 47.0 %")} />
+      <ExamRow label="V.C.M" result={data?.vcm} reference={getRef("V.C.M", "80 - 100 fL")} />
+      <ExamRow label="H.C.M" result={data?.hcm} reference={getRef("H.C.M", "27 - 31 pg")} />
+      <ExamRow label="C.H.C.M" result={data?.chcm} reference={getRef("C.H.C.M", "32 - 36 g/dL")} />
 
-      {/* SERIE BLANCA - Sincronizado con llaves de BD */}
+      {/* SERIE BLANCA */}
       <SectionTitle title="Serie Blanca" />
-      <ExamRow label="Leucocitos" result={data?.leucocitos} reference="5.000 - 10.000 /mm³" />
-      <ExamRow label="Neutrófilos" result={data?.neutrofilos} reference="55 - 70 %" />
-      <ExamRow label="Linfocitos" result={data?.linfocitos} reference="20 - 40 %" />
-      <ExamRow label="Monocitos" result={data?.monocitos} reference="2 - 8 %" />
-      <ExamRow label="Eosinófilos" result={data?.eosinofilos} reference="1 - 4 %" />
-      <ExamRow label="Basófilos" result={data?.basofilos} reference="0 - 1 %" />
+      <ExamRow label="Leucocitos" result={data?.leucocitos} reference={getRef("Leucocitos", "5.000 - 10.000 /mm³")} />
+      <ExamRow label="Neutrófilos" result={data?.neutrofilos} reference={getRef("Neutrófilos", "55 - 70 %")} />
+      <ExamRow label="Linfocitos" result={data?.linfocitos} reference={getRef("Linfocitos", "20 - 40 %")} />
+      <ExamRow label="Monocitos" result={data?.monocitos} reference={getRef("Monocitos", "2 - 8 %")} />
+      <ExamRow label="Eosinófilos" result={data?.eosinofilos} reference={getRef("Eosinófilos", "1 - 4 %")} />
+      <ExamRow label="Basófilos" result={data?.basofilos} reference={getRef("Basófilos", "0 - 1 %")} />
 
       {/* SERIE PLAQUETARIA */}
       <SectionTitle title="Serie Plaquetaria" />
-      <ExamRow label="Plaquetas" result={data?.plaquetas} reference="150.000 - 450.000 /mm³" />
+      <ExamRow label="Plaquetas" result={data?.plaquetas} reference={getRef("Plaquetas", "150.000 - 450.000 /mm³")} />
 
-      {/* SECCIÓN V.S.G. - Sincronizado con vsg_1h, vsg_2h, vsg_indice */}
+      {/* SECCIÓN V.S.G. */}
       {(data?.vsg_1h || data?.vsg_2h) && (
         <View style={styles.vsgContainer}>
           <View style={styles.vsgData}>
@@ -130,13 +146,13 @@ const HematologiaReport: React.FC<HematologiaReportProps> = ({ data, patient, qr
             </View>
           </View>
           <View style={styles.vsgRef}>
-            <Text>Hombres: {'<'} 15 mm/h</Text>
-            <Text>Mujeres: {'<'} 20 mm/h</Text>
+            {/* Para V.S.G. podrías también traerlo de la BD o dejarlo estático como texto explicativo */}
+            <Text>{getRef("VSG Referencia", "H: < 15 mm/h | M: < 20 mm/h")}</Text>
           </View>
         </View>
       )}
 
-      {/* OBSERVACIONES - Sincronizado con observacion */}
+      {/* OBSERVACIONES */}
       {data?.observacion && data.observacion.trim() !== "" && (
         <View style={styles.observations}>
           <Text style={{ fontWeight: 'bold', fontSize: 8, color: '#6e2020' }}>OBSERVACIONES:</Text>
