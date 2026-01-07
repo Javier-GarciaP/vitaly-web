@@ -17,7 +17,7 @@ export default function CoagulacionForm({ resultados, onChange }: CoagulacionFor
     tp_razon: " raz",
     tpt_control: " seg",
     tpt_paciente: " seg",
-    fibrinogeno: " mg/dL"
+    fibrinogeno: " %"
   };
 
   // --- SOLUCIÓN AL PROBLEMA DE GUARDADO Y ESTADO INICIAL ---

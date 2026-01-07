@@ -425,7 +425,7 @@ export default function FacturasPage() {
     {/* MODAL POS - MEJORADO RESPONSIVE */}
     {showModal && (
       <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end md:items-center justify-center z-[100] p-0 md:p-4">
-        <div className="bg-white rounded-t-[2rem] md:rounded-[2rem] shadow-2xl w-full max-w-7xl overflow-hidden flex flex-col h-[95vh] md:h-[90vh] animate-in slide-in-from-bottom md:zoom-in-95 duration-300">
+        <div className="bg-white rounded-t-[2rem] md:rounded-[2rem] shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col h-[95vh] md:h-[90vh] animate-in slide-in-from-bottom md:zoom-in-95 duration-300">
           
           {/* HEADER MODAL - Más pequeño */}
           <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
@@ -499,7 +499,7 @@ export default function FacturasPage() {
                   className="w-full pl-12 pr-6 py-4 bg-white border-2 border-dashed border-blue-100 rounded-2xl focus:border-blue-500 focus:border-solid outline-none font-bold text-sm text-slate-700 transition-all shadow-sm"
                   placeholder="Buscar análisis (Ej: Glicemia...)"
                   value={busquedaExamen}
-                  onChange={(e) => { setBusquedaExamen(e.target.value); setShowExamenesSug(true); setSelectedIndex(-1); }}
+                  onChange={(e) => { setBusquedaExamen(e.target.value); setShowExamenesSug(true); setSelectedIndex(0); }}
                   onKeyDown={handleKeyDownExamen}
                 />
                 {showExamenesSug && sugerenciasExamenes.length > 0 && (

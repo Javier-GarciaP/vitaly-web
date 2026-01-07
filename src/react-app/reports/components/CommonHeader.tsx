@@ -81,14 +81,16 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) 
   return (
     <View style={styles.headerContainer}>
       <View style={styles.leftColumn}>
-        <Text style={styles.labName}>LABORATORIO VITALY</Text>
+        <Text style={styles.labName}>LABORATORIO CLÍNICO VITALY</Text>
         <Text style={styles.examTitle}>{title}</Text>
 
         <View style={styles.patientGrid}>
           {/* Nombre y Cédula */}
           <View style={[styles.infoItem, { minWidth: '150pt' }]}>
             <Text style={styles.label}>Paciente</Text>
-            <Text style={styles.value}>{patient?.nombre} ({patient?.cedula})</Text>
+            <Text style={styles.value}>{patient?.nombre}</Text>
+            <Text style={styles.label}>Cédula de identidad</Text>
+            <Text style={styles.value}>V-{patient?.cedula}</Text>
           </View>
 
           {/* Edad */}

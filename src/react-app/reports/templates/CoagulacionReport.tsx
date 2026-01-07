@@ -131,6 +131,14 @@ const CoagulacionReport: React.FC<CoagulacionReportProps> = ({ data, patient, qr
           <View style={styles.verticalList}>
             <InlineField label="T.P.T. Control" value={data?.tpt_control} />
             <InlineField label="T.P.T. Paciente" value={data?.tpt_paciente} />
+          </View>
+        </View>
+      )}
+
+      {data.fibrinogeno && (
+        <View style={styles.groupContainer}>
+          <Text style={styles.groupTitle}>Fibrinogeno</Text>
+          <View style={styles.verticalList}>
             <InlineField label="Fibrinógeno" value={data?.fibrinogeno} />
           </View>
         </View>

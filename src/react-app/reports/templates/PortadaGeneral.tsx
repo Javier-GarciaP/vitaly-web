@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     position: 'relative', // Contexto para posicionamiento absoluto
   },
   sidebar: {
-    width: 25,
+    width: 10,
     backgroundColor: '#6e2020',
     height: '100%',
   },
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   labName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#6e2020',
     textAlign: 'center',
@@ -123,7 +123,7 @@ const PortadaGeneral: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
           
           {/* TÍTULOS (Ubicados debajo del espacio del logo gracias al paddingTop) */}
           <View style={styles.headerSection}>
-            <Text style={styles.labName}>LABORATORIO VITALY</Text>
+            <Text style={styles.labName}>LABORATORIO CLÍNICO VITALY</Text>
             <Text style={styles.subtitle}>Resultados de Laboratorio</Text>
           </View>
 
