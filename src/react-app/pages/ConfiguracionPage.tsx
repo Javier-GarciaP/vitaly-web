@@ -393,7 +393,7 @@ export default function ConfiguracionPage() {
                     onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium cursor-pointer"
                   >
-                    {["Hematología", "Química Clínica", "Heces", "Orina", "Coagulación", "Bacteriología", "Misceláneos"].map(c => <option key={c}>{c}</option>)}
+                    {["Hematología", "Química Clínica", "Heces", "Orina", "Coagulación", "Bacteriología", "Misceláneos", "Materiales"].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="space-y-2">
