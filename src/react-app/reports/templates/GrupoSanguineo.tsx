@@ -167,7 +167,7 @@ const GrupoSanguineo: React.FC<GrupoSanguineoProps> = ({
             </Text>
             <View style={styles.signatureArea}>
               <Text style={{ fontSize: 5, color: "#999" }}>
-                Sello del Laboratorio
+                Sello del Bioanalista
               </Text>
             </View>
           </View>
