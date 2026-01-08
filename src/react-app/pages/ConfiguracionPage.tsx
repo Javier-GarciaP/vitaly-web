@@ -504,6 +504,7 @@ export default function ConfiguracionPage() {
                       "Bacteriología",
                       "Misceláneos",
                       "Materiales",
+                      "Grupo Sanguíneo"
                     ].map((c) => (
                       <option key={c}>{c}</option>
                     ))}
