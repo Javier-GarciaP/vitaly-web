@@ -4,6 +4,7 @@ import { Activity, ShieldCheck, Loader2, Lock } from "lucide-react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { auth, provider } from "@/react-app/lib/firebase"; 
+import { dispararCanones } from "@/utils/Confetti";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -22,7 +23,11 @@ export default function LoginPage() {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        navigate("/");
+        dispararCanones();
+        //Esperar un momento para que el usuario vea la animación
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
       } else {
         await signOut(auth);
         alert(`Acceso denegado: El correo ${email} no está en la lista blanca de Vitaly Lab.`);
