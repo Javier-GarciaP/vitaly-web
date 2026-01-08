@@ -24,7 +24,7 @@ const examenSchema = z.object({
   paciente_id: z.number(),
   tipo: z.string(),
   fecha: z.string(),
-  resultados: z.record(z.any()).optional(),
+  resultados: z.union([z.record(z.any()), z.array(z.any())]).optional(),
   estado: z.enum(["pendiente", "en_proceso", "completado"]),
   uuid: z.string().optional(),
 });
@@ -230,6 +230,9 @@ app.post("/api/examenes", zValidator("json", examenSchema), async (c) => {
 app.put("/api/examenes/:id", zValidator("json", examenSchema), async (c) => {
   const id = c.req.param("id");
   const data = c.req.valid("json");
+
+  const resultadosString = data.resultados ? JSON.stringify(data.resultados) : null;
+
   await c.env.DB.prepare(
     "UPDATE examenes SET paciente_id = ?, tipo = ?, fecha = ?, resultados = ?, estado = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
   )
@@ -237,7 +240,7 @@ app.put("/api/examenes/:id", zValidator("json", examenSchema), async (c) => {
       data.paciente_id,
       data.tipo,
       data.fecha,
-      data.resultados ? JSON.stringify(data.resultados) : null,
+      resultadosString,
       data.estado,
       id
     )
@@ -342,7 +345,9 @@ app.post("/api/facturas", zValidator("json", facturaSchema), async (c) => {
     const facturaId = resFactura.meta.last_row_id;
 
     // 2. CREAR ÓRDENES AUTOMÁTICAS (Filtrando Materiales)
-    const categoriasValidas = (data.categorias || []).filter(cat => cat !== "Materiales");
+    const categoriasValidas = (data.categorias || []).filter(
+      (cat) => cat !== "Materiales"
+    );
 
     if (categoriasValidas.length > 0) {
       for (const cat of categoriasValidas) {
@@ -393,7 +398,7 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
     if (!facturaActual) return c.json({ error: "Factura no encontrada" }, 404);
 
     const examenesPrevios = JSON.parse(facturaActual.examenes || "[]");
-    
+
     // Filtrar categorías previas para ignorar materiales en la sincronización
     const categoriasPrevias = [
       ...new Set(
@@ -404,7 +409,9 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
     ] as string[];
 
     // Filtrar nuevas categorías de la petición
-    const categoriasNuevas = (data.categorias || []).filter(cat => cat !== "Materiales");
+    const categoriasNuevas = (data.categorias || []).filter(
+      (cat) => cat !== "Materiales"
+    );
 
     // Actualizar factura (mantiene el registro completo de lo cobrado)
     await db
@@ -477,7 +484,7 @@ app.delete("/api/facturas/:id", async (c) => {
     }
 
     const examenesList = JSON.parse(factura.examenes || "[]");
-    
+
     // Filtrar para solo buscar órdenes reales en la tabla 'examenes'
     const categorias = [
       ...new Set(
@@ -639,8 +646,8 @@ app.put("/api/examenes-predefinidos/:id", async (c) => {
     await c.env.DB.prepare(
       "UPDATE examenes_predefinidos SET nombre = ?, precio = ?, categoria = ? WHERE id = ?"
     )
-    .bind(nombre, precio, categoria, id) // Bind correcto
-    .run();
+      .bind(nombre, precio, categoria, id) // Bind correcto
+      .run();
 
     return c.json({ success: true });
   } catch (e) {
@@ -753,52 +760,83 @@ app.get("/api/valores-referencia", async (c) => {
   // Validamos que la tabla solicitada sea una de las permitidas para evitar SQL Injection
   let tableName = "";
   switch (tablaInput) {
-    case "quimica": tableName = "quimica_valores_referencia"; break;
-    case "hematologia": tableName = "hematologia_valores_referencia"; break;
-    case "coagulacion": tableName = "coagulacion_valores_referencia"; break;
+    case "quimica":
+      tableName = "quimica_valores_referencia";
+      break;
+    case "hematologia":
+      tableName = "hematologia_valores_referencia";
+      break;
+    case "coagulacion":
+      tableName = "coagulacion_valores_referencia";
+      break;
     default:
       return c.json({ error: "Tabla de referencia no válida" }, 400);
   }
 
   try {
-    const { results } = await db.prepare(`SELECT * FROM ${tableName} ORDER BY id ASC`).all();
+    const { results } = await db
+      .prepare(`SELECT * FROM ${tableName} ORDER BY id ASC`)
+      .all();
     return c.json(results);
   } catch (error: any) {
-    return c.json({ error: "Error al obtener valores", details: error.message }, 500);
+    return c.json(
+      { error: "Error al obtener valores", details: error.message },
+      500
+    );
   }
 });
 
 // PUT: Actualización masiva (Bulk Update)
-app.put("/api/valores-referencia", zValidator("json", valoresReferenciaBulkSchema), async (c) => {
-  const tablaInput = c.req.query("tabla");
-  const { valores } = c.req.valid("json");
-  const db = c.env.DB;
+app.put(
+  "/api/valores-referencia",
+  zValidator("json", valoresReferenciaBulkSchema),
+  async (c) => {
+    const tablaInput = c.req.query("tabla");
+    const { valores } = c.req.valid("json");
+    const db = c.env.DB;
 
-  let tableName = "";
-  switch (tablaInput) {
-    case "quimica": tableName = "quimica_valores_referencia"; break;
-    case "hematologia": tableName = "hematologia_valores_referencia"; break;
-    case "coagulacion": tableName = "coagulacion_valores_referencia"; break;
-    default:
-      return c.json({ error: "Tabla no válida" }, 400);
+    let tableName = "";
+    switch (tablaInput) {
+      case "quimica":
+        tableName = "quimica_valores_referencia";
+        break;
+      case "hematologia":
+        tableName = "hematologia_valores_referencia";
+        break;
+      case "coagulacion":
+        tableName = "coagulacion_valores_referencia";
+        break;
+      default:
+        return c.json({ error: "Tabla no válida" }, 400);
+    }
+
+    try {
+      // En Cloudflare D1, la mejor forma de hacer bulk update es con batch()
+      // Preparamos todas las sentencias de actualización
+      const statements = valores.map((item) =>
+        db
+          .prepare(`UPDATE ${tableName} SET valor_referencia = ? WHERE id = ?`)
+          .bind(item.valor_referencia, item.id)
+      );
+
+      // Ejecutamos todas en una sola transacción atómica
+      await db.batch(statements);
+
+      return c.json({
+        success: true,
+        message: "Valores actualizados correctamente",
+      });
+    } catch (error: any) {
+      console.error("Error en bulk update:", error.message);
+      return c.json(
+        {
+          error: "No se pudieron actualizar los valores",
+          details: error.message,
+        },
+        500
+      );
+    }
   }
-
-  try {
-    // En Cloudflare D1, la mejor forma de hacer bulk update es con batch()
-    // Preparamos todas las sentencias de actualización
-    const statements = valores.map((item) => 
-      db.prepare(`UPDATE ${tableName} SET valor_referencia = ? WHERE id = ?`)
-        .bind(item.valor_referencia, item.id)
-    );
-
-    // Ejecutamos todas en una sola transacción atómica
-    await db.batch(statements);
-
-    return c.json({ success: true, message: "Valores actualizados correctamente" });
-  } catch (error: any) {
-    console.error("Error en bulk update:", error.message);
-    return c.json({ error: "No se pudieron actualizar los valores", details: error.message }, 500);
-  }
-});
+);
 
 export default app;

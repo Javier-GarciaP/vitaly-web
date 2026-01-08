@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { PDFViewer, StyleSheet } from '@react-pdf/renderer';
+import { PDFViewer, StyleSheet, Document } from '@react-pdf/renderer';
 
 // Importación de plantillas
 import PortadaGeneral from './templates/PortadaGeneral';
 import QuimicaReport from './templates/QuimicaReport';
 import OrinaReport from './templates/OrinaReport';
 import HecesReport from './templates/HecesReport';
-import MiscelaneosReport from './templates/MiscelaneosReport';
+import { MiscelaneosContent } from './templates/MiscelaneosReport';
 import CoagulacionReport from './templates/CoagulacionReport';
 import AntibiogramaReport from './templates/AntibiogramaReport';
 import HematologiaReport from './templates/HematologiaReport';
@@ -33,26 +33,17 @@ const styles = StyleSheet.create({
 
 const ReportViewer: React.FC<ReportViewerProps> = ({ type, data, patient, qrImage }) => {
   const LOGO_URL = "./logo.png"; 
-  
-  // Estado para las referencias dinámicas
   const [references, setReferences] = useState<any[]>([]);
   const [loadingRefs, setLoadingRefs] = useState(false);
 
   useEffect(() => {
     const fetchReferences = async () => {
-      // Determinamos qué tabla consultar según el tipo de examen
       let tabla = "";
       const t = type.trim();
+      if (t === "Hematología") tabla = "hematologia";
+      else if (t === "Química Clínica" || t === "Química Sanguínea") tabla = "quimica";
+      else if (t === "Coagulación") tabla = "coagulacion";
 
-      if (t === "Hematología") {
-        tabla = "hematologia";
-      } else if (t === "Química Clínica" || t === "Química Sanguínea") {
-        tabla = "quimica";
-      } else if (t === "Coagulación") {
-        tabla = "coagulacion";
-      }
-
-      // Si no es ninguno de esos, no necesitamos hacer fetch
       if (!tabla) {
         setReferences([]);
         return;
@@ -66,30 +57,44 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ type, data, patient, qrImag
           setReferences(result);
         }
       } catch (error) {
-        console.error("Error al cargar referencias para el reporte:", error);
+        console.error("Error al cargar referencias:", error);
       } finally {
         setLoadingRefs(false);
       }
     };
-
     fetchReferences();
-  }, [type]); // Se vuelve a ejecutar si el tipo cambia
+  }, [type]);
 
   const renderTemplate = () => {
-    // Props comunes
     const commonProps = { data, patient, qrImage };
+    const t = type.trim();
 
-    switch (type.trim()) {
+    // CASO ESPECIAL: MISCELÁNEOS (Maneja múltiples páginas)
+    if (t === "Misceláneos" || t === "Exámenes Especiales") {
+      const listaExamenes = Array.isArray(data) ? data : [data];
+      return (
+        <Document title={`Reporte_Especiales_${patient.nombre}`}>
+          {listaExamenes.map((examen, index) => (
+            <MiscelaneosContent 
+              key={index}
+              data={examen}
+              patient={patient}
+              qrImage={qrImage}
+            />
+          ))}
+        </Document>
+      );
+    }
+
+    // OTROS EXÁMENES: Se asume que sus archivos ya contienen <Document> (o vía ReportLayout)
+    switch (t) {
       case "Hematología":
         return <HematologiaReport {...commonProps} references={references} />;
-      
       case "Química Clínica":
       case "Química Sanguínea": 
         return <QuimicaReport {...commonProps} references={references} />;
-      
       case "Coagulación":
         return <CoagulacionReport {...commonProps} references={references} />;
-
       case "Orina":
         return <OrinaReport {...commonProps} />;
       case "Heces":
@@ -101,9 +106,6 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ type, data, patient, qrImag
       case "Antibiograma":
       case "ANTIBIOGRAMA":
         return <AntibiogramaReport {...commonProps} />;
-      case "Misceláneos":
-      case "Exámenes Especiales":
-        return <MiscelaneosReport {...commonProps} />;
       case "PORTADA":
         return <PortadaGeneral patient={patient} logoUrl={LOGO_URL} />;
       case "IMPRESION_MASIVA":
@@ -113,31 +115,17 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ type, data, patient, qrImag
     }
   };
 
-  // Mientras carga las referencias, podemos mostrar un mensaje sutil
-  // o simplemente esperar, ya que el PDFViewer tarda un poco en inicializar
   if (loadingRefs) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-50">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-800"></div>
-          <p className="mt-4 text-gray-600 text-sm font-medium">Cargando valores de referencia...</p>
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   const template = renderTemplate();
 
-  if (!template) {
-    return (
-      <div className="flex items-center justify-center h-full bg-red-50 p-10">
-        <div className="text-center">
-          <h2 className="text-red-700 font-bold text-lg">Error de Plantilla</h2>
-          <p className="text-red-600 text-sm">No se encontró un formato para: "{type}"</p>
-        </div>
-      </div>
-    );
-  }
+  if (!template) return <div className="p-5 text-red-500">Error: No se pudo cargar la plantilla.</div>;
 
   return (
     <PDFViewer style={styles.viewer} showToolbar={true}>
