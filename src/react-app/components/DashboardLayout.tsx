@@ -111,7 +111,7 @@ export default function DashboardLayout() {
                 V
               </div>
               <h1 className="text-lg font-black tracking-tight uppercase italic text-white">
-                Vitaly - Hola 😒
+                Vitaly - Pro
               </h1>
             </div>
           )}

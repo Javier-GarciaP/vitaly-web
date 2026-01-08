@@ -88,7 +88,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none">
-            Panel de Control
+            Panel de Control - Dia de la maquina de escribir
           </h1>
           <div className="flex items-center gap-1.5 mt-1.5 text-slate-500">
             <Calendar size={12} />
