@@ -91,12 +91,9 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) 
             <Text style={styles.value}>{patient?.nombre}</Text>
             <Text style={styles.label}>Cédula de identidad</Text>
             <Text style={styles.value}>V-{patient?.cedula}</Text>
-          </View>
-
-          {/* Edad */}
-          <View style={styles.infoItem}>
             <Text style={styles.label}>Edad</Text>
-            <Text style={styles.value}>{patient?.edad ? `${patient.edad} años` : 'N/A'}</Text>
+            <Text style={styles.value}>{patient?.edad ? `${patient.edad}` : 'N/A'}</Text>
+
           </View>
 
           {/* Fecha del Examen (Real) */}

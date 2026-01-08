@@ -144,7 +144,7 @@ const PortadaGeneral: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
             <View style={styles.infoRow}>
               <Text style={styles.label}>Edad / Fecha</Text>
               <Text style={styles.value}>
-                {patient?.edad || '39'} AÑOS  |  {new Date().toLocaleDateString('es-ES')}
+                {patient?.edad || '39'}  |  {new Date().toLocaleDateString('es-ES')}
               </Text>
             </View>
           </View>

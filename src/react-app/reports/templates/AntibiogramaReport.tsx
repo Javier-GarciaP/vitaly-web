@@ -92,10 +92,10 @@ const AntibiogramaReport: React.FC<AntibiogramaReportProps> = ({
               Antibiótico
             </Text>
             <Text style={[styles.tableColHeader, styles.colGermen]}>
-              Sensib. A
+              Germen. A
             </Text>
             <Text style={[styles.tableColHeader, styles.colGermen]}>
-              Sensib. B
+              Germen. B
             </Text>
           </View>
           {data.antibiograma_list.map((item, index) => (

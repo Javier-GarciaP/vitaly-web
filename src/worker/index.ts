@@ -46,7 +46,7 @@ const facturaSchema = z.object({
 const pacienteSchema = z.object({
   cedula: z.string().min(1),
   nombre: z.string().min(1),
-  edad: z.number().optional(),
+  edad: z.string().optional(),
   sexo: z.enum(["M", "F", "Otro"]).optional(),
 });
 

@@ -6,7 +6,7 @@ interface Paciente {
   id: number;
   cedula: string;
   nombre: string;
-  edad?: number;
+  edad?: string;
   sexo?: string;
   created_at: string;
 }
@@ -57,7 +57,7 @@ export default function PacientesPage() {
     const payload = {
       cedula: formData.cedula,
       nombre: formData.nombre,
-      edad: formData.edad ? parseInt(formData.edad) : undefined,
+      edad: formData.edad,
       sexo: formData.sexo || undefined,
     };
 
@@ -90,7 +90,7 @@ export default function PacientesPage() {
       setFormData({
         cedula: paciente.cedula,
         nombre: paciente.nombre,
-        edad: paciente.edad?.toString() || "",
+        edad: paciente.edad || "",
         sexo: paciente.sexo || "",
       });
     } else {
@@ -179,7 +179,7 @@ export default function PacientesPage() {
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">{paciente.sexo || '-'}</span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">{paciente.edad} años</span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">{paciente.edad}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
@@ -205,7 +205,7 @@ export default function PacientesPage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-slate-900 text-sm leading-tight">{paciente.nombre}</span>
-                <span className="text-[11px] text-slate-500 font-medium">CI: {paciente.cedula} • {paciente.edad} años</span>
+                <span className="text-[11px] text-slate-500 font-medium">CI: {paciente.cedula} • {paciente.edad}</span>
               </div>
             </div>
             
@@ -257,7 +257,7 @@ export default function PacientesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Edad</label>
-                    <input type="number" value={formData.edad} onChange={(e) => setFormData({ ...formData, edad: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none text-sm font-medium" />
+                    <input type="text" value={formData.edad} onChange={(e) => setFormData({ ...formData, edad: e.target.value })} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none text-sm font-medium" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Sexo</label>
