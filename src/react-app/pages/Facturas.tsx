@@ -181,7 +181,7 @@ export default function FacturasPage() {
     );
   };
 
-  const {playSuccess, playDelete, playIn} = useAppSounds();
+  const {playSuccess, playDelete} = useAppSounds();
 
   const calcularTotal = () =>
     examenesSeleccionados.reduce((sum, ex) => sum + ex.precio, 0);
@@ -222,7 +222,6 @@ export default function FacturasPage() {
   };
 
   const openModal = () => {
-    playIn();
     setEditingId(null);
     setFormData({ paciente_id: "", fecha: getLocalDate() });
     setPacienteInput("");

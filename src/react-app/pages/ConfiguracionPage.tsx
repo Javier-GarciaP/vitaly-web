@@ -14,7 +14,7 @@ import {
   ChevronRight,
   ShieldCheck,
   ClipboardList,
-  Sliders
+  Sliders,
 } from "lucide-react";
 
 // --- INTERFACES ---
@@ -42,7 +42,9 @@ export default function ConfiguracionPage() {
   const [examenes, setExamenes] = useState<ExamenPredefinido[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isExamenModalOpen, setIsExamenModalOpen] = useState(false);
-  const [editingExamen, setEditingExamen] = useState<ExamenPredefinido | null>(null);
+  const [editingExamen, setEditingExamen] = useState<ExamenPredefinido | null>(
+    null
+  );
   const [formData, setFormData] = useState({
     nombre: "",
     precio: "",
@@ -50,13 +52,17 @@ export default function ConfiguracionPage() {
   });
 
   // --- ESTADOS DE VALORES DE REFERENCIA ---
-  const [seccionActiva, setSeccionActiva] = useState<"quimica" | "hematologia" | "coagulacion">("quimica");
+  const [seccionActiva, setSeccionActiva] = useState<
+    "quimica" | "hematologia" | "coagulacion"
+  >("quimica");
   const [valoresRef, setValoresRef] = useState<ValorReferencia[]>([]);
   const [savingRef, setSavingRef] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
 
   // --- ESTADOS DE APARIENCIA ---
-  const [footerText, setFooterText] = useState("© 2024 Laboratorio Clínico - Todos los derechos reservados");
+  const [footerText, setFooterText] = useState(
+    "© 2024 Laboratorio Clínico - Todos los derechos reservados"
+  );
 
   // --- EFECTOS ---
   useEffect(() => {
@@ -75,14 +81,28 @@ export default function ConfiguracionPage() {
     }
   };
 
+  const formatPrice = (value: string) => {
+    // Solo permite números
+    const cleanValue = value.replace(/\D/g, "");
+    if (!cleanValue) return "";
+    // Formatea con puntos de miles (estándar es-ES)
+    return new Intl.NumberFormat("es-ES").format(parseInt(cleanValue));
+  };
+
   const handleSubmitExamen = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingExamen ? `/api/examenes-predefinidos/${editingExamen.id}` : "/api/examenes-predefinidos";
+    const precioLimpio = parseFloat(formData.precio.replace(/\./g, ""));
+    const url = editingExamen
+      ? `/api/examenes-predefinidos/${editingExamen.id}`
+      : "/api/examenes-predefinidos";
     try {
       const res = await fetch(url, {
         method: editingExamen ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, precio: parseFloat(formData.precio) }),
+        body: JSON.stringify({
+          ...formData,
+          precio: precioLimpio,
+        }),
       });
       if (res.ok) {
         setIsExamenModalOpen(false);
@@ -94,7 +114,8 @@ export default function ConfiguracionPage() {
   };
 
   const deleteExamen = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar este registro permanentemente?")) return;
+    if (!confirm("¿Está seguro de eliminar este registro permanentemente?"))
+      return;
     await fetch(`/api/examenes-predefinidos/${id}`, { method: "DELETE" });
     loadExamenes();
   };
@@ -104,7 +125,9 @@ export default function ConfiguracionPage() {
     try {
       const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`);
       const data = (await res.json()) as ValorReferencia[];
-      setValoresRef(data.map(item => ({ ...item, originalValue: item.valor_referencia })));
+      setValoresRef(
+        data.map((item) => ({ ...item, originalValue: item.valor_referencia }))
+      );
     } catch (error) {
       console.error(error);
     }
@@ -113,11 +136,14 @@ export default function ConfiguracionPage() {
   const saveAllValoresRef = async () => {
     setSavingRef(true);
     try {
-      const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valores: valoresRef }),
-      });
+      const res = await fetch(
+        `/api/valores-referencia?tabla=${seccionActiva}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ valores: valoresRef }),
+        }
+      );
       if (res.ok) {
         setSuccessMsg(true);
         setTimeout(() => setSuccessMsg(false), 3000);
@@ -130,15 +156,15 @@ export default function ConfiguracionPage() {
     }
   };
 
-  const filteredExamenes = examenes.filter(ex =>
-    ex.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ex.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredExamenes = examenes.filter(
+    (ex) =>
+      ex.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ex.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans text-slate-700">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         {/* HEADER PRINCIPAL */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
@@ -146,7 +172,9 @@ export default function ConfiguracionPage() {
               <Settings size={30} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                Configuración del Sistema
+              </h1>
               <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
                 <ShieldCheck size={14} className="text-emerald-500" />
                 Panel de Administración Central
@@ -160,7 +188,9 @@ export default function ConfiguracionPage() {
           <button
             onClick={() => setTabActiva("catalogo")}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              tabActiva === "catalogo" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tabActiva === "catalogo"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <ClipboardList size={18} /> Catálogo de Precios
@@ -168,7 +198,9 @@ export default function ConfiguracionPage() {
           <button
             onClick={() => setTabActiva("parametros")}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              tabActiva === "parametros" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tabActiva === "parametros"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Beaker size={18} /> Valores de Referencia
@@ -176,7 +208,9 @@ export default function ConfiguracionPage() {
           <button
             onClick={() => setTabActiva("apariencia")}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              tabActiva === "apariencia" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tabActiva === "apariencia"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Layout size={18} /> Apariencia y Reportes
@@ -185,13 +219,15 @@ export default function ConfiguracionPage() {
 
         {/* CONTENIDO DINÁMICO SEGÚN TAB */}
         <main className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          
           {/* SECCIÓN 1: CATÁLOGO */}
           {tabActiva === "catalogo" && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center">
                 <div className="relative w-full md:w-96">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={18}
+                  />
                   <input
                     type="text"
                     placeholder="Buscar por nombre o categoría..."
@@ -203,7 +239,11 @@ export default function ConfiguracionPage() {
                 <button
                   onClick={() => {
                     setEditingExamen(null);
-                    setFormData({ nombre: "", precio: "", categoria: "Hematología" });
+                    setFormData({
+                      nombre: "",
+                      precio: "",
+                      categoria: "Hematología",
+                    });
                     setIsExamenModalOpen(true);
                   }}
                   className="w-full md:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 transition-all"
@@ -224,20 +264,31 @@ export default function ConfiguracionPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredExamenes.map((ex) => (
-                      <tr key={ex.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="px-8 py-4 font-semibold text-slate-800">{ex.nombre}</td>
+                      <tr
+                        key={ex.id}
+                        className="group hover:bg-slate-50/50 transition-colors"
+                      >
+                        <td className="px-8 py-4 font-semibold text-slate-800">
+                          {ex.nombre}
+                        </td>
                         <td className="px-8 py-4">
                           <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-[10px] font-bold uppercase">
                             {ex.categoria}
                           </span>
                         </td>
-                        <td className="px-8 py-4 text-right font-mono font-bold text-indigo-600">${ex.precio.toFixed(2)}</td>
+                        <td className="px-8 py-4 text-right font-mono font-bold text-indigo-600">
+                          ${ex.precio.toFixed(2)}
+                        </td>
                         <td className="px-8 py-4 text-right">
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => {
                                 setEditingExamen(ex);
-                                setFormData({ nombre: ex.nombre, precio: ex.precio.toString(), categoria: ex.categoria });
+                                setFormData({
+                                  nombre: ex.nombre,
+                                  precio: ex.precio.toString(),
+                                  categoria: ex.categoria,
+                                });
                                 setIsExamenModalOpen(true);
                               }}
                               className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
@@ -265,28 +316,44 @@ export default function ConfiguracionPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               <div className="lg:col-span-4 space-y-4">
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Áreas Médicas</h3>
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                    Áreas Médicas
+                  </h3>
                   <div className="space-y-2">
-                    {(["quimica", "hematologia", "coagulacion"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setSeccionActiva(tab)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${
-                          seccionActiva === tab
-                            ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"
-                            : "text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        <span className="capitalize">{tab}</span>
-                        <ChevronRight size={16} className={seccionActiva === tab ? "translate-x-1" : "opacity-0"} />
-                      </button>
-                    ))}
+                    {(["quimica", "hematologia", "coagulacion"] as const).map(
+                      (tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setSeccionActiva(tab)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+                            seccionActiva === tab
+                              ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"
+                              : "text-slate-500 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span className="capitalize">{tab}</span>
+                          <ChevronRight
+                            size={16}
+                            className={
+                              seccionActiva === tab
+                                ? "translate-x-1"
+                                : "opacity-0"
+                            }
+                          />
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
                 <div className="bg-indigo-900 p-6 rounded-3xl text-white shadow-xl shadow-indigo-200">
                   <Sliders size={24} className="mb-4 text-indigo-300" />
                   <p className="text-xs font-medium text-indigo-200 leading-relaxed">
-                    Estos valores se reflejarán automáticamente en la impresión de resultados del área de <span className="text-white font-bold underline capitalize">{seccionActiva}</span>.
+                    Estos valores se reflejarán automáticamente en la impresión
+                    de resultados del área de{" "}
+                    <span className="text-white font-bold underline capitalize">
+                      {seccionActiva}
+                    </span>
+                    .
                   </p>
                 </div>
               </div>
@@ -304,7 +371,8 @@ export default function ConfiguracionPage() {
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-5">
                   {valoresRef.map((item) => {
-                    const isChanged = item.valor_referencia !== item.originalValue;
+                    const isChanged =
+                      item.valor_referencia !== item.originalValue;
                     return (
                       <div key={item.id} className="group">
                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-2 ml-1">
@@ -313,9 +381,19 @@ export default function ConfiguracionPage() {
                         <input
                           type="text"
                           value={item.valor_referencia}
-                          onChange={(e) => setValoresRef(prev => prev.map(v => v.id === item.id ? { ...v, valor_referencia: e.target.value } : v))}
+                          onChange={(e) =>
+                            setValoresRef((prev) =>
+                              prev.map((v) =>
+                                v.id === item.id
+                                  ? { ...v, valor_referencia: e.target.value }
+                                  : v
+                              )
+                            )
+                          }
                           className={`w-full px-4 py-3 rounded-xl text-sm font-medium transition-all outline-none border ${
-                            isChanged ? "border-amber-400 bg-amber-50/30" : "border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500"
+                            isChanged
+                              ? "border-amber-400 bg-amber-50/30"
+                              : "border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500"
                           }`}
                         />
                       </div>
@@ -328,7 +406,8 @@ export default function ConfiguracionPage() {
                     disabled={savingRef}
                     className="w-full py-3.5 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
                   >
-                    <Save size={18} /> {savingRef ? "Guardando..." : "Sincronizar Baremos"}
+                    <Save size={18} />{" "}
+                    {savingRef ? "Guardando..." : "Sincronizar Baremos"}
                   </button>
                 </div>
               </div>
@@ -341,12 +420,18 @@ export default function ConfiguracionPage() {
               <div className="flex items-center gap-4 text-indigo-600">
                 <Layout size={32} />
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Personalización de Salida</h2>
-                  <p className="text-sm text-slate-500 font-medium">Configure el aspecto de los PDF y reportes impresos.</p>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Personalización de Salida
+                  </h2>
+                  <p className="text-sm text-slate-500 font-medium">
+                    Configure el aspecto de los PDF y reportes impresos.
+                  </p>
                 </div>
               </div>
               <div className="space-y-4">
-                <label className="block text-sm font-bold text-slate-700">Texto del Pie de Página (Legal/Contacto)</label>
+                <label className="block text-sm font-bold text-slate-700">
+                  Texto del Pie de Página (Legal/Contacto)
+                </label>
                 <textarea
                   value={footerText}
                   onChange={(e) => setFooterText(e.target.value)}
@@ -368,44 +453,80 @@ export default function ConfiguracionPage() {
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">{editingExamen ? "Editar Registro" : "Nuevo Examen"}</h3>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-tighter">Administración de Catálogo</p>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {editingExamen ? "Editar Registro" : "Nuevo Examen"}
+                </h3>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-tighter">
+                  Administración de Catálogo
+                </p>
               </div>
-              <button onClick={() => setIsExamenModalOpen(false)} className="p-2 hover:bg-white rounded-full text-slate-400 transition-all"><X size={20}/></button>
+              <button
+                onClick={() => setIsExamenModalOpen(false)}
+                className="p-2 hover:bg-white rounded-full text-slate-400 transition-all"
+              >
+                <X size={20} />
+              </button>
             </div>
-            
+
             <form onSubmit={handleSubmitExamen} className="p-8 space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nombre del Examen</label>
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">
+                  Nombre del Examen
+                </label>
                 <input
                   required
                   type="text"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nombre: e.target.value })
+                  }
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-medium transition-all"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Categoría</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">
+                    Categoría
+                  </label>
                   <select
                     value={formData.categoria}
-                    onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, categoria: e.target.value })
+                    }
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium cursor-pointer"
                   >
-                    {["Hematología", "Química Clínica", "Heces", "Orina", "Coagulación", "Bacteriología", "Misceláneos", "Materiales"].map(c => <option key={c}>{c}</option>)}
+                    {[
+                      "Hematología",
+                      "Química Clínica",
+                      "Heces",
+                      "Orina",
+                      "Coagulación",
+                      "Bacteriología",
+                      "Misceláneos",
+                      "Materiales",
+                    ].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Precio ($)</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">
+                    Precio ($)
+                  </label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <DollarSign
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      size={16}
+                    />
                     <input
                       required
-                      type="number"
+                      type="text"
                       step="0.01"
                       value={formData.precio}
-                      onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
+                      onChange={(e) => {
+                        const precioFormate = formatPrice(e.target.value);
+                        setFormData({ ...formData, precio: precioFormate });
+                      }}
                       className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-indigo-600 outline-none"
                     />
                   </div>
