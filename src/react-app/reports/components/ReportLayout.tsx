@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     width: '50%',
-    paddingRight: 5,
+    paddingRight: 35,
     paddingLeft: 5,
     borderRightWidth: 0.5, 
     borderRightColor: '#ccc',
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
  */
 const ReportLayout: React.FC<ReportLayoutProps> = ({ children }) => (
   <Document title="Reporte de Laboratorio Clínico">
-    <Page size="A4" orientation="landscape" style={styles.page}>
+    <Page size="LETTER" orientation="landscape" style={styles.page}>
       <View style={styles.mainContainer}>
         {/* Lado izquierdo: El reporte real */}
         <View style={styles.leftColumn}>
