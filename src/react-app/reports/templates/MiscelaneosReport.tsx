@@ -6,7 +6,7 @@ import CommonFooter from "../components/CommonFooter";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 5,
+    paddingVertical: 10,
     backgroundColor: '#fff',
   },
   mainContainer: {
@@ -15,8 +15,8 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     width: '50%',
-    paddingRight: 25,
-    paddingLeft: 10,
+    paddingRight: 35,
+    paddingLeft: 5,
     borderRightWidth: 0.5, 
     borderRightColor: '#ccc',
     borderRightStyle: 'dashed',
