@@ -1,6 +1,6 @@
 import { Document, Page, View, StyleSheet } from '@react-pdf/renderer';
-import AntibiogramaReport from './AntibiogramaReport';
-import BacteriologiaReport from './BacteriologiaReport'; 
+import AntibiogramaContent from '../content/AntibiogramaContent';
+import BacteriologiaContent from '../content/BacteriologiaReport'; 
 import { BacteriologiaData, Paciente } from '@/types/types';
 
 interface BacteriologiaCompletoReportProps {
@@ -42,7 +42,7 @@ const BacteriologiaCompletoReport: React.FC<BacteriologiaCompletoReportProps> = 
     <Page size="LETTER" orientation="landscape" style={styles.page}>
       <View style={styles.mainContainer}>
         <View style={styles.leftColumn}>
-          <BacteriologiaReport data={data} patient={patient} qrImage={qrImage}/>
+          <BacteriologiaContent data={data} patient={patient} qrImage={qrImage}/>
         </View>
         <View style={styles.rightColumn} />
       </View>
@@ -53,7 +53,7 @@ const BacteriologiaCompletoReport: React.FC<BacteriologiaCompletoReportProps> = 
       <Page size="LETTER" orientation="landscape" style={styles.page}>
         <View style={styles.mainContainer}>
           <View style={styles.leftColumn}>
-            <AntibiogramaReport data={data} patient={patient} qrImage={qrImage} />
+            <AntibiogramaContent data={data} patient={patient} qrImage={qrImage} />
           </View>
           <View style={styles.rightColumn} />
         </View>

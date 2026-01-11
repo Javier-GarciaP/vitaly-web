@@ -48,7 +48,7 @@ const BacterioSection: React.FC<{ title: string; value?: string }> = ({ title, v
   );
 };
 
-const BacteriologiaReport: React.FC<BacteriologiaReportProps> = ({ data, patient, qrImage }) => {
+const BacteriologiaContent: React.FC<BacteriologiaReportProps> = ({ data, patient, qrImage }) => {
   return (
     <View style={styles.container}>
       <CommonHeader
@@ -80,4 +80,4 @@ const BacteriologiaReport: React.FC<BacteriologiaReportProps> = ({ data, patient
   );
 };
 
-export default BacteriologiaReport;
+export default BacteriologiaContent;

@@ -101,7 +101,8 @@ export default function PanelControlMaster() {
 
   const pacienteActivo = useMemo(() => pacientesHoy.find((p) => p.id === selectedPacienteId), [selectedPacienteId, pacientesHoy]);
   const examenesHoyPaciente = useMemo(() => examenes.filter((e) => e.paciente_id === selectedPacienteId && e.fecha === hoy), [selectedPacienteId, examenes, hoy]);
-  const isPacienteListoParaImprimir = useMemo(() => pacienteActivo && examenesHoyPaciente.length > 0 && examenesHoyPaciente.every((ex) => ex.estado === "completado"), [pacienteActivo, examenesHoyPaciente]);
+  //const isPacienteListoParaImprimir = useMemo(() => pacienteActivo && examenesHoyPaciente.length > 0 && examenesHoyPaciente.every((ex) => ex.estado === "completado"), [pacienteActivo, examenesHoyPaciente]);
+  const completadosCount = useMemo(() => examenesHoyPaciente.filter((ex) => ex.estado === "completado").length, [examenesHoyPaciente]);
 
   const handleCreateExamen = async (tipo: string) => {
     if (!selectedPacienteId) return;
@@ -141,7 +142,9 @@ export default function PanelControlMaster() {
   const handlePrintMasivo = async () => {
     if (!pacienteActivo) return;
     setIsSaving(true);
-    const examenesConQR = await Promise.all(examenesHoyPaciente.map(async (ex) => ({ examen: ex, qr: await generateQRBase64(ex.uuid || "") })));
+    // Solo incluir exámenes con estado 'completado'
+    const completados = examenesHoyPaciente.filter((ex) => ex.estado === "completado");
+    const examenesConQR = await Promise.all(completados.map(async (ex) => ({ examen: ex, qr: await generateQRBase64(ex.uuid || "") })));
     setActiveExamen({ id: 0, paciente_id: selectedPacienteId!, tipo: "IMPRESION_MASIVA", fecha: hoy, estado: "completado", resultados: examenesConQR });
     setShowPrintModal(true);
     setIsSaving(false);
@@ -245,11 +248,18 @@ export default function PanelControlMaster() {
                 </div>
               </div>
               
-              {isPacienteListoParaImprimir && (
-                <button onClick={handlePrintMasivo} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-lg transition-all active:scale-95">
-                  <span className="text-[10px] font-black uppercase">Entregar Todo</span>
-                  <Printer size={16} />
-                </button>
+              {pacienteActivo && examenesHoyPaciente.length > 0 && (
+                <div className="flex flex-col items-start gap-2">
+                  <button onClick={handlePrintMasivo} disabled={completadosCount === 0} className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 ${completadosCount === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white'} rounded-xl shadow-lg transition-all active:scale-95`}>
+                    <span className="text-[10px] font-black uppercase">Entregar Todo</span>
+                    <Printer size={16} />
+                  </button>
+                  {completadosCount === 0 ? (
+                    <p className="text-[10px] font-bold text-rose-500">No hay exámenes completados para imprimir.</p>
+                  ) : (
+                    <p className="text-[10px] text-slate-500">Se imprimirán los {completadosCount} exámenes completados.</p>
+                  )}
+                </div>
               )}
             </div>
 

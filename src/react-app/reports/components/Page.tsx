@@ -1,6 +1,5 @@
-import React, { ReactNode } from 'react';
-import { Page, View, StyleSheet, Document } from '@react-pdf/renderer';
-import CommonFooter from './CommonFooter';
+import { Page, View, StyleSheet } from "@react-pdf/renderer";
+import { ReactNode } from "react";
 
 interface ReportLayoutProps {
   children: ReactNode;
@@ -35,25 +34,18 @@ const styles = StyleSheet.create({
   }
 });
 
-/**
- * ReportLayout: Define el formato físico del documento.
- * Configurado en tamaño CARTA Horizontal para optimizar impresión local.
- */
-const ReportLayout: React.FC<ReportLayoutProps> = ({ children }) => (
-  <Document title="Reporte de Laboratorio Clínico">
+const PageComponent: React.FC<ReportLayoutProps> = ({children}) => {
+  return (
     <Page size="LETTER" orientation="landscape" style={styles.page}>
       <View style={styles.mainContainer}>
         {/* Lado izquierdo: El reporte real */}
         <View style={styles.leftColumn}>
           {children}
-          <CommonFooter />
         </View>
-
-        {/* Lado derecho: Espacio en blanco para corte manual */}
         <View style={styles.rightColumn} />
       </View>
     </Page>
-  </Document>
-);
+  );
+};
 
-export default ReportLayout;
+export default PageComponent;

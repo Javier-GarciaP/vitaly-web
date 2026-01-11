@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   colGermen: { width: "30%", borderLeftWidth: 0.5, borderLeftColor: "#bfbfbf" },
 });
 
-const AntibiogramaReport: React.FC<AntibiogramaReportProps> = ({
+const AntibiogramaContent: React.FC<AntibiogramaReportProps> = ({
   data,
   patient,
   qrImage,
@@ -119,4 +119,4 @@ const AntibiogramaReport: React.FC<AntibiogramaReportProps> = ({
   );
 };
 
-export default AntibiogramaReport;
+export default AntibiogramaContent;
