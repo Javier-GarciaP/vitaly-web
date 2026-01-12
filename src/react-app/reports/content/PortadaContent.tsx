@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   labName: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#6e2020',
     textAlign: 'center',
