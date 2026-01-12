@@ -29,6 +29,7 @@
     "@eslint/js": "9.25.1",
     "@getmocha/users-service": "^0.0.4",
     "@getmocha/vite-plugins": "latest",
+    "@tauri-apps/cli": "^2.9.6",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "22.14.1",
     "@types/qrcode": "^1.5.6",
