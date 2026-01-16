@@ -12,8 +12,8 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
   // Inicialización de valores por defecto para evitar envíos vacíos
   useEffect(() => {
     if (resultados && !resultados.aspecto) {
-      onChange({ 
-        ...resultados, 
+      onChange({
+        ...resultados,
         aspecto: "Lig. Turbia",
         color: "Amarillo",
         reaccion: "Acida",
@@ -36,11 +36,23 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
+      const target = e.target as HTMLInputElement;
+      const fieldName = target.name;
+
+      // Auto-append 'xc' (por campo) when pressing Enter in these specific fields
+      if (fieldName && ["leucocitos", "hematies", "celulas_epit"].includes(fieldName)) {
+        const val = target.value.trim();
+        // Check if value is present and doesn't already have 'xc'
+        if (val && !val.toLowerCase().includes("xc")) {
+          handleChange(fieldName, `${val} xc`);
+        }
+      }
+
       const form = formRef.current;
       if (form) {
         const focusableElements = form.querySelectorAll('input, select, textarea');
         const index = Array.from(focusableElements).indexOf(e.target as HTMLElement);
-        
+
         if (index > -1 && index < focusableElements.length - 1) {
           e.preventDefault();
           (focusableElements[index + 1] as HTMLElement).focus();
@@ -56,7 +68,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-10" ref={formRef} onKeyDown={handleKeyDown}>
-      
+
       {/* HEADER DINÁMICO */}
       <div className="flex items-center gap-4 bg-amber-500 p-6 rounded-[2.5rem] text-white shadow-xl shadow-amber-500/10">
         <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
@@ -69,7 +81,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* CARACTERES GENERALES (FÍSICO) */}
         <div className={sectionCard}>
           <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">
@@ -132,9 +144,9 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
             ].map((item) => (
               <div key={item.key}>
                 <label className={labelBase}>{item.label}</label>
-                <select 
-                  value={resultados?.[item.key] || "Negativo"} 
-                  onChange={(e) => handleChange(item.key, e.target.value)} 
+                <select
+                  value={resultados?.[item.key] || "Negativo"}
+                  onChange={(e) => handleChange(item.key, e.target.value)}
                   className={`${selectBase} ${resultados?.[item.key]?.includes('Post') ? '!border-red-300 !bg-red-50' : ''}`}
                 >
                   <option value="Negativo">Negativo</option>
@@ -165,15 +177,36 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             <div>
               <label className={`${labelBase} text-slate-500`}>Leucocitos</label>
-              <input type="text" value={resultados?.leucocitos || ""} onChange={(e) => handleChange("leucocitos", e.target.value)} className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`} placeholder="0-2 xc" />
+              <input
+                type="text"
+                name="leucocitos"
+                value={resultados?.leucocitos || ""}
+                onChange={(e) => handleChange("leucocitos", e.target.value)}
+                className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`}
+                placeholder="0-2 xc"
+              />
             </div>
             <div>
               <label className={`${labelBase} text-slate-500`}>Hematies</label>
-              <input type="text" value={resultados?.hematies || ""} onChange={(e) => handleChange("hematies", e.target.value)} className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`} placeholder="0-1 xc" />
+              <input
+                type="text"
+                name="hematies"
+                value={resultados?.hematies || ""}
+                onChange={(e) => handleChange("hematies", e.target.value)}
+                className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`}
+                placeholder="0-1 xc"
+              />
             </div>
             <div>
               <label className={`${labelBase} text-slate-500`}>Células Epit.</label>
-              <input type="text" value={resultados?.celulas_epit || ""} onChange={(e) => handleChange("celulas_epit", e.target.value)} className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`} placeholder="Escasas" />
+              <input
+                type="text"
+                name="celulas_epit"
+                value={resultados?.celulas_epit || ""}
+                onChange={(e) => handleChange("celulas_epit", e.target.value)}
+                className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`}
+                placeholder="Escasas"
+              />
             </div>
             <div>
               <label className={`${labelBase} text-slate-500`}>Cilindros</label>
@@ -184,7 +217,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
               <input type="text" value={resultados?.cristales || ""} onChange={(e) => handleChange("cristales", e.target.value)} className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`} placeholder="No se observan" />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-800">
             <div>
               <label className={`${labelBase} text-amber-400`}>Bacterias</label>
@@ -192,6 +225,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
                 <option value="Escasas">Escasas</option>
                 <option value="Reg. Cantidad">Reg. Cantidad</option>
                 <option value="Abundante">Abundantes</option>
+                <option value="Moderadas">Moderadas</option>
               </select>
             </div>
             <div>
@@ -209,6 +243,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
                 <option value="Escasas">Escasas</option>
                 <option value="Reg. Cantidad">Reg. Cantidad</option>
                 <option value="Abundante">Abundante</option>
+                <option value="Moderado">Moderado</option>
               </select>
             </div>
           </div>

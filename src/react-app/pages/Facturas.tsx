@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useAppSounds } from "@/utils/sounds";
+import { formatCurrency, formatCurrencyInput, cleanCurrencyInput, numberToWords } from "@/utils/currency";
 
 // --- Interfaces Actualizadas ---
 interface Paciente {
@@ -478,7 +479,7 @@ export default function FacturasPage() {
                   </td>
                   <td className="px-6 py-4 text-right font-black text-slate-900 text-base">
                     <span className="text-blue-500 text-xs mr-0.5">$</span>
-                    {f.total.toFixed(2)}
+                    {formatCurrency(f.total)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -516,7 +517,7 @@ export default function FacturasPage() {
                   </p>
                 </div>
                 <span className="font-black text-slate-900 text-sm">
-                  ${f.total.toFixed(2)}
+                  ${formatCurrency(f.total)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -787,34 +788,31 @@ export default function FacturasPage() {
                           onClick={() =>
                             agregarExamen(ex.nombre, ex.precio, ex.categoria)
                           }
-                          className={`w-full px-6 py-3 text-left flex justify-between items-center transition-colors ${
-                            selectedIndex === index
+                          className={`w-full px-6 py-3 text-left flex justify-between items-center transition-colors ${selectedIndex === index
                               ? "bg-blue-600 text-white"
                               : "hover:bg-blue-50"
-                          }`}
+                            }`}
                         >
                           <div className="flex flex-col">
                             <span className="font-bold text-sm">
                               {ex.nombre}
                             </span>
                             <span
-                              className={`text-[8px] uppercase font-black ${
-                                selectedIndex === index
+                              className={`text-[8px] uppercase font-black ${selectedIndex === index
                                   ? "text-blue-100"
                                   : "text-slate-400"
-                              }`}
+                                }`}
                             >
                               {ex.categoria}
                             </span>
                           </div>
                           <span
-                            className={`font-black text-sm ${
-                              selectedIndex === index
+                            className={`font-black text-sm ${selectedIndex === index
                                 ? "text-white"
                                 : "text-blue-600"
-                            }`}
+                              }`}
                           >
-                            ${ex.precio.toFixed(2)}
+                            ${formatCurrency(ex.precio)}
                           </span>
                         </button>
                       ))}
@@ -846,9 +844,8 @@ export default function FacturasPage() {
                           </div>
                           <ChevronDown
                             size={16}
-                            className={`text-slate-300 transition-transform ${
-                              openCategories.includes(cat) ? "rotate-180" : ""
-                            }`}
+                            className={`text-slate-300 transition-transform ${openCategories.includes(cat) ? "rotate-180" : ""
+                              }`}
                           />
                         </button>
                         {openCategories.includes(cat) && (
@@ -872,7 +869,7 @@ export default function FacturasPage() {
                                     {ex.nombre}
                                   </span>
                                   <span className="text-[10px] font-black text-slate-400 group-hover:text-blue-500">
-                                    ${ex.precio.toFixed(2)}
+                                    ${formatCurrency(ex.precio)}
                                   </span>
                                 </button>
                               ))}
@@ -901,16 +898,16 @@ export default function FacturasPage() {
                       className="flex-[3] bg-white/5 border-white/10 border rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 transition-all"
                     />
                     <input
-                      placeholder="$ 0.00"
-                      type="number"
+                      placeholder="$ 0"
+                      type="text"
                       value={examenPersonalizado.precio}
                       onChange={(e) =>
                         setExamenPersonalizado({
                           ...examenPersonalizado,
-                          precio: e.target.value,
+                          precio: formatCurrencyInput(e.target.value),
                         })
                       }
-                      className="flex-[1] bg-white/5 border-white/10 border rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 transition-all"
+                      className="flex-[1] bg-white/5 border-white/10 border rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 transition-all font-bold"
                     />
                     <button
                       type="button"
@@ -921,7 +918,7 @@ export default function FacturasPage() {
                         ) {
                           agregarExamen(
                             examenPersonalizado.nombre,
-                            parseFloat(examenPersonalizado.precio),
+                            parseInt(cleanCurrencyInput(examenPersonalizado.precio)),
                             "Otros"
                           );
                           setExamenPersonalizado({ nombre: "", precio: "" });
@@ -967,7 +964,7 @@ export default function FacturasPage() {
                         </div>
                       </div>
                       <p className="font-black text-xs text-slate-700">
-                        ${ex.precio.toFixed(2)}
+                        ${formatCurrency(ex.precio)}
                       </p>
                     </div>
                   ))}
@@ -982,14 +979,21 @@ export default function FacturasPage() {
                 </div>
 
                 <div className="p-4 md:p-6 bg-white border-t border-slate-50 shrink-0 space-y-3">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase">
-                      Total a Pagar
-                    </span>
-                    <span className="text-2xl font-black text-slate-900 tracking-tighter">
-                      <span className="text-blue-500 text-sm mr-1">$</span>
-                      {calcularTotal().toFixed(2)}
-                    </span>
+                  <div className="space-y-1 mb-2">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[10px] font-black text-slate-400 uppercase">
+                        Total a Pagar
+                      </span>
+                      <span className="text-2xl font-black text-slate-900 tracking-tighter">
+                        <span className="text-blue-500 text-sm mr-1">$</span>
+                        {formatCurrency(calcularTotal())}
+                      </span>
+                    </div>
+                    {calcularTotal() > 0 && (
+                      <p className="text-[9px] font-bold text-slate-400 italic text-right">
+                        SON: {numberToWords(calcularTotal())}
+                      </p>
+                    )}
                   </div>
 
                   <button

@@ -107,9 +107,9 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) 
 
           {/* Fecha del Examen (Real) */}
           <View style={styles.infoItem}>
-            <Text style={styles.label}>Fecha de ingreso</Text>
-            <Text style={styles.value}>{patient?.fechaExamen}</Text>
-            <Text style={styles.label}>Fecha de egreso</Text>
+            {/* <Text style={styles.label}>Fecha de ingreso</Text>
+            <Text style={styles.value}>{patient?.fechaExamen}</Text> */}
+            <Text style={styles.label}>Fecha:</Text>
             {/*La fecha de egreso debe tener este formato dia/mes/año ej: 30/01/2026 */}
             <Text style={styles.value}>{obtenerFechaFormateada()}</Text>
           </View>

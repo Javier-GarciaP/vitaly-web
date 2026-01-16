@@ -26,7 +26,7 @@ export default function BacteriologiaForm({
   // Estados de Datos
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Estados de UI
   const [textoAnti, setTextoAnti] = useState("");
   const [sugerencias, setSugerencias] = useState<string[]>([]);
@@ -72,7 +72,7 @@ export default function BacteriologiaForm({
     cargarPlantillas();
   }, []);
 
-  const plantillasFiltradas = plantillas.filter(p => 
+  const plantillasFiltradas = plantillas.filter(p =>
     p.nombre_plantilla.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -298,12 +298,17 @@ export default function BacteriologiaForm({
           <div className="px-8 py-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-800">
             <div className="flex items-center gap-3">
               <TestTube2 className="text-indigo-400" size={20} />
-              <h4 className="text-white font-black text-sm uppercase tracking-widest">Antibiograma</h4>
+              <h4 className="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                Antibiograma
+                <span className="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                  {(resultados?.antibiograma_list || []).length}
+                </span>
+              </h4>
             </div>
             <div className="relative flex gap-2">
               <div className="relative">
-                <input 
-                  type="text" value={textoAnti} 
+                <input
+                  type="text" value={textoAnti}
                   onChange={(e) => manejarEscrituraAnti(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Añadir antibiótico..."
@@ -326,7 +331,7 @@ export default function BacteriologiaForm({
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-800/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                  <th className="px-8 py-4 text-left">Fármaco</th>
+                  <th className="px-8 py-4 text-left">Fármaco ({(resultados?.antibiograma_list || []).length})</th>
                   <th className="px-8 py-4 text-center">G. Aislado A</th>
                   <th className="px-8 py-4 text-center">G. Aislado B</th>
                   <th className="px-8 py-4 text-right"></th>
@@ -367,7 +372,7 @@ export default function BacteriologiaForm({
             </div>
             <div className="relative group">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-              <input 
+              <input
                 type="text" placeholder="BUSCAR FORMATO..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2 pl-9 pr-4 text-[10px] font-black text-slate-300 outline-none focus:border-indigo-500/50 placeholder:text-slate-600 uppercase tracking-widest"
               />

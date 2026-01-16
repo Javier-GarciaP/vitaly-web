@@ -177,8 +177,8 @@ const CoagulacionContent: React.FC<CoagulacionReportProps> = ({
           <View style={styles.verticalList}>
             <InlineField
               label="Resultado"
-              value={`${data.fibrinogeno} mg/dL`}
-              reference={getRef("Fibrinógeno", "200 - 400 mg/dL")}
+              value={`${data.fibrinogeno}`}
+              reference={getRef("Fibrinógeno", "70 - 120 %")}
             />
           </View>
         </View>

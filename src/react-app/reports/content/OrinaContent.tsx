@@ -173,14 +173,23 @@ const OrinaContent: React.FC<OrinaReportProps> = ({
         label2="Levaduras"
         value2={data?.levaduras}
       />
+
+      {/* CRISTALES FULL WIDTH */}
+      {data?.cristales && data.cristales.trim() !== "" && data.cristales !== "null" && (
+        <View style={styles.gridRow}>
+          <View style={{ flexDirection: "row", width: "100%" }}>
+            <Text style={[styles.label, { width: "30%" }]}>Cristales:</Text>
+            <Text style={[styles.value, { width: "70%" }]}>{data.cristales}</Text>
+          </View>
+        </View>
+      )}
+
       <OrinaRow
         label1="Cilindros"
         value1={data?.cilindros}
-        label2="Cristales"
-        value2={data?.cristales}
+        label2="Bacteristales"
+        value2={data?.bacteristales}
       />
-      <OrinaRow label1="Bacteristales" value1={data?.bacteristales} />
-
       {/* OBSERVACIONES */}
       {data?.observacion && data.observacion.trim() !== "" && (
         <View style={styles.observationsContainer}>

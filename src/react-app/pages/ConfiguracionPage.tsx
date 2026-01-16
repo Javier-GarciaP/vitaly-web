@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Sliders,
 } from "lucide-react";
+import { formatCurrency, formatCurrencyInput, cleanCurrencyInput } from "@/utils/currency";
 
 // --- INTERFACES ---
 interface ExamenPredefinido {
@@ -82,16 +83,12 @@ export default function ConfiguracionPage() {
   };
 
   const formatPrice = (value: string) => {
-    // Solo permite números
-    const cleanValue = value.replace(/\D/g, "");
-    if (!cleanValue) return "";
-    // Formatea con puntos de miles (estándar es-ES)
-    return new Intl.NumberFormat("es-ES").format(parseInt(cleanValue));
+    return formatCurrencyInput(value);
   };
 
   const handleSubmitExamen = async (e: React.FormEvent) => {
     e.preventDefault();
-    const precioLimpio = parseFloat(formData.precio.replace(/\./g, ""));
+    const precioLimpio = parseInt(cleanCurrencyInput(formData.precio));
     const url = editingExamen
       ? `/api/examenes-predefinidos/${editingExamen.id}`
       : "/api/examenes-predefinidos";
@@ -187,31 +184,28 @@ export default function ConfiguracionPage() {
         <nav className="flex flex-wrap gap-2 p-1.5 bg-slate-200/50 rounded-2xl w-fit">
           <button
             onClick={() => setTabActiva("catalogo")}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              tabActiva === "catalogo"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${tabActiva === "catalogo"
                 ? "bg-white text-indigo-600 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
-            }`}
+              }`}
           >
             <ClipboardList size={18} /> Catálogo de Precios
           </button>
           <button
             onClick={() => setTabActiva("parametros")}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              tabActiva === "parametros"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${tabActiva === "parametros"
                 ? "bg-white text-indigo-600 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
-            }`}
+              }`}
           >
             <Beaker size={18} /> Valores de Referencia
           </button>
           <button
             onClick={() => setTabActiva("apariencia")}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              tabActiva === "apariencia"
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${tabActiva === "apariencia"
                 ? "bg-white text-indigo-600 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
-            }`}
+              }`}
           >
             <Layout size={18} /> Apariencia y Reportes
           </button>
@@ -277,7 +271,7 @@ export default function ConfiguracionPage() {
                           </span>
                         </td>
                         <td className="px-8 py-4 text-right font-mono font-bold text-indigo-600">
-                          ${ex.precio.toFixed(2)}
+                          ${formatCurrency(ex.precio)}
                         </td>
                         <td className="px-8 py-4 text-right">
                           <div className="flex justify-end gap-2">
@@ -325,11 +319,10 @@ export default function ConfiguracionPage() {
                         <button
                           key={tab}
                           onClick={() => setSeccionActiva(tab)}
-                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${
-                            seccionActiva === tab
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${seccionActiva === tab
                               ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"
                               : "text-slate-500 hover:bg-slate-50"
-                          }`}
+                            }`}
                         >
                           <span className="capitalize">{tab}</span>
                           <ChevronRight
@@ -390,11 +383,10 @@ export default function ConfiguracionPage() {
                               )
                             )
                           }
-                          className={`w-full px-4 py-3 rounded-xl text-sm font-medium transition-all outline-none border ${
-                            isChanged
+                          className={`w-full px-4 py-3 rounded-xl text-sm font-medium transition-all outline-none border ${isChanged
                               ? "border-amber-400 bg-amber-50/30"
                               : "border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500"
-                          }`}
+                            }`}
                         />
                       </div>
                     );

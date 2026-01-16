@@ -89,7 +89,7 @@ const AntibiogramaContent: React.FC<AntibiogramaReportProps> = ({
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
             <Text style={[styles.tableColHeader, styles.colAntibiotico]}>
-              Antibiótico
+              Antibiótico ({data.antibiograma_list.length})
             </Text>
             <Text style={[styles.tableColHeader, styles.colGermen]}>
               Germen. A

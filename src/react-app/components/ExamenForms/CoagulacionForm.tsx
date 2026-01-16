@@ -23,10 +23,10 @@ export default function CoagulacionForm({ resultados, onChange }: CoagulacionFor
   // --- SOLUCIÓN AL PROBLEMA DE GUARDADO Y ESTADO INICIAL ---
   useEffect(() => {
     if (resultados && !resultados.anticoagulado) {
-      onChange({ 
-        ...resultados, 
+      onChange({
+        ...resultados,
         anticoagulado: "No", // Valor por defecto real
-        tp_isi: resultados.tp_isi || "1.0" 
+        tp_isi: resultados.tp_isi || "0.95"
       });
     }
   }, []);
@@ -68,7 +68,7 @@ export default function CoagulacionForm({ resultados, onChange }: CoagulacionFor
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10" ref={formRef} onKeyDown={handleKeyDown}>
-      
+
       {/* HEADER DE SECCIÓN */}
       <div className="flex items-center gap-4 bg-slate-900 p-6 rounded-[2rem] text-white">
         <div className="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -81,14 +81,14 @@ export default function CoagulacionForm({ resultados, onChange }: CoagulacionFor
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* TIEMPO DE PROTROMBINA */}
         <div className={sectionCard}>
           <div className="flex items-center gap-2 mb-2">
             <Clock size={16} className="text-indigo-500" />
             <h4 className="font-black text-slate-700 text-sm uppercase">Tiempo de Protrombina (TP)</h4>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <label className={labelBase}>Control</label>
@@ -112,7 +112,7 @@ export default function CoagulacionForm({ resultados, onChange }: CoagulacionFor
             </div>
             <div>
               <label className={labelBase}>ISI</label>
-              <input name="tp_isi" type="text" value={resultados?.tp_isi || ""} onChange={(e) => handleChange("tp_isi", e.target.value)} className={inputBase} placeholder="1.0" />
+              <input name="tp_isi" type="text" value={resultados?.tp_isi || ""} onChange={(e) => handleChange("tp_isi", e.target.value)} className={inputBase} placeholder="0.95" />
             </div>
           </div>
         </div>
@@ -147,37 +147,37 @@ export default function CoagulacionForm({ resultados, onChange }: CoagulacionFor
         <div className={`${sectionCard} lg:col-span-2 !bg-indigo-50/50 border-indigo-100`}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-               <ShieldAlert className="text-indigo-600" size={20} />
-               <div>
-                 <h4 className="font-black text-indigo-900 text-sm uppercase">Protocolo de Anticoagulación</h4>
-                 <p className="text-[10px] font-bold text-indigo-400 uppercase">Información vital para interpretación</p>
-               </div>
+              <ShieldAlert className="text-indigo-600" size={20} />
+              <div>
+                <h4 className="font-black text-indigo-900 text-sm uppercase">Protocolo de Anticoagulación</h4>
+                <p className="text-[10px] font-bold text-indigo-400 uppercase">Información vital para interpretación</p>
+              </div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-4 flex-1 max-w-2xl">
               <div className="flex-1">
                 <label className={`${labelBase} text-indigo-400`}>Estado Actual</label>
-                <select 
-                  name="anticoagulado" 
-                  value={resultados?.anticoagulado || "No"} 
-                  onChange={(e) => handleChange("anticoagulado", e.target.value)} 
+                <select
+                  name="anticoagulado"
+                  value={resultados?.anticoagulado || "No"}
+                  onChange={(e) => handleChange("anticoagulado", e.target.value)}
                   className={`${inputBase} !bg-white border-indigo-200`}
                 >
                   <option value="No">No recibe tratamiento</option>
                   <option value="Sí">Paciente Anticoagulado</option>
                 </select>
               </div>
-              
+
               {resultados?.anticoagulado === "Sí" && (
                 <div className="flex-1 animate-in slide-in-from-right-4 duration-300">
                   <label className={`${labelBase} text-indigo-400`}>Medicamento y Dosis</label>
-                  <input 
-                    name="medicamento" 
-                    type="text" 
-                    value={resultados?.medicamento || ""} 
-                    onChange={(e) => handleChange("medicamento", e.target.value)} 
-                    className={`${inputBase} !bg-white border-indigo-200`} 
-                    placeholder="Ej. Warfarina 5mg" 
+                  <input
+                    name="medicamento"
+                    type="text"
+                    value={resultados?.medicamento || ""}
+                    onChange={(e) => handleChange("medicamento", e.target.value)}
+                    className={`${inputBase} !bg-white border-indigo-200`}
+                    placeholder="Ej. Warfarina 5mg"
                   />
                 </div>
               )}
