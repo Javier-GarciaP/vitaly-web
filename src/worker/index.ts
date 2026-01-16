@@ -162,12 +162,20 @@ app.delete("/api/pacientes/:id", async (c) => {
 // --- EXÁMENES ---
 app.get("/api/examenes", async (c) => {
   const search = c.req.query("search");
+  const pacienteId = c.req.query("paciente_id");
   let sql = `SELECT e.*, p.nombre as paciente_nombre, p.cedula as paciente_cedula, p.edad as paciente_edad FROM examenes e JOIN pacientes p ON e.paciente_id = p.id`;
-  const stmt = search
-    ? c.env.DB.prepare(
-        sql + " WHERE p.nombre LIKE ? OR p.cedula LIKE ? ORDER BY e.fecha DESC"
-      ).bind(`%${search}%`, `%${search}%`)
-    : c.env.DB.prepare(sql + " ORDER BY e.fecha DESC");
+
+  let stmt;
+
+  if (pacienteId) {
+    stmt = c.env.DB.prepare(sql + " WHERE e.paciente_id = ? ORDER BY e.fecha DESC").bind(pacienteId);
+  } else if (search) {
+    stmt = c.env.DB.prepare(
+      sql + " WHERE p.nombre LIKE ? OR p.cedula LIKE ? ORDER BY e.fecha DESC"
+    ).bind(`%${search}%`, `%${search}%`);
+  } else {
+    stmt = c.env.DB.prepare(sql + " ORDER BY e.fecha DESC");
+  }
 
   const { results } = await stmt.all();
   return c.json(
@@ -546,7 +554,7 @@ app.get("/api/plantillas/bacteriologia", async (c) => {
       "SELECT * FROM plantillas_bacteriologia ORDER BY nombre_plantilla ASC"
     ).all();
     return c.json(results);
-  } catch (e) {}
+  } catch (e) { }
 });
 
 // 2. CREAR NUEVA (POST)
@@ -571,7 +579,7 @@ app.post("/api/plantillas/bacteriologia", async (c) => {
 
     // res.meta.last_row_id es el ID que generó SQLite
     return c.json({ success: true, id: res.meta.last_row_id }, 201);
-  } catch (e) {}
+  } catch (e) { }
 });
 
 // 3. ACTUALIZAR (PUT)
@@ -605,7 +613,7 @@ app.put("/api/plantillas/bacteriologia/:id", async (c) => {
       )
       .run();
     return c.json({ success: true });
-  } catch (e) {}
+  } catch (e) { }
 });
 
 // 4. ELIMINAR (DELETE)

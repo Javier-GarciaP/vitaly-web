@@ -126,23 +126,23 @@ export default function PacientesPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 pb-24 pt-4 bg-slate-50/50 min-h-screen">
-      {/* HEADER COMPACTO */}
+      {/* HEADER PROFESIONAL */}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               Pacientes
             </h1>
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+            <p className="text-sm font-medium text-blue-600 mt-1">
               {pacientes.length} Registros
             </p>
           </div>
           <button
             onClick={() => openModal()}
-            className="h-11 w-11 sm:w-auto sm:px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2 shadow-md transition-transform active:scale-95"
+            className="h-11 w-11 sm:w-auto sm:px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
           >
             <Plus size={20} />
-            <span className="hidden sm:inline font-bold">Nuevo</span>
+            <span className="hidden sm:inline font-semibold">Nuevo</span>
           </button>
         </div>
 
@@ -163,9 +163,9 @@ export default function PacientesPage() {
       </div>
 
       {notification && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] md:w-max bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl z-[200] animate-in slide-in-from-top-5 flex items-center gap-3">
-          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="text-xs font-bold">{notification}</span>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] md:w-max bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg z-[200] animate-slide-in flex items-center gap-3">
+          <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+          <span className="text-sm font-semibold">{notification}</span>
         </div>
       )}
 

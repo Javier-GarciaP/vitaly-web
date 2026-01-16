@@ -11,6 +11,7 @@ import ConfiguracionPage from "./pages/ConfiguracionPage";
 
 import LoginPage from "@/react-app/pages/LoginPage"; // El que creamos antes
 import ProtectedRoute from "@/react-app/components/ProtecteRoute";
+import ControlPacientePage from "@/react-app/pages/ControlPacientePage";
 
 export default function App() {
   return (
@@ -18,7 +19,7 @@ export default function App() {
       <Routes>
         {/* RUTA PÚBLICA: LOGIN */}
         <Route path="/login" element={<LoginPage />} />
-        
+
         {/* RUTA PÚBLICA: VERIFICACIÓN (Sin protección) */}
         <Route path="/verificar/:uuid" element={<PublicVerify />} />
 
@@ -30,8 +31,9 @@ export default function App() {
             <Route path="facturas" element={<FacturasPage />} />
             <Route path="examenes" element={<ExamenesPage />} />
             <Route path="resultados" element={<ResultadosPage />} />
-            <Route path="panel" element={<PanelMaestro/>}/>
-            <Route path="configuracion" element={<ConfiguracionPage/>} />
+            <Route path="control-paciente" element={<ControlPacientePage />} />
+            <Route path="panel" element={<PanelMaestro />} />
+            <Route path="configuracion" element={<ConfiguracionPage />} />
           </Route>
         </Route>
 

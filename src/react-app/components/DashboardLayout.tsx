@@ -1,9 +1,9 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  TestTube, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  TestTube,
   ClipboardList,
   Menu,
   X,
@@ -11,6 +11,7 @@ import {
   Crown,
   Settings,
   LogOut,
+  Activity,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/react-app/lib/firebase";
@@ -47,7 +48,7 @@ export default function DashboardLayout() {
         setSidebarOpen(true);
       }
     };
-    
+
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -73,8 +74,9 @@ export default function DashboardLayout() {
     { path: "/facturas", label: "Facturación", icon: FileText },
     { path: "/examenes", label: "Estudios", icon: TestTube },
     { path: "/resultados", label: "Resultados", icon: ClipboardList },
+    { path: "/control-paciente", label: "Control Profesional", icon: Activity },
     { path: "/panel", label: "Panel Maestro", icon: Crown },
-    { path: "/configuracion", label: "Configuración", icon: Settings}
+    { path: "/configuracion", label: "Configuración", icon: Settings }
   ];
 
   const isActive = (path: string) => {
@@ -84,10 +86,10 @@ export default function DashboardLayout() {
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] flex font-sans antialiased text-slate-900 overflow-x-hidden">
-      
+
       {/* OVERLAY PARA MÓVIL */}
-      {isMobile && sidebarOpen &&  (
-        <div 
+      {isMobile && sidebarOpen && (
+        <div
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
         />
@@ -95,13 +97,12 @@ export default function DashboardLayout() {
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-slate-950 text-white transition-all duration-300 z-[130] flex flex-col shadow-2xl ${
-          sidebarOpen 
-            ? "translate-x-0 w-64" 
-            : isMobile 
-              ? "-translate-x-full w-64" 
-              : "translate-x-0 w-20"
-        }`}
+        className={`fixed top-0 left-0 h-full bg-slate-950 text-white transition-all duration-300 z-[130] flex flex-col shadow-2xl ${sidebarOpen
+          ? "translate-x-0 w-64"
+          : isMobile
+            ? "-translate-x-full w-64"
+            : "translate-x-0 w-20"
+          }`}
       >
         {/* Logo Area */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-white/5 shrink-0">
@@ -128,21 +129,20 @@ export default function DashboardLayout() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
-            
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
-                  active
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                    : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
-                }`}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${active
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                  : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
+                  }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon 
-                    size={18} 
-                    className={`shrink-0 transition-colors ${active ? "text-white" : "group-hover:text-blue-400"}`} 
+                  <Icon
+                    size={18}
+                    className={`shrink-0 transition-colors ${active ? "text-white" : "group-hover:text-blue-400"}`}
                   />
                   {(sidebarOpen || isMobile) && (
                     <span className="font-bold text-[13px] tracking-tight whitespace-nowrap">
@@ -193,16 +193,15 @@ export default function DashboardLayout() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ${
-        sidebarOpen && !isMobile ? "ml-64" : !isMobile ? "ml-20" : "ml-0"
-      }`}>
-        
+      <div className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ${sidebarOpen && !isMobile ? "ml-64" : !isMobile ? "ml-20" : "ml-0"
+        }`}>
+
         {/* Topbar móvil */}
         {isMobile && (
           <header className="bg-white border-b border-slate-200 px-4 h-14 flex items-center justify-between sticky top-0 z-[100] w-full">
             <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setSidebarOpen(true)} 
+              <button
+                onClick={() => setSidebarOpen(true)}
                 className="p-2 bg-slate-100 text-slate-600 rounded-lg active:scale-95 transition-transform"
               >
                 <Menu size={20} />
@@ -210,13 +209,13 @@ export default function DashboardLayout() {
               <h1 className="font-black text-blue-600 uppercase italic tracking-tighter text-base">Vitaly</h1>
             </div>
             <div className="w-8 h-8 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
-               {user?.photo ? (
-                 <img src={user.photo} alt="User" className="w-full h-full object-cover" />
-               ) : (
-                 <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-400">
-                   {user?.name?.substring(0, 2).toUpperCase()}
-                 </div>
-               )}
+              {user?.photo ? (
+                <img src={user.photo} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-400">
+                  {user?.name?.substring(0, 2).toUpperCase()}
+                </div>
+              )}
             </div>
           </header>
         )}

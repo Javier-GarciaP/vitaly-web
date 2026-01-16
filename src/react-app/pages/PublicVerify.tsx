@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { 
-  CheckCircle2, 
-  FileText, 
-  User,  
-  AlertOctagon, 
-  Calendar, 
+import {
+  CheckCircle2,
+  FileText,
+  User,
+  AlertOctagon,
+  Calendar,
   ShieldCheck,
   Dna,
   Lock,
@@ -68,41 +68,40 @@ export default function PublicVerify() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-2 md:p-12 font-sans flex flex-col items-center">
-      <div className="max-w-3xl w-full bg-white shadow-xl md:shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] rounded-[2rem] md:rounded-[3rem] overflow-hidden border border-white relative">
-        
-        {/* Marca de Agua de Seguridad */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] rotate-12">
-           <Dna size={300} className="md:w-[400px]" />
+    <div className="min-h-screen bg-slate-50 p-4 md:p-12 font-sans flex flex-col items-center">
+      <div className="max-w-3xl w-full bg-white shadow-lg rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200 relative">
+
+        {/* Marca de Agua de Seguridad - Más sutil */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.01] rotate-12">
+          <Dna size={250} className="md:w-[300px]" />
         </div>
 
         {/* Header de Certificación */}
-        <div className="bg-slate-900 p-6 md:p-10 text-white relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-          
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 md:p-10 text-white relative">
+
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3">
-              <div className="flex items-center gap-2 bg-emerald-500 text-white w-fit px-3 py-1 rounded-lg">
-                <ShieldCheck size={14} />
-                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">Documento Verificado</span>
+              <div className="flex items-center gap-2 bg-emerald-500 text-white w-fit px-3 py-1.5 rounded-lg">
+                <ShieldCheck size={16} />
+                <span className="text-xs font-bold uppercase tracking-wide">Documento Verificado</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase">LABORATORIO <span className="text-emerald-400">VITALY</span></h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">LABORATORIO <span className="text-emerald-400">VITALY</span></h1>
             </div>
-            
-            <div className="flex items-center gap-4 bg-white/5 p-3 md:p-4 rounded-2xl backdrop-blur-md border border-white/10">
-              <div className="bg-emerald-500 p-2 md:p-3 rounded-xl shadow-lg shadow-emerald-500/20">
-                <CheckCircle2 size={24} className="md:w-[28px]" />
+
+            <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20">
+              <div className="bg-emerald-500 p-2.5 rounded-lg shadow-md">
+                <CheckCircle2 size={24} />
               </div>
               <div>
-                <p className="text-[9px] md:text-[10px] font-black text-emerald-400 uppercase tracking-widest">Estatus</p>
-                <p className="text-xs md:text-sm font-bold">Autenticidad Confirmada</p>
+                <p className="text-xs font-semibold text-emerald-400 uppercase">Estatus</p>
+                <p className="text-sm font-bold">Autenticidad Confirmada</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="p-5 md:p-12 space-y-8 md:space-y-10 relative z-10">
-          
+
           {/* Grid de Información del Paciente */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div className="flex items-start gap-4">
@@ -189,33 +188,33 @@ export default function PublicVerify() {
                   Este certificado digital vincula permanentemente los resultados con el registro maestro del Laboratorio Vitaly.
                 </p>
               </div>
-              
+
               <div className="w-full md:w-auto">
                 <div className="bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 text-center">
-                   <p className="text-[8px] font-mono text-slate-400 mb-1 uppercase tracking-tighter">Identificador Único (UUID)</p>
-                   <p className="text-[9px] md:text-[10px] font-mono font-bold text-slate-600 break-all">{uuid}</p>
+                  <p className="text-[8px] font-mono text-slate-400 mb-1 uppercase tracking-tighter">Identificador Único (UUID)</p>
+                  <p className="text-[9px] md:text-[10px] font-mono font-bold text-slate-600 break-all">{uuid}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Botones de Acción Posteriores */}
       <div className="flex flex-col sm:flex-row gap-3 mt-8 w-full max-w-3xl px-2">
-        <button 
+        <button
           onClick={() => window.print()}
           className="flex-1 bg-white text-slate-600 hover:text-emerald-600 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-3"
         >
           <Printer size={18} /> Imprimir
         </button>
-        <button 
+        <button
           className="flex-1 bg-slate-900 text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/10 transition-all flex items-center justify-center gap-3"
         >
           <FileText size={18} /> Descargar PDF
         </button>
       </div>
-      
+
       <p className="mt-8 mb-4 text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] text-center">
         © 2025 Laboratorio Vitaly
       </p>

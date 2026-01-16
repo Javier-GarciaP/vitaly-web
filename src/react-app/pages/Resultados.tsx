@@ -17,6 +17,7 @@ import {
   User,
   Calendar,
   Fingerprint,
+  Activity,
 } from "lucide-react";
 
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
@@ -49,6 +50,7 @@ export default function ResultadosPage() {
   const [examenes, setExamenes] = useState<Examen[]>([]);
   const [filteredExamenes, setFilteredExamenes] = useState<Examen[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [selectedExamen, setSelectedExamen] = useState<Examen | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -65,17 +67,24 @@ export default function ResultadosPage() {
   }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredExamenes(examenes);
-    } else {
-      const filtered = examenes.filter(
+    let filtered = examenes;
+
+    // Filtrar por término de búsqueda (nombre o cédula)
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter(
         (ex) =>
           ex.paciente_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
           ex.paciente_cedula.includes(searchTerm)
       );
-      setFilteredExamenes(filtered);
     }
-  }, [searchTerm, examenes]);
+
+    // Filtrar por estado
+    if (statusFilter !== "todos") {
+      filtered = filtered.filter((ex) => ex.estado === statusFilter);
+    }
+
+    setFilteredExamenes(filtered);
+  }, [searchTerm, statusFilter, examenes]);
 
   const loadExamenes = async () => {
     try {
@@ -86,6 +95,8 @@ export default function ResultadosPage() {
       console.error("Error cargando exámenes");
     }
   };
+
+
 
   const handleOpenPrint = async () => {
     if (!selectedExamen) return;
@@ -105,9 +116,9 @@ export default function ResultadosPage() {
     setQrCodeImage("");
     // En móvil, hacer scroll suave hacia las acciones si se selecciona uno
     if (window.innerWidth < 1280) {
-        setTimeout(() => {
-            document.getElementById('action-panel')?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+      setTimeout(() => {
+        document.getElementById('action-panel')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
   };
 
@@ -236,7 +247,7 @@ export default function ResultadosPage() {
   return (
     <div className="max-w-[1600px] mx-auto pb-10 px-4 md:px-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 mt-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6 mt-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             <FileText className="text-blue-600" size={32} />
@@ -259,6 +270,72 @@ export default function ResultadosPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
           />
+        </div>
+      </div>
+
+      {/* Estado Filter */}
+      <div className="mb-6 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            Filtrar por Estado:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setStatusFilter("todos")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "todos"
+                ? "bg-slate-900 text-white border-slate-900 shadow-lg"
+                : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300"
+                }`}
+            >
+              <FileText size={14} />
+              Todos
+              <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-[10px]">
+                {examenes.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter("completado")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "completado"
+                ? "bg-emerald-500 text-white border-emerald-500 shadow-lg"
+                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300"
+                }`}
+            >
+              <CheckCircle2 size={14} />
+              Completado
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${statusFilter === "completado" ? "bg-white/20" : "bg-emerald-100"
+                }`}>
+                {examenes.filter(ex => ex.estado === "completado").length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter("en_proceso")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "en_proceso"
+                ? "bg-blue-500 text-white border-blue-500 shadow-lg"
+                : "bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-300"
+                }`}
+            >
+              <Clock size={14} />
+              En Proceso
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${statusFilter === "en_proceso" ? "bg-white/20" : "bg-blue-100"
+                }`}>
+                {examenes.filter(ex => ex.estado === "en_proceso").length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter("pendiente")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "pendiente"
+                ? "bg-amber-500 text-white border-amber-500 shadow-lg"
+                : "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-300"
+                }`}
+            >
+              <AlertCircle size={14} />
+              Pendiente
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${statusFilter === "pendiente" ? "bg-white/20" : "bg-amber-100"
+                }`}>
+                {examenes.filter(ex => ex.estado === "pendiente").length}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -293,14 +370,12 @@ export default function ResultadosPage() {
                       <tr
                         key={examen.id}
                         onClick={() => handleSelectExamen(examen, index)}
-                        className={`group cursor-pointer transition-all ${
-                          selectedExamen?.id === examen.id ? "bg-blue-50/80" : "hover:bg-slate-50"
-                        }`}
+                        className={`group cursor-pointer transition-all ${selectedExamen?.id === examen.id ? "bg-blue-50/80" : "hover:bg-slate-50"
+                          }`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                                selectedExamen?.id === examen.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${selectedExamen?.id === examen.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
                               }`}>
                               {examen.paciente_nombre.charAt(0)}
                             </div>
@@ -358,13 +433,13 @@ export default function ResultadosPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                       <div className="flex items-center gap-1 font-bold text-blue-600">
-                         <FileText size={14}/> {examen.tipo}
-                       </div>
-                       <div className="flex items-center gap-1 font-medium text-slate-400">
-                         <Calendar size={14}/> 
-                         {new Date(examen.fecha + "T12:00:00").toLocaleDateString("es-ES")}
-                       </div>
+                      <div className="flex items-center gap-1 font-bold text-blue-600">
+                        <FileText size={14} /> {examen.tipo}
+                      </div>
+                      <div className="flex items-center gap-1 font-medium text-slate-400">
+                        <Calendar size={14} />
+                        {new Date(examen.fecha + "T12:00:00").toLocaleDateString("es-ES")}
+                      </div>
                     </div>
                   </div>
                 );
@@ -474,7 +549,7 @@ export default function ResultadosPage() {
           ) : (
             <div className="h-full min-h-[300px] flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] md:rounded-[3rem] p-10 text-center">
               <div className="bg-white p-6 rounded-full shadow-sm mb-4">
-                 <Search className="text-slate-200" size={40} />
+                <Search className="text-slate-200" size={40} />
               </div>
               <p className="text-slate-500 font-bold uppercase text-[10px] md:text-xs tracking-widest max-w-[200px]">
                 Selecciona un registro para gestionar acciones
@@ -542,7 +617,7 @@ export default function ResultadosPage() {
 
             <div className="p-6 md:p-10 overflow-y-auto flex-1 custom-scrollbar">
               <div className="mb-8">{renderExamenForm()}</div>
-              
+
               <div className="bg-slate-50 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 block">
                   Estatus del Informe
@@ -552,11 +627,10 @@ export default function ResultadosPage() {
                     <button
                       key={status}
                       onClick={() => setEditEstado(status)}
-                      className={`flex-1 min-w-[100px] px-4 py-3 rounded-xl font-bold text-[10px] md:text-xs uppercase border-2 transition-all ${
-                        editEstado === status
-                          ? "bg-blue-600 border-blue-600 text-white shadow-lg"
-                          : "bg-white border-slate-100 text-slate-400"
-                      }`}
+                      className={`flex-1 min-w-[100px] px-4 py-3 rounded-xl font-bold text-[10px] md:text-xs uppercase border-2 transition-all ${editEstado === status
+                        ? "bg-blue-600 border-blue-600 text-white shadow-lg"
+                        : "bg-white border-slate-100 text-slate-400"
+                        }`}
                     >
                       {status.replace("_", " ")}
                     </button>

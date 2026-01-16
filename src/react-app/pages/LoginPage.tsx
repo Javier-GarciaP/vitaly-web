@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { Activity, ShieldCheck, Loader2, Lock } from "lucide-react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { auth, provider } from "@/react-app/lib/firebase"; 
+import { auth, provider } from "@/react-app/lib/firebase";
 import { dispararCanones } from "@/utils/Confetti";
 
 export default function LoginPage() {
@@ -41,42 +41,44 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#f1f5f9] flex items-center justify-center p-4 relative overflow-hidden">
-      
-      {/* Background Decorativo - Menos intrusivo */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-200/30 rounded-full blur-[120px]" />
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
 
-      <div className="relative w-full max-w-[400px] animate-in fade-in zoom-in-95 duration-700">
-        
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.02]" style={{
+        backgroundImage: 'radial-gradient(circle at 2px 2px, rgb(0, 102, 204) 1px, transparent 0)',
+        backgroundSize: '40px 40px'
+      }} />
+
+      <div className="relative w-full max-w-[420px] animate-fade-in">
+
         {/* Card Principal */}
-        <div className="bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white p-8 md:p-10 relative z-10">
-          
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 md:p-10 relative">
+
           {/* Logo y Header */}
-          <div className="flex flex-col items-center text-center mb-10">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg mb-6 group transition-transform hover:rotate-12">
-              <Activity size={28} className="text-blue-400" />
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md mb-5">
+              <Activity size={32} className="text-white" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               Vitaly<span className="text-blue-600">Lab</span>
             </h1>
-            <div className="mt-2 flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full">
-              <Lock size={12} className="text-slate-500" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Sistema de Acceso Privado</p>
+            <div className="mt-3 flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+              <Lock size={14} className="text-slate-400" />
+              <p className="text-xs font-semibold text-slate-500">Sistema de Acceso Seguro</p>
             </div>
           </div>
 
           {/* Body */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="space-y-2 text-center">
-              <h2 className="text-lg font-bold text-slate-800">Iniciar Sesión</h2>
-              <p className="text-xs text-slate-400 font-medium">Use su cuenta institucional de Google</p>
+              <h2 className="text-lg font-semibold text-slate-800">Iniciar Sesión</h2>
+              <p className="text-sm text-slate-500">Use su cuenta institucional de Google</p>
             </div>
 
             <button
               onClick={handleGoogleLogin}
               disabled={isLoggingIn}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 py-3.5 px-6 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:border-blue-400 hover:shadow-md transition-all duration-300 group disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 py-3.5 px-6 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoggingIn ? (
                 <Loader2 className="animate-spin text-blue-600" size={20} />
@@ -84,28 +86,25 @@ export default function LoginPage() {
                 <img
                   src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                   alt="Google"
-                  className="w-5 h-5 group-hover:scale-110 transition-transform"
+                  className="w-5 h-5"
                 />
               )}
-              <span className="text-sm">{isLoggingIn ? "Verificando..." : "Entrar con Google"}</span>
+              <span className="text-sm">{isLoggingIn ? "Verificando..." : "Continuar con Google"}</span>
             </button>
           </div>
 
           {/* Footer del Card */}
-          <div className="mt-10 pt-6 border-t border-slate-50">
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                <ShieldCheck size={14} className="text-emerald-500" />
-                Seguridad de datos activa
-              </div>
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+              <ShieldCheck size={16} className="text-emerald-500" />
+              <span className="font-medium">Conexión segura SSL/TLS</span>
             </div>
           </div>
         </div>
 
         {/* Info adicional fuera del card */}
-        <p className="text-center mt-8 text-slate-400 text-[11px] font-medium">
-          &copy; {new Date().getFullYear()} Vitaly Lab Management System. <br />
-          Desarrollado para entornos de alta precisión.
+        <p className="text-center mt-6 text-slate-400 text-xs">
+          &copy; {new Date().getFullYear()} Vitaly Lab Management System
         </p>
       </div>
     </div>

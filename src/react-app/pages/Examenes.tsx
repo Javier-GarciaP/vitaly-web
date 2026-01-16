@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, X, User, CheckCircle2, FlaskConical, ChevronRight, Activity, Search, ClipboardList } from "lucide-react";
+import { Plus, X, User, CheckCircle2, ChevronRight, Activity, Search, ClipboardList } from "lucide-react";
 
 interface Paciente {
   id: number;
@@ -11,7 +11,7 @@ export default function ExamenesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState("");
-  
+
   const [pacienteInput, setPacienteInput] = useState("");
   const [showSugerencias, setShowSugerencias] = useState(false);
   const [errorPaciente, setErrorPaciente] = useState("");
@@ -24,7 +24,7 @@ export default function ExamenesPage() {
   });
 
   const tiposExamen = [
-    "Hematología", "Química Clínica", "Orina", "Heces", 
+    "Hematología", "Química Clínica", "Orina", "Heces",
     "Coagulación", "Grupo Sanguíneo", "Bacteriología", "Misceláneos",
   ];
 
@@ -40,8 +40,8 @@ export default function ExamenesPage() {
 
   const sugerenciasFiltradas = useMemo(() => {
     if (pacienteInput.length < 2) return [];
-    return pacientes.filter(p => 
-      p.nombre.toLowerCase().includes(pacienteInput.toLowerCase()) || 
+    return pacientes.filter(p =>
+      p.nombre.toLowerCase().includes(pacienteInput.toLowerCase()) ||
       p.cedula.includes(pacienteInput)
     ).slice(0, 5);
   }, [pacienteInput, pacientes]);
@@ -110,62 +110,61 @@ export default function ExamenesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
-      
-      {/* HEADER COMPACTO */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-10">
+
+      {/* HEADER PROFESIONAL */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Registro de Exámenes</h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-70">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Registro de Exámenes</h1>
+          <p className="text-slate-500 text-sm font-medium mt-1">
             Gestión de Órdenes y Laboratorio
           </p>
         </div>
         <button
           onClick={openModal}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 font-bold active:scale-95"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-sm font-semibold"
         >
-          <Plus size={18} /> 
+          <Plus size={18} />
           <span>Nueva Orden</span>
         </button>
       </div>
 
       {/* NOTIFICACIÓN FLOTANTE */}
       {notification && (
-        <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-[100] animate-in slide-in-from-right-10">
+        <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 z-[100] animate-slide-in">
           <CheckCircle2 className="text-emerald-400" size={18} />
-          <span className="font-bold text-xs uppercase tracking-tight">{notification}</span>
+          <span className="font-semibold text-sm">{notification}</span>
         </div>
       )}
 
       {/* PANEL PRINCIPAL: 2 COLUMNAS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* COLUMNA IZQUIERDA: Info y Guía */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative group">
-            <div className="relative z-10">
-              <Activity className="text-blue-400 mb-4" size={24} />
-              <h2 className="text-lg font-black leading-tight mb-2">Órdenes Rápidas</h2>
-              <p className="text-slate-400 text-xs leading-relaxed mb-6">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <div className="">
+              <Activity className="text-blue-600 mb-4" size={24} />
+              <h2 className="text-lg font-bold text-slate-900 leading-tight mb-2">Órdenes Rápidas</h2>
+              <p className="text-slate-600 text-sm leading-relaxed mb-5">
                 Asigne múltiples estudios a un paciente en una sola operación. Los resultados se sincronizarán automáticamente.
               </p>
               <div className="space-y-3">
-                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-blue-300 bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
-                  <CheckCircle2 size={14} /> 100% Sincronizado
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                  <CheckCircle2 size={16} /> 100% Sincronizado
                 </div>
               </div>
             </div>
-            <FlaskConical size={120} className="absolute -bottom-6 -right-6 text-white/5 -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-5">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <ClipboardList size={14} /> Tipos Frecuentes
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+              <ClipboardList size={16} /> Tipos Frecuentes
             </h3>
             <div className="flex flex-wrap gap-2">
               {tiposExamen.slice(0, 5).map(t => (
-                <span key={t} className="text-[10px] font-bold bg-slate-50 text-slate-500 px-2.5 py-1.5 rounded-md border border-slate-100 italic">
-                  #{t}
+                <span key={t} className="text-xs font-medium bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-100">
+                  {t}
                 </span>
               ))}
             </div>
@@ -210,12 +209,11 @@ export default function ExamenesPage() {
                     placeholder="Buscar por nombre o cédula..."
                     value={pacienteInput}
                     onChange={(e) => { setPacienteInput(e.target.value); setShowSugerencias(true); }}
-                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border-2 rounded-xl outline-none transition-all text-sm font-bold ${
-                      errorPaciente ? "border-red-200 bg-red-50" : "border-transparent focus:border-blue-500 focus:bg-white text-slate-700"
-                    }`}
+                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border-2 rounded-xl outline-none transition-all text-sm font-bold ${errorPaciente ? "border-red-200 bg-red-50" : "border-transparent focus:border-blue-500 focus:bg-white text-slate-700"
+                      }`}
                   />
                 </div>
-                
+
                 {showSugerencias && sugerenciasFiltradas.length > 0 && (
                   <div className="absolute z-[90] w-full bg-white border border-slate-200 mt-1 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1">
                     {sugerenciasFiltradas.map((p) => (
@@ -264,24 +262,24 @@ export default function ExamenesPage() {
               {/* Fecha y Estado Compacto */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha</label>
-                    <input
-                      type="date"
-                      value={formData.fecha}
-                      onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600"
-                    />
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha</label>
+                  <input
+                    type="date"
+                    value={formData.fecha}
+                    onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label>
-                    <select
-                      value={formData.estado}
-                      onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600"
-                    >
-                      <option value="pendiente">Pendiente</option>
-                      <option value="en_proceso">En Proceso</option>
-                    </select>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label>
+                  <select
+                    value={formData.estado}
+                    onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600"
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_proceso">En Proceso</option>
+                  </select>
                 </div>
               </div>
 
@@ -290,9 +288,8 @@ export default function ExamenesPage() {
                 <button
                   type="submit"
                   disabled={selectedTipos.length === 0}
-                  className={`flex-1 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${
-                    selectedTipos.length > 0 ? "bg-slate-900 text-white shadow-lg hover:bg-blue-600" : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  }`}
+                  className={`flex-1 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${selectedTipos.length > 0 ? "bg-slate-900 text-white shadow-lg hover:bg-blue-600" : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    }`}
                 >
                   Registrar Orden ({selectedTipos.length})
                 </button>

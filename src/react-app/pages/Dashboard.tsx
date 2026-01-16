@@ -44,17 +44,15 @@ const ConnectionStatus = () => {
   }, []);
 
   return (
-    <div className={`flex items-center gap-2.5 bg-white p-1.5 pr-3 rounded-xl shadow-sm border transition-all ${
-      isOnline ? "border-emerald-100" : "border-red-100"
-    }`}>
-      <div className={`flex h-8 w-8 items-center justify-center rounded-lg shadow-sm ${
-        isOnline ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+    <div className={`flex items-center gap-2.5 bg-white px-3 py-2 rounded-lg shadow-sm border transition-all ${isOnline ? "border-emerald-200" : "border-red-200"
       }`}>
-        {isOnline ? <Wifi size={16} /> : <WifiOff size={16} className="animate-pulse" />}
+      <div className={`flex h-7 w-7 items-center justify-center rounded-md ${isOnline ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+        }`}>
+        {isOnline ? <Wifi size={14} /> : <WifiOff size={14} className="animate-pulse-subtle" />}
       </div>
       <div className="hidden sm:block">
-        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">Estado</p>
-        <p className={`text-xs font-bold leading-tight ${isOnline ? "text-emerald-700" : "text-red-700"}`}>
+        <p className="text-xs font-medium text-slate-500 leading-none">Estado</p>
+        <p className={`text-sm font-semibold leading-tight ${isOnline ? "text-emerald-700" : "text-red-700"}`}>
           {isOnline ? "Online" : "Offline"}
         </p>
       </div>
@@ -82,17 +80,17 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-6">
-      
-      {/* HEADER COMPACTO */}
-      <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
+    <div className="max-w-[1600px] mx-auto space-y-5 md:space-y-6 animate-fade-in pb-6">
+
+      {/* HEADER PROFESIONAL */}
+      <div className="flex items-center justify-between gap-4 pb-5 border-b border-slate-200">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none">
-            Panel de Control - Feliz año nuevo 2026 🎅🎆
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+            Panel de Control
           </h1>
-          <div className="flex items-center gap-1.5 mt-1.5 text-slate-500">
-            <Calendar size={12} />
-            <p className="text-[11px] md:text-xs font-bold uppercase tracking-wide">
+          <div className="flex items-center gap-2 mt-1.5 text-slate-500">
+            <Calendar size={14} />
+            <p className="text-xs font-medium">
               {new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}
             </p>
           </div>
@@ -100,28 +98,27 @@ export default function DashboardPage() {
         <ConnectionStatus />
       </div>
 
-      {/* CARDS: Altura fija y diseño denso */}
+      {/* CARDS DE ESTADÍSTICAS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
-              className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 transition-all group relative overflow-hidden ${
-                card.pulse ? "ring-2 ring-orange-500/20" : ""
-              }`}
+              className={`bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all group ${card.pulse ? "ring-2 ring-orange-400/30" : ""
+                }`}
             >
-              <div className="flex justify-between items-center mb-3">
-                <div className={`p-2 rounded-xl ${card.bgColor} ${card.iconColor}`}>
-                  <Icon size={18} />
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-2.5 rounded-lg ${card.bgColor}`}>
+                  <Icon size={20} className={card.iconColor} />
                 </div>
-                <ArrowUpRight size={14} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
               </div>
               <div>
-                <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter leading-none">
+                <p className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
                   {card.value}
                 </p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5 truncate">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
                   {card.title}
                 </p>
               </div>
@@ -130,18 +127,18 @@ export default function DashboardPage() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-        {/* GRÁFICO: Ajuste de altura para Laptop */}
-        <div className="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
+        {/* GRÁFICO DE DISTRIBUCIÓN */}
+        <div className="lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-sm md:text-base font-black text-slate-800 tracking-tight uppercase">
+              <h2 className="text-base font-bold text-slate-800">
                 Distribución de Análisis
               </h2>
-              <p className="text-[11px] text-slate-400 font-medium">Volumen por categoría de estudio</p>
+              <p className="text-xs text-slate-500 mt-1">Volumen por categoría de estudio</p>
             </div>
-            <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
-              <PieIcon size={16} />
+            <div className="p-2.5 bg-slate-50 rounded-lg text-slate-400">
+              <PieIcon size={18} />
             </div>
           </div>
 
@@ -154,7 +151,7 @@ export default function DashboardPage() {
                     cx="50%" cy="50%"
                     innerRadius={60}
                     outerRadius={90}
-                    paddingAngle={5}
+                    paddingAngle={4}
                     dataKey="value"
                   >
                     {stats.distribucion.map((_, index) => (
@@ -162,16 +159,16 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", fontSize: "12px" }}
+                    contentStyle={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", fontSize: "12px" }}
                   />
                   <Legend
                     verticalAlign="bottom"
                     content={({ payload }) => (
-                      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-4">
+                      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
                         {payload?.map((entry: any, index) => (
-                          <div key={index} className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">{entry.value}</span>
+                          <div key={index} className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
+                            <span className="text-xs font-medium text-slate-600">{entry.value}</span>
                           </div>
                         ))}
                       </div>
@@ -180,17 +177,18 @@ export default function DashboardPage() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center gap-2">
-                <div className="w-8 h-8 border-3 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
+              <div className="h-full flex flex-col items-center justify-center gap-3">
+                <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin" />
+                <p className="text-sm text-slate-400">Cargando datos...</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* ACCESOS DIRECTOS: Más densos y oscuros para contraste */}
-        <div className="lg:col-span-4 bg-slate-950 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col">
-          <h2 className="text-sm font-black text-white tracking-widest uppercase mb-1">Acceso Rápido</h2>
-          <p className="text-[11px] text-slate-500 mb-5">Atajos de operación</p>
+        {/* PANEL DE ACCESOS RÁPIDOS */}
+        <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Acceso Rápido</h2>
+          <p className="text-xs text-slate-500 mb-5">Atajos de operación</p>
 
           <div className="space-y-2 flex-1">
             {[
@@ -201,29 +199,29 @@ export default function DashboardPage() {
               <a
                 key={link.label}
                 href={link.href}
-                className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all group"
+                className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 hover:border-slate-200 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 ${link.color} rounded-lg text-white shadow-lg`}>
-                    <link.icon size={16} />
+                  <div className={`p-2.5 ${link.color} rounded-lg text-white shadow-sm`}>
+                    <link.icon size={18} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-[13px] leading-none">{link.label}</h3>
-                    <p className="text-[9px] text-slate-500 uppercase font-black tracking-tighter mt-1">{link.sub}</p>
+                    <h3 className="font-semibold text-slate-900 text-sm">{link.label}</h3>
+                    <p className="text-xs text-slate-500">{link.sub}</p>
                   </div>
                 </div>
-                <ArrowUpRight size={14} className="text-slate-600 group-hover:text-white transition-colors" />
+                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </a>
             ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-white/5">
-            <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/20 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-1">
-                <Activity size={14} className="text-blue-400" />
-                <p className="text-white font-bold text-xs uppercase tracking-tight">Soporte Vitaly</p>
+          <div className="mt-6 pt-5 border-t border-slate-100">
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity size={16} className="text-blue-600" />
+                <p className="text-blue-900 font-semibold text-sm">Soporte Vitaly</p>
               </div>
-              <p className="text-slate-400 text-[10px] leading-relaxed">Manuales y tutoriales disponibles en el panel de ayuda.</p>
+              <p className="text-blue-700 text-xs leading-relaxed">Manuales y tutoriales disponibles en el panel de ayuda.</p>
             </div>
           </div>
         </div>
