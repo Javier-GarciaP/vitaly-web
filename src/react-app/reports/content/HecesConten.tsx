@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text } from '@react-pdf/renderer';
 import CommonHeader from '../components/CommonHeader';
-// 1. Importamos los tipos centralizados
 import { HecesData, Paciente } from '@/types/types';
 
 interface HecesReportProps {
@@ -18,64 +17,112 @@ interface HecesRowProps {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    paddingTop: 5,
+  },
+  // Card Styles
+  card: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 6,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
+  cardHeader: {
+    backgroundColor: "#800020",
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#600018",
+  },
+  cardTitle: {
+    color: "#ffffff",
+    fontSize: 9,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  cardBody: {
+    padding: 6,
+    backgroundColor: "#fafafa",
+  },
+
   gridRow: {
     flexDirection: 'row',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#eee',
-    paddingVertical: 3,
+    borderBottomColor: '#f1f5f9',
+    paddingVertical: 2,
+    alignItems: 'center',
   },
   fieldGroup: {
     flexDirection: 'row',
     width: '50%',
+    alignItems: 'center',
   },
   label: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
-    width: '60%',
+    width: '55%',
+    color: '#475569',
   },
   value: {
     fontSize: 9,
-    width: '40%',
-  },
-  divider: {
-    height: 1.5,
-    backgroundColor: '#6e2020',
-    marginVertical: 8,
+    width: '45%',
+    color: '#0f172a',
+    fontWeight: 'medium',
   },
   fullRow: {
     flexDirection: 'row',
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#f1f5f9',
+    alignItems: 'center',
   },
   fullLabel: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
     width: '35%',
+    color: '#475569',
   },
   fullValue: {
     fontSize: 9,
     width: '65%',
+    color: '#0f172a',
   },
-  obsSection: {
-    marginTop: 8,
-    padding: 6,
-    backgroundColor: '#f9f9f9',
-    borderLeftWidth: 2,
-    borderLeftColor: '#6e2020',
+
+  // Observations and Parasites
+  obsCard: {
+    marginTop: 5,
+    borderLeftWidth: 3,
+    borderLeftColor: "#800020",
+    backgroundColor: "#fff5f5",
+    padding: 8,
+    borderRadius: 4,
   },
-  obsTitle: { 
-    fontSize: 8, 
-    fontWeight: 'bold', 
-    color: '#6e2020',
-    textTransform: 'uppercase'
+  obsTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#800020',
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
-  obsText: { 
-    fontSize: 9, 
-    marginTop: 2,
-    lineHeight: 1.2
+  obsText: {
+    fontSize: 8.5,
+    color: '#334155',
+    lineHeight: 1.3
   }
 });
+
+const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+    <View style={styles.cardBody}>
+      {children}
+    </View>
+  </View>
+);
 
 const HecesRow: React.FC<HecesRowProps> = ({ label1, value1, label2, value2 }) => {
   const show1 = value1 && value1.trim() !== "" && value1 !== "null";
@@ -106,71 +153,68 @@ const HecesRow: React.FC<HecesRowProps> = ({ label1, value1, label2, value2 }) =
 
 const HcesContent: React.FC<HecesReportProps> = ({ data, patient, qrImage }) => {
   return (
-    <View>
+    <View style={styles.container}>
       <CommonHeader
         patient={{
           nombre: patient.nombre,
           cedula: patient.cedula,
-          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
-          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+          edad: patient.edad,
+          fechaExamen: patient.fecha || "",
         }}
         title="COPROANÁLISIS"
         qrImage={qrImage}
       />
 
-      {/* EXAMEN FÍSICO - Ajustado para asegurar visualización */}
-      <HecesRow label1="Color" value1={data?.color} label2="Consistencia" value2={data?.consistencia} />
-      <HecesRow label1="Moco" value1={data?.moco} label2="Aspecto" value2={data?.aspecto} />
-      <HecesRow label1="H.B." value1={data?.hb} label2="Reacción" value2={data?.reaccion} />
-      <HecesRow label1="pH" value1={data?.ph} />
+      <SectionCard title="Examen Macroscópico">
+        <HecesRow label1="Color" value1={data?.color} label2="Consistencia" value2={data?.consistencia} />
+        <HecesRow label1="Moco" value1={data?.moco} label2="Aspecto" value2={data?.aspecto} />
+        <HecesRow label1="H.B." value1={data?.hb} label2="Reacción" value2={data?.reaccion} />
+        <HecesRow label1="pH" value1={data?.ph} />
+      </SectionCard>
 
-      <View style={styles.divider} />
+      <SectionCard title="Microscópico & Químico">
+        {data?.sangre_oculta && (
+          <View style={styles.fullRow}>
+            <Text style={styles.fullLabel}>Sangre Oculta:</Text>
+            <Text style={styles.fullValue}>{data.sangre_oculta}</Text>
+          </View>
+        )}
+        {data?.az_reductores && (
+          <View style={styles.fullRow}>
+            <Text style={styles.fullLabel}>Az. Reductores:</Text>
+            <Text style={styles.fullValue}>{data.az_reductores}</Text>
+          </View>
+        )}
+        {data?.po_nucleares && (
+          <View style={styles.fullRow}>
+            <Text style={styles.fullLabel}>Polimorfonucleares:</Text>
+            <Text style={styles.fullValue}>{data.po_nucleares}</Text>
+          </View>
+        )}
+        {data?.re_alimenticios && (
+          <View style={styles.fullRow}>
+            <Text style={styles.fullLabel}>Restos Alimenticios:</Text>
+            <Text style={styles.fullValue}>{data.re_alimenticios}</Text>
+          </View>
+        )}
+        {data?.flora_bacteriana && (
+          <View style={styles.fullRow}>
+            <Text style={styles.fullLabel}>Flora Bacteriana:</Text>
+            <Text style={styles.fullValue}>{data.flora_bacteriana}</Text>
+          </View>
+        )}
+      </SectionCard>
 
-      {/* EXAMEN QUÍMICO / MICROSCÓPICO - Sincronizado con nombres de BD */}
-      {data?.sangre_oculta && (
-        <View style={styles.fullRow}>
-          <Text style={styles.fullLabel}>Sangre Oculta:</Text>
-          <Text style={styles.fullValue}>{data.sangre_oculta}</Text>
-        </View>
-      )}
-      {data?.az_reductores && (
-        <View style={styles.fullRow}>
-          <Text style={styles.fullLabel}>Az. Reductores:</Text>
-          <Text style={styles.fullValue}>{data.az_reductores}</Text>
-        </View>
-      )}
-      {data?.po_nucleares && (
-        <View style={styles.fullRow}>
-          <Text style={styles.fullLabel}>Polimorfonucleares:</Text>
-          <Text style={styles.fullValue}>{data.po_nucleares}</Text>
-        </View>
-      )}
-      {data?.re_alimenticios && (
-        <View style={styles.fullRow}>
-          <Text style={styles.fullLabel}>Restos Alimenticios:</Text>
-          <Text style={styles.fullValue}>{data.re_alimenticios}</Text>
-        </View>
-      )}
-      {data?.flora_bacteriana && (
-        <View style={styles.fullRow}>
-          <Text style={styles.fullLabel}>Flora Bacteriana:</Text>
-          <Text style={styles.fullValue}>{data.flora_bacteriana}</Text>
-        </View>
-      )}
-
-      <View style={styles.divider} />
-
-      {/* PARÁSITOS Y OBSERVACIONES */}
       {data?.parasitos && (
-        <View style={styles.obsSection}>
-          <Text style={styles.obsTitle}>Investigación de Parásitos:</Text>
+        <View style={styles.obsCard}>
+          <Text style={styles.obsTitle}>Investigación de Parásitos</Text>
           <Text style={styles.obsText}>{data.parasitos}</Text>
         </View>
       )}
 
       {data?.observacion && (
-        <View style={styles.obsSection}>
-          <Text style={styles.obsTitle}>Observaciones:</Text>
+        <View style={styles.obsCard}>
+          <Text style={styles.obsTitle}>Observaciones</Text>
           <Text style={styles.obsText}>{data.observacion}</Text>
         </View>
       )}

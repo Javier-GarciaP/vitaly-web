@@ -11,32 +11,31 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#eee', // Color más suave para una apariencia más limpia
-    paddingVertical: 4,
+    borderBottomColor: '#f1f5f9',
+    paddingVertical: 2,
     alignItems: 'center',
-    minHeight: 18, // Asegura consistencia visual
+    minHeight: 14,
   },
-  name: { 
-    width: '40%', 
-    fontSize: 9, 
-    fontWeight: 'bold',
-    color: '#333',
+  name: {
+    width: '40%',
+    fontSize: 8.5,
+    fontWeight: 'medium',
+    color: '#334155',
     paddingLeft: 2,
   },
-  result: { 
-    width: '30%', 
-    fontSize: 10, 
+  result: {
+    width: '30%',
+    fontSize: 9,
     textAlign: 'center',
-    fontWeight: 'bold',
-    color: '#000', // El resultado siempre en negro puro para contraste
+    fontWeight: 'heavy',
+    color: '#0f172a',
   },
-  reference: { 
-    width: '30%', 
-    fontSize: 8, 
-    color: '#666', 
+  reference: {
+    width: '30%',
+    fontSize: 7,
+    color: '#64748b',
     textAlign: 'right',
     paddingRight: 2,
-    fontStyle: 'italic',
   },
 });
 
@@ -46,10 +45,10 @@ const styles = StyleSheet.create({
  */
 const ExamRow: React.FC<ExamRowProps> = ({ label, result, reference }) => {
   // Validación para no renderizar filas vacías o con errores de base de datos
-  const isValid = result !== null && 
-                  result !== undefined && 
-                  result !== "" && 
-                  result !== "null";
+  const isValid = result !== null &&
+    result !== undefined &&
+    result !== "" &&
+    result !== "null";
 
   if (!isValid) return null;
 

@@ -11,22 +11,23 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 3, // Un poco más de aire para legibilidad
+    paddingVertical: 2,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#eee', // Color más suave para que no compita con el texto
+    borderBottomColor: '#f1f5f9',
     alignItems: 'center',
   },
-  label: { 
-    fontSize: 9, 
-    color: '#333', // Gris oscuro para mejor contraste
-    fontWeight: 'bold',
-    width: '60%', // Asegura que las etiquetas largas no rompan el layout
+  label: {
+    fontSize: 8.5,
+    color: '#334155',
+    fontWeight: 'medium',
+    width: '60%',
   },
-  value: { 
-    fontSize: 9, 
-    color: '#000',
+  value: {
+    fontSize: 9,
+    color: '#0f172a',
     width: '40%',
-    textAlign: 'right', // Alineación a la derecha típica de valores de laboratorio
+    textAlign: 'right',
+    fontWeight: 'bold',
   },
 });
 

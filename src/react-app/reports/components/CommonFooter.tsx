@@ -5,22 +5,23 @@ const styles = StyleSheet.create({
   footer: {
     position: 'absolute',
     bottom: 30,
-    left: 40, // Un poco más de margen para evitar cortes en impresoras
+    left: 40,
     right: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#6e2020', // Sincronizado con el color institucional
+    borderTopWidth: 0.5,
+    borderTopColor: '#e2e8f0',
     paddingTop: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between', // Distribuye info a la izquierda y paginación a la derecha
+    justifyContent: 'space-between',
   },
   infoContainer: {
     width: '70%',
   },
   text: {
-    fontSize: 7, // Tamaño ligeramente menor para mayor elegancia
-    color: '#555',
-    marginBottom: 1,
+    fontSize: 7,
+    color: '#94a3b8',
+    marginBottom: 2,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   pageNumber: {
     fontSize: 7,
@@ -40,13 +41,13 @@ const CommonFooter: React.FC = () => (
       <Text style={styles.text}>San José de Bolívar, Táchira - Tel: (0424) 7234517</Text>
       <Text style={styles.text}>RIF: J-50413383-3 | Bioanalista Responsable</Text>
     </View>
-    
+
     {/* Paginación automática proporcionada por react-pdf */}
-    <Text 
-      style={styles.pageNumber} 
+    <Text
+      style={styles.pageNumber}
       render={({ pageNumber, totalPages }) => (
         `Página ${pageNumber} de ${totalPages}`
-      )} 
+      )}
     />
   </View>
 );

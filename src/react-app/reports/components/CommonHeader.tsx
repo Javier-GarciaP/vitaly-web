@@ -5,65 +5,61 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderBottom: '2pt solid #1e293b', // Color pizarra oscuro para un look moderno
-    paddingBottom: 8,
-    marginBottom: 15,
+    borderBottom: '1pt solid #e2e8f0',
+    paddingBottom: 10,
+    marginBottom: 10,
   },
   leftColumn: {
     flexDirection: 'column',
     flex: 1,
   },
   labName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#1e40af', // Azul médico profesional
-    letterSpacing: 0.5,
+    color: '#800020', // Vinotinto
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   examTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#475569',
+    fontSize: 10,
+    fontWeight: 'medium',
+    color: '#64748b', // Slate 500
     marginTop: 2,
-    marginBottom: 6,
+    marginBottom: 8,
     textTransform: 'uppercase',
+    letterSpacing: 2,
   },
   patientGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    gap: 20,
+    alignItems: 'center',
   },
-  infoItem: {
+  infoGroup: {
     flexDirection: 'column',
   },
   label: {
-    fontSize: 7,
-    color: '#64748b',
+    fontSize: 6,
+    color: '#94a3b8',
     textTransform: 'uppercase',
     fontWeight: 'bold',
+    marginBottom: 1,
+    letterSpacing: 0.5,
   },
   value: {
     fontSize: 9,
-    color: '#0f172a',
+    color: '#1e293b',
     fontWeight: 'medium',
   },
   qrBox: {
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 15,
-    paddingLeft: 15,
-    borderLeft: '0.5pt solid #e2e8f0',
   },
   qrImage: {
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
+    borderRadius: 4,
   },
-  qrText: {
-    fontSize: 6,
-    color: '#94a3b8',
-    marginTop: 3,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  }
 });
 
 interface CommonHeaderProps {
@@ -71,7 +67,7 @@ interface CommonHeaderProps {
     nombre: string;
     cedula: string;
     edad?: string | number;
-    fechaExamen: string; // Fecha guardada en el examen
+    fechaExamen: string;
   };
   title: string;
   qrImage?: string;
@@ -90,40 +86,32 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) 
   return (
     <View style={styles.headerContainer}>
       <View style={styles.leftColumn}>
-        <Text style={styles.labName}>LABORATORIO CLÍNICO VITALY</Text>
+        <Text style={styles.labName}>Laboratorio Clínico Vitaly</Text>
         <Text style={styles.examTitle}>{title}</Text>
 
         <View style={styles.patientGrid}>
-          {/* Nombre y Cédula */}
-          <View style={[styles.infoItem, { minWidth: '150pt' }]}>
-            <Text style={styles.label}>Paciente</Text>
-            <Text style={styles.value}>{patient?.nombre}</Text>
-            <Text style={styles.label}>Cédula de identidad</Text>
-            <Text style={styles.value}>V-{patient?.cedula}</Text>
-            <Text style={styles.label}>Edad</Text>
-            <Text style={styles.value}>{patient?.edad ? `${patient.edad}` : 'N/A'}</Text>
-
+          <View style={styles.infoGroup}>
+            <Text style={styles.label}>PACIENTE</Text>
+            <Text style={styles.value}>{patient?.nombre.toUpperCase()}</Text>
           </View>
-
-          {/* Fecha del Examen (Real) */}
-          <View style={styles.infoItem}>
-            {/* <Text style={styles.label}>Fecha de ingreso</Text>
-            <Text style={styles.value}>{patient?.fechaExamen}</Text> */}
-            <Text style={styles.label}>Fecha:</Text>
-            {/*La fecha de egreso debe tener este formato dia/mes/año ej: 30/01/2026 */}
+          <View style={styles.infoGroup}>
+            <Text style={styles.label}>CÉDULA</Text>
+            <Text style={styles.value}>V-{patient?.cedula}</Text>
+          </View>
+          <View style={styles.infoGroup}>
+            <Text style={styles.label}>EDAD</Text>
+            <Text style={styles.value}>{patient?.edad ? `${patient.edad} Años` : 'N/A'}</Text>
+          </View>
+          <View style={styles.infoGroup}>
+            <Text style={styles.label}>FECHA</Text>
             <Text style={styles.value}>{obtenerFechaFormateada()}</Text>
           </View>
         </View>
       </View>
 
-      {/* Sección QR */}
       {qrImage && (
         <View style={styles.qrBox}>
           <Image src={qrImage} style={styles.qrImage} />
-          <View>
-            <Text style={styles.qrText}>RESULTADOS</Text>
-            <Text style={styles.qrText}>VERIFICADOS</Text>
-          </View>
         </View>
       )}
     </View>

@@ -12,11 +12,10 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     width: '50%',
-    paddingRight: 35,
-    paddingLeft: 5,
-    borderRightWidth: 0.5, 
-    borderRightColor: '#ccc',
-    borderRightStyle: 'dashed',
+    paddingRight: 20,
+    paddingLeft: 10,
+    borderRightWidth: 0.5,
+    borderRightColor: '#e2e8f0',
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
@@ -25,44 +24,71 @@ const styles = StyleSheet.create({
   rightColumn: {
     width: '50%',
   },
-  infoSection: {
-    marginTop: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: "#6e2020",
-    paddingBottom: 5,
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 6,
+    marginBottom: 8,
+    marginTop: 10,
+    overflow: "hidden",
   },
-  row: {
+  cardHeader: {
+    backgroundColor: "#800020",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+  },
+  cardTitle: {
+    color: "#ffffff",
+    fontSize: 9,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+  },
+  cardBody: {
+    padding: 8,
+    backgroundColor: "#fafafa",
+  },
+
+  infoRow: {
     flexDirection: "row",
-    marginBottom: 3,
+    marginBottom: 5,
+    alignItems: 'baseline',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#f1f5f9',
+    paddingBottom: 2,
   },
   label: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: "bold",
-    width: 110,
+    width: 90,
+    color: '#475569',
   },
   value: {
-    fontSize: 9,
+    fontSize: 9.5,
     flex: 1,
+    color: '#0f172a',
+    fontWeight: 'medium',
   },
+
   resultContainer: {
-    marginTop: 20,
-    flex: 1,
-    padding: 10,
-    borderWidth: 0.5,
-    borderColor: "#eee",
-    borderRadius: 4,
+    marginTop: 10,
+    borderTopWidth: 2,
+    borderTopColor: '#800020',
+    paddingTop: 8,
   },
   resultTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "bold",
-    color: "#6e2020",
-    marginBottom: 8,
-    textDecoration: "underline",
+    color: "#800020",
+    marginBottom: 4,
+    textTransform: 'uppercase',
   },
   resultText: {
-    fontSize: 10,
-    lineHeight: 1.6,
+    fontSize: 10, // Un poco más grande para el resultado principal
+    lineHeight: 1.5,
     textAlign: "justify",
+    color: '#1e293b',
   },
 });
 
@@ -85,27 +111,33 @@ export const MiscelaneosContent = ({ data, patient, qrImage }: { data: any, pati
           qrImage={qrImage}
         />
 
-        <View style={styles.infoSection}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Examen Solicitado:</Text>
-            <Text style={styles.value}>{data?.examen_solicitado}</Text>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Detalle del Examen</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Método:</Text>
-            <Text style={styles.value}>{data?.metodo}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Muestra:</Text>
-            <Text style={styles.value}>{data?.muestra}</Text>
+          <View style={styles.cardBody}>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Examen:</Text>
+              <Text style={styles.value}>{data?.examen_solicitado}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Método:</Text>
+              <Text style={styles.value}>{data?.metodo}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Muestra:</Text>
+              <Text style={styles.value}>{data?.muestra}</Text>
+            </View>
+
+            {data?.resultado_texto && (
+              <View style={styles.resultContainer}>
+                <Text style={styles.resultTitle}>RESULTADO</Text>
+                <Text style={styles.resultText}>{data.resultado_texto}</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {data?.resultado_texto && (
-          <View style={styles.resultContainer}>
-            <Text style={styles.resultTitle}>RESULTADO:</Text>
-            <Text style={styles.resultText}>{data.resultado_texto}</Text>
-          </View>
-        )}
       </View>
       <View style={styles.rightColumn} />
     </View>

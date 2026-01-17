@@ -16,51 +16,90 @@ interface OrinaRowProps {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    paddingTop: 5,
+  },
+  // Card Styles
+  card: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 6,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
+  cardHeader: {
+    backgroundColor: "#800020",
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#600018",
+  },
+  cardTitle: {
+    color: "#ffffff",
+    fontSize: 9,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  cardBody: {
+    padding: 6,
+    backgroundColor: "#fafafa",
+  },
+  // Rows
   gridRow: {
     flexDirection: "row",
     borderBottomWidth: 0.5,
-    borderBottomColor: "#eee",
-    paddingVertical: 3,
+    borderBottomColor: "#f1f5f9",
+    paddingVertical: 2,
+    alignItems: 'center',
   },
   fieldGroup: {
     flexDirection: "row",
     width: "50%",
-    paddingRight: 5,
+    paddingRight: 4,
+    alignItems: 'center',
   },
   label: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: "bold",
-    width: "60%",
+    width: "55%",
+    color: "#475569",
   },
   value: {
     fontSize: 9,
-    width: "40%",
+    width: "45%",
+    color: "#0f172a",
+    fontWeight: 'medium',
   },
-  divider: {
-    height: 1.2,
-    backgroundColor: "#6e2020",
-    marginVertical: 6,
+  // Observations
+  obsCard: {
+    marginTop: 5,
+    borderLeftWidth: 3,
+    borderLeftColor: "#800020",
+    backgroundColor: "#fff5f5",
+    padding: 8,
+    borderRadius: 4,
   },
-  sectionTitle: {
+  obsTitle: {
     fontSize: 8,
     fontWeight: "bold",
-    color: "#6e2020",
-    marginTop: 6,
-    marginBottom: 3,
+    color: "#800020",
     textTransform: "uppercase",
-    backgroundColor: "#fdf2f2",
-    padding: 2,
+    marginBottom: 2,
   },
-  observationsContainer: {
-    marginTop: 8,
-    padding: 5,
-    borderLeftWidth: 2,
-    borderLeftColor: "#6e2020",
-    backgroundColor: "#f9f9f9",
-  },
-  obsTitle: { fontSize: 8, fontWeight: "bold", color: "#6e2020" },
-  obsText: { fontSize: 8, marginTop: 2, lineHeight: 1.2 },
+  obsText: { fontSize: 8.5, color: "#334155", lineHeight: 1.3 },
 });
+
+const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+    <View style={styles.cardBody}>
+      {children}
+    </View>
+  </View>
+);
 
 const OrinaRow: React.FC<OrinaRowProps> = ({
   label1,
@@ -101,99 +140,51 @@ const OrinaContent: React.FC<OrinaReportProps> = ({
   qrImage,
 }) => {
   return (
-    <View>
+    <View style={styles.container}>
       <CommonHeader
         patient={{
           nombre: patient.nombre,
           cedula: patient.cedula,
-          edad: patient.edad, // Asegúrate de traer este campo desde tu base de datos
-          fechaExamen: patient.fecha || "", // La fecha que guardaste cuando se creó el examen
+          edad: patient.edad,
+          fechaExamen: patient.fecha || "",
         }}
         title="UROANÁLISIS COMPLETO"
         qrImage={qrImage}
       />
 
-      {/* SECCIÓN 1: CARACTERES GENERALES */}
-      <Text style={styles.sectionTitle}>I. Caracteres Generales</Text>
-      <OrinaRow
-        label1="Color"
-        value1={data?.color}
-        label2="Aspecto"
-        value2={data?.aspecto}
-      />
-      <OrinaRow
-        label1="Reacción"
-        value1={data?.reaccion}
-        label2="Densidad"
-        value2={data?.densidad}
-      />
-      <OrinaRow label1="pH" value1={data?.ph} />
+      <SectionCard title="Carácteres Generales">
+        <OrinaRow label1="Color" value1={data?.color} label2="Aspecto" value2={data?.aspecto} />
+        <OrinaRow label1="Reacción" value1={data?.reaccion} label2="Densidad" value2={data?.densidad} />
+        <OrinaRow label1="pH" value1={data?.ph} />
+      </SectionCard>
 
-      {/* SECCIÓN 2: EXAMEN QUÍMICO */}
-      <Text style={styles.sectionTitle}>II. Examen Químico</Text>
-      <OrinaRow
-        label1="Proteína"
-        value1={data?.proteina}
-        label2="Glucosa"
-        value2={data?.glucosa}
-      />
-      <OrinaRow
-        label1="Hemoglobina"
-        value1={data?.hemoglobina}
-        label2="Nitritos"
-        value2={data?.nitritos}
-      />
-      <OrinaRow
-        label1="Pigmento Bil."
-        value1={data?.pigmento_bil}
-        label2="Acetona"
-        value2={data?.acetona}
-      />
-      <OrinaRow label1="Urobilín" value1={data?.urobilin} />
+      <SectionCard title="Examen Químico">
+        <OrinaRow label1="Proteína" value1={data?.proteina} label2="Glucosa" value2={data?.glucosa} />
+        <OrinaRow label1="Hemoglobina" value1={data?.hemoglobina} label2="Nitritos" value2={data?.nitritos} />
+        <OrinaRow label1="Pigmento Bil." value1={data?.pigmento_bil} label2="Acetona" value2={data?.acetona} />
+        <OrinaRow label1="Urobilín" value1={data?.urobilin} />
+      </SectionCard>
 
-      <View style={styles.divider} />
+      <SectionCard title="Sedimento Urinario (Microscópico)">
+        <OrinaRow label1="Células Epit." value1={data?.celulas_epit} label2="Filam. Moco" value2={data?.filam_moco} />
+        <OrinaRow label1="Leucocitos" value1={data?.leucocitos} label2="Hematíes" value2={data?.hematies} />
+        <OrinaRow label1="Bacterias" value1={data?.bacterias} label2="Levaduras" value2={data?.levaduras} />
 
-      {/* SECCIÓN 3: EXAMEN DEL SEDIMENTO (Microscópico) */}
-      <Text style={styles.sectionTitle}>III. Examen del Sedimento</Text>
-      <OrinaRow
-        label1="Células Epiteliales"
-        value1={data?.celulas_epit}
-        label2="Filam. de moco"
-        value2={data?.filam_moco}
-      />
-      <OrinaRow
-        label1="Leucocitos"
-        value1={data?.leucocitos}
-        label2="Hematíes"
-        value2={data?.hematies}
-      />
-      <OrinaRow
-        label1="Bacterias"
-        value1={data?.bacterias}
-        label2="Levaduras"
-        value2={data?.levaduras}
-      />
-
-      {/* CRISTALES FULL WIDTH */}
-      {data?.cristales && data.cristales.trim() !== "" && data.cristales !== "null" && (
-        <View style={styles.gridRow}>
-          <View style={{ flexDirection: "row", width: "100%" }}>
-            <Text style={[styles.label, { width: "30%" }]}>Cristales:</Text>
-            <Text style={[styles.value, { width: "70%" }]}>{data.cristales}</Text>
+        {data?.cristales && data.cristales.trim() !== "" && data.cristales !== "null" && (
+          <View style={styles.gridRow}>
+            <View style={{ flexDirection: "row", width: "100%", alignItems: 'center' }}>
+              <Text style={[styles.label, { width: "27%" }]}>Cristales:</Text>
+              <Text style={[styles.value, { width: "73%" }]}>{data.cristales}</Text>
+            </View>
           </View>
-        </View>
-      )}
+        )}
 
-      <OrinaRow
-        label1="Cilindros"
-        value1={data?.cilindros}
-        label2="Bacteristales"
-        value2={data?.bacteristales}
-      />
-      {/* OBSERVACIONES */}
+        <OrinaRow label1="Cilindros" value1={data?.cilindros} label2="Bacteristales" value2={data?.bacteristales} />
+      </SectionCard>
+
       {data?.observacion && data.observacion.trim() !== "" && (
-        <View style={styles.observationsContainer}>
-          <Text style={styles.obsTitle}>OBSERVACIONES:</Text>
+        <View style={styles.obsCard}>
+          <Text style={styles.obsTitle}>OBSERVACIONES</Text>
           <Text style={styles.obsText}>{data.observacion}</Text>
         </View>
       )}

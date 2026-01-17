@@ -3,7 +3,6 @@ import { View, StyleSheet, Text } from "@react-pdf/renderer";
 import CommonHeader from "../components/CommonHeader";
 import { CoagulacionData, Paciente } from "@/types/types";
 
-// Interfaz para las referencias dinámicas
 interface ValorReferencia {
   nombre_examen: string;
   valor_referencia: string;
@@ -13,76 +12,133 @@ interface CoagulacionReportProps {
   data: CoagulacionData;
   patient: Paciente;
   qrImage?: string;
-  references?: ValorReferencia[]; // Nueva prop
+  references?: ValorReferencia[];
 }
 
 interface FieldProps {
   label: string;
   value?: string;
-  reference?: string; // Añadido para mostrar el valor de referencia
+  reference?: string;
 }
 
 const styles = StyleSheet.create({
-  groupContainer: {
-    border: "0.5pt solid #6e2020",
-    marginTop: 10,
-    marginBottom: 5,
-    borderRadius: 2,
+  container: {
+    paddingTop: 5,
   },
-  groupTitle: {
+  // Card Styles
+  card: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 6,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
+  cardHeader: {
+    backgroundColor: "#800020",
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#600018",
+  },
+  cardTitle: {
+    color: "#ffffff",
     fontSize: 9,
     fontWeight: "bold",
-    color: "#fff",
-    backgroundColor: "#6e2020",
-    textAlign: "center",
-    paddingVertical: 3,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
-  gridContent: {
+  cardBody: {
     padding: 6,
+    backgroundColor: "#fafafa",
+  },
+
+  // Grid/List Styles
+  gridContent: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "flex-start",
   },
   boxField: {
-    width: "31%",
-    marginRight: "2%",
-    marginBottom: 5,
-    border: "0.5pt solid #ccc",
+    width: "33%",
+    paddingRight: 5,
+    marginBottom: 6,
   },
   boxLabel: {
-    fontSize: 7,
+    fontSize: 7.5,
     fontWeight: "bold",
-    backgroundColor: "#f5f5f5",
-    paddingLeft: 2,
-    color: "#444",
+    color: "#475569",
+    marginBottom: 1,
+    textTransform: 'uppercase',
   },
   boxValue: {
     fontSize: 9,
-    padding: 2,
-    textAlign: "center",
-    minHeight: 12,
+    fontWeight: 'medium',
+    color: "#0f172a",
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cbd5e1',
+    paddingBottom: 1,
   },
   verticalList: {
-    padding: 6,
   },
   inlineField: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 3,
-    borderBottomWidth: 0.3,
-    borderBottomColor: "#eee",
+    marginBottom: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#f1f5f9",
     paddingBottom: 2,
   },
-  inlineLabel: { fontSize: 8, fontWeight: "bold", width: 90 },
-  inlineValue: { fontSize: 9, width: 80 },
+  inlineLabel: { fontSize: 8.5, fontWeight: "bold", width: 100, color: '#334155' },
+  inlineValue: { fontSize: 9, width: 80, fontWeight: 'bold', color: '#0f172a' },
   inlineRef: {
     fontSize: 8,
     color: "#666",
     flex: 1,
     textAlign: "right",
-    fontStyle: "italic",
   },
+
+  // Observations
+  obsCard: {
+    marginTop: 5,
+    borderLeftWidth: 3,
+    borderLeftColor: "#800020",
+    backgroundColor: "#fff5f5",
+    padding: 8,
+    borderRadius: 4,
+  },
+  obsTitle: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#800020",
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  obsText: {
+    fontSize: 8.5,
+    color: "#334155",
+    lineHeight: 1.3
+  },
+  infoText: {
+    fontSize: 8,
+    color: "#475569",
+    marginRight: 15,
+  },
+  infoBold: {
+    fontWeight: "bold",
+    color: "#0f172a",
+  }
 });
+
+const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+    <View style={styles.cardBody}>
+      {children}
+    </View>
+  </View>
+);
 
 const BoxField: React.FC<FieldProps> = ({ label, value }) => {
   if (!value || value.trim() === "" || value === "null") return null;
@@ -111,7 +167,6 @@ const CoagulacionContent: React.FC<CoagulacionReportProps> = ({
   qrImage,
   references,
 }) => {
-  // Función para buscar referencias en la BD
   const getRef = (nombre: string, fallback: string) => {
     if (!references) return fallback;
     const refObj = references.find(
@@ -120,17 +175,13 @@ const CoagulacionContent: React.FC<CoagulacionReportProps> = ({
     return refObj ? refObj.valor_referencia : fallback;
   };
 
-  const hasTP = !!(
-    data?.tp_control ||
-    data?.tp_paciente ||
-    data?.tp_act ||
-    data?.tp_razon ||
-    data?.tp_inr
-  );
+  const hasTP = !!(data?.tp_control || data?.tp_paciente || data?.tp_act || data?.tp_razon || data?.tp_inr);
   const hasTPT = !!(data?.tpt_control || data?.tpt_paciente);
+  const hasAdditionalInfo = !!(data?.anticoagulado || data?.medicamento);
+  const hasObservations = typeof data?.observacion === "string" && data.observacion.trim() !== "";
 
   return (
-    <View>
+    <View style={styles.container}>
       <CommonHeader
         patient={{
           nombre: patient.nombre,
@@ -142,10 +193,8 @@ const CoagulacionContent: React.FC<CoagulacionReportProps> = ({
         qrImage={qrImage}
       />
 
-      {/* SECCIÓN: TP */}
       {hasTP && (
-        <View style={styles.groupContainer}>
-          <Text style={styles.groupTitle}>Tiempo de Protrombina (TP)</Text>
+        <SectionCard title="Tiempo de Protrombina (TP)">
           <View style={styles.gridContent}>
             <BoxField label="Control" value={data?.tp_control} />
             <BoxField label="Paciente" value={data?.tp_paciente} />
@@ -154,72 +203,54 @@ const CoagulacionContent: React.FC<CoagulacionReportProps> = ({
             <BoxField label="I.N.R." value={data?.tp_inr} />
             <BoxField label="I.S.I." value={data?.tp_isi} />
           </View>
-        </View>
+        </SectionCard>
       )}
 
-      {/* SECCIÓN: TPT */}
       {hasTPT && (
-        <View style={styles.groupContainer}>
-          <Text style={styles.groupTitle}>
-            Tiempo de Tromboplastina Parcial Activa (TPT)
-          </Text>
+        <SectionCard title="Tiempo de Tromboplastina Parcial Activa (TPT)">
           <View style={styles.verticalList}>
             <InlineField label="T.P.T. Control" value={data?.tpt_control} />
             <InlineField label="T.P.T. Paciente" value={data?.tpt_paciente} />
           </View>
-        </View>
+        </SectionCard>
       )}
 
-      {/* SECCIÓN: FIBRINÓGENO (Dinamizado) */}
       {data.fibrinogeno && (
-        <View style={styles.groupContainer}>
-          <Text style={styles.groupTitle}>Fibrinógeno</Text>
+        <SectionCard title="Fibrinógeno">
           <View style={styles.verticalList}>
             <InlineField
               label="Resultado"
               value={`${data.fibrinogeno}`}
-              reference={getRef("Fibrinógeno", "70 - 120 %")}
+              reference={getRef("Fibrinógeno", "200 - 400 mg/dL")}
             />
           </View>
-        </View>
+        </SectionCard>
       )}
 
-      {/* Información Adicional */}
-      <View style={{ marginTop: 5, paddingLeft: 8, flexDirection: "row" }}>
-        {data?.anticoagulado && (
-          <Text style={{ fontSize: 8, marginRight: 15 }}>
-            Anticoagulado:{" "}
-            <Text style={{ fontWeight: "bold" }}>{data.anticoagulado}</Text>
-          </Text>
-        )}
-        {data?.medicamento && (
-          <Text style={{ fontSize: 8 }}>
-            Medicamento:{" "}
-            <Text style={{ fontWeight: "bold" }}>{data.medicamento}</Text>
-          </Text>
-        )}
-      </View>
-
-      {/* Observaciones */}
-      {typeof data?.observacion === "string" &&
-        data.observacion.trim() !== "" && (
-          <View
-            style={{
-              marginTop: 10,
-              padding: 8,
-              backgroundColor: "#f9f9f9",
-              borderLeftWidth: 2,
-              borderLeftColor: "#6e2020",
-            }}
-          >
-            <Text style={{ fontSize: 8, fontWeight: "bold", color: "#6e2020" }}>
-              Observaciones:
-            </Text>
-            <Text style={{ fontSize: 8, marginTop: 2 }}>
-              {data.observacion}
-            </Text>
+      {hasAdditionalInfo && (
+        <SectionCard title="Información Adicional">
+          <View style={{ flexDirection: "row" }}>
+            {data?.anticoagulado && (
+              <Text style={styles.infoText}>
+                Anticoagulado: <Text style={styles.infoBold}>{data.anticoagulado}</Text>
+              </Text>
+            )}
+            {data?.medicamento && (
+              <Text style={styles.infoText}>
+                Medicamento: <Text style={styles.infoBold}>{data.medicamento}</Text>
+              </Text>
+            )}
           </View>
-        )}
+        </SectionCard>
+      )}
+
+      {hasObservations && (
+        <SectionCard title="Observaciones">
+          <Text style={styles.obsText}>
+            {data.observacion}
+          </Text>
+        </SectionCard>
+      )}
     </View>
   );
 };

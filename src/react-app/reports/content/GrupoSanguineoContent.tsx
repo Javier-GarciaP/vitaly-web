@@ -20,10 +20,10 @@ const styles = StyleSheet.create({
     width: 242,
     height: 153,
     borderRadius: 12,
-    border: "1pt solid #6e2020", // El borde se queda aquí
+    border: "1pt solid #800020",
     backgroundColor: "#ffffff",
     position: "relative",
-    overflow: "hidden", // Esto es vital para que el círculo no se salga
+    overflow: "hidden",
     padding: 12,
     zIndex: 1,
   },
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   labName: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#6e2020",
+    color: "#800020",
   },
   cardTitle: {
     fontSize: 6,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   resultsContainer: {
     flexDirection: "row",
     marginTop: "auto",
-    backgroundColor: "#6e2020",
+    backgroundColor: "#800020",
     borderRadius: 6,
     padding: 8,
     justifyContent: "space-around",
