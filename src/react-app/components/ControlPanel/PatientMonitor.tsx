@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, TrendingUp, TrendingDown, Calendar, FileText, Loader } from "lucide-react";
+import { Calendar, FileText, Loader } from "lucide-react";
 
 interface HistoricalExam {
     id: number;
@@ -31,8 +31,12 @@ export default function PatientMonitor({ pacienteId, pacienteNombre, onExamSelec
             const res = await fetch(`/api/examenes?paciente_id=${pacienteId}`);
             const data = (await res.json()) as HistoricalExam[];
 
+            // FILTRO DE CONTROL PROFESIONAL: Solo los que tienen comparativa técnica
+            const TIPOS_VALIDOS = ["Hematología", "Química Clínica", "Coagulación"];
+            const filteredData = data.filter(e => TIPOS_VALIDOS.includes(e.tipo));
+
             // Ordenar por fecha descendente (más reciente primero)
-            const sorted = data.sort((a: HistoricalExam, b: HistoricalExam) =>
+            const sorted = filteredData.sort((a: HistoricalExam, b: HistoricalExam) =>
                 new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
             );
 
@@ -45,41 +49,16 @@ export default function PatientMonitor({ pacienteId, pacienteNombre, onExamSelec
     };
 
     // Obtener tipos únicos de exámenes
-    const examTypes = Array.from(new Set(examenes.map(e => e.tipo)));
+    const examTypes: string[] = Array.from(new Set(examenes.map(e => e.tipo)));
 
     // Filtrar exámenes por tipo seleccionado
-    const filteredExamenes = selectedType === "all"
+    const filteredExamenes: HistoricalExam[] = selectedType === "all"
         ? examenes
         : examenes.filter(e => e.tipo === selectedType);
 
     // Calcular estadísticas
-    const totalExamenes = examenes.length;
-    const completados = examenes.filter(e => e.estado === "completado").length;
-    const pendientes = examenes.filter(e => e.estado !== "completado").length;
-
-    // Obtener tendencias de un valor específico (ejemplo: glicemia)
-    const getTrendForParameter = (paramName: string, examType: string) => {
-        const typeExams = examenes
-            .filter(e => e.tipo === examType && e.estado === "completado")
-            .slice(0, 5); // Últimos 5 exámenes
-
-        if (typeExams.length < 2) return null;
-
-        const values = typeExams
-            .map(e => {
-                const value = e.resultados?.[paramName];
-                const numValue = parseFloat(String(value).replace(/,/g, ""));
-                return isNaN(numValue) ? null : numValue;
-            })
-            .filter(v => v !== null) as number[];
-
-        if (values.length < 2) return null;
-
-        const trend = values[0] > values[values.length - 1] ? "up" : "down";
-        const changePercent = Math.abs(((values[0] - values[values.length - 1]) / values[values.length - 1]) * 100);
-
-        return { trend, changePercent: changePercent.toFixed(1), values };
-    };
+    const totalExamenes: number = examenes.length;
+    const completados: number = examenes.filter(e => e.estado === "completado").length;
 
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
@@ -113,129 +92,49 @@ export default function PatientMonitor({ pacienteId, pacienteNombre, onExamSelec
 
     return (
         <div className="space-y-6">
-            {/* Header con estadísticas */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-xl">
-                <h3 className="text-xs font-black uppercase tracking-widest mb-1 opacity-80">
-                    Monitor Profesional
-                </h3>
-                <h2 className="text-xl font-black mb-4">{pacienteNombre}</h2>
+            {/* Header con estadísticas Minimalista */}
+            <div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-slate-200">
+                <div className="mb-6">
+                    <p className="text-[7px] font-black uppercase tracking-[0.4em] mb-2 text-slate-400">Panel Bio-Evolutivo</p>
+                    <h2 className="text-sm font-black uppercase tracking-widest">{pacienteNombre}</h2>
+                </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
-                        <div className="text-2xl font-black">{totalExamenes}</div>
-                        <div className="text-[10px] font-bold opacity-80">Total</div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                        <div className="text-xl font-black">{totalExamenes}</div>
+                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Bio-Registros</div>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
-                        <div className="text-2xl font-black text-emerald-300">{completados}</div>
-                        <div className="text-[10px] font-bold opacity-80">Completados</div>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
-                        <div className="text-2xl font-black text-amber-300">{pendientes}</div>
-                        <div className="text-[10px] font-bold opacity-80">Pendientes</div>
+                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                        <div className="text-xl font-black text-emerald-400">{completados}</div>
+                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Verificados</div>
                     </div>
                 </div>
             </div>
 
-            {/* Filtros por tipo de examen */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">
-                    Filtrar por tipo
-                </label>
-                <div className="flex flex-wrap gap-2">
+            {/* Filtros por tipo de examen Minimalistas */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-2 flex gap-1 overflow-x-auto no-scrollbar">
+                <button
+                    onClick={() => setSelectedType("all")}
+                    className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedType === "all"
+                        ? "bg-slate-900 text-white shadow-lg"
+                        : "bg-transparent text-slate-400 hover:text-slate-900"
+                        }`}
+                >
+                    Todos
+                </button>
+                {examTypes.map(type => (
                     <button
-                        onClick={() => setSelectedType("all")}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${selectedType === "all"
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300"
+                        key={type}
+                        onClick={() => setSelectedType(type)}
+                        className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedType === type
+                            ? "bg-slate-900 text-white shadow-lg"
+                            : "bg-transparent text-slate-400 hover:text-slate-900"
                             }`}
                     >
-                        Todos ({totalExamenes})
+                        {type}
                     </button>
-                    {examTypes.map(type => {
-                        const count = examenes.filter(e => e.tipo === type).length;
-                        return (
-                            <button
-                                key={type}
-                                onClick={() => setSelectedType(type)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${selectedType === type
-                                    ? "bg-blue-600 text-white border-blue-600"
-                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300"
-                                    }`}
-                            >
-                                {type} ({count})
-                            </button>
-                        );
-                    })}
-                </div>
+                ))}
             </div>
-
-            {/* Análisis de tendencias (solo para Química y Hematología) */}
-            {(selectedType === "Química Clínica" || selectedType === "Hematología" || selectedType === "all") && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                    <h3 className="text-sm font-black text-slate-700 mb-4 flex items-center gap-2">
-                        <Activity size={18} className="text-blue-600" />
-                        Análisis de Tendencias
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Tendencia de Glicemia */}
-                        {(() => {
-                            const trend = getTrendForParameter("glicemia", "Química Clínica");
-                            if (!trend) return null;
-                            return (
-                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-bold text-slate-600">Glicemia</span>
-                                        <div className={`flex items-center gap-1 ${trend.trend === "up" ? "text-red-600" : "text-emerald-600"
-                                            }`}>
-                                            {trend.trend === "up" ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                                            <span className="text-xs font-black">{trend.changePercent}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-end gap-1 h-12">
-                                        {trend.values.reverse().map((val, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex-1 bg-blue-500 rounded-t transition-all hover:bg-blue-600"
-                                                style={{ height: `${(val / Math.max(...trend.values)) * 100}%` }}
-                                                title={`${val}`}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-
-                        {/* Tendencia de Hemoglobina */}
-                        {(() => {
-                            const trend = getTrendForParameter("hemoglobina", "Hematología");
-                            if (!trend) return null;
-                            return (
-                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-bold text-slate-600">Hemoglobina</span>
-                                        <div className={`flex items-center gap-1 ${trend.trend === "up" ? "text-emerald-600" : "text-red-600"
-                                            }`}>
-                                            {trend.trend === "up" ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                                            <span className="text-xs font-black">{trend.changePercent}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-end gap-1 h-12">
-                                        {trend.values.reverse().map((val, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex-1 bg-red-500 rounded-t transition-all hover:bg-red-600"
-                                                style={{ height: `${(val / Math.max(...trend.values)) * 100}%` }}
-                                                title={`${val}`}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-                    </div>
-                </div>
-            )}
 
             {/* Historial de exámenes */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">

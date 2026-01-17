@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Activity, ChevronLeft, LayoutDashboard, Database } from "lucide-react";
+import { Search, Activity, ChevronLeft, Database } from "lucide-react";
 import PatientMonitor from "@/react-app/components/ControlPanel/PatientMonitor";
 import ResultComparison from "@/react-app/components/ControlPanel/ResultComparison";
 import { formatDisplayDate } from "@/utils/date";
@@ -86,15 +86,15 @@ export default function ControlPacientePage() {
     return (
         <div className="max-w-[1500px] mx-auto p-4 md:p-8 space-y-10 animate-in fade-in duration-700">
 
-            {/* HEADER MINIMALISTA PREMIUM */}
+            {/* HEADER BIO-EVOLUTIVO */}
             <div className="flex items-center justify-between border-b border-slate-50 pb-6">
                 <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-900 shadow-sm shrink-0 transition-all">
+                    <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-100 shrink-0 transition-all">
                         <Activity size={20} />
                     </div>
                     <div>
-                        <h1 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] leading-none mb-2">Monitor Profesional</h1>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Seguimiento evolutivo de bio-comparativas</p>
+                        <h1 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] leading-none mb-2">Seguimiento Bio-Evolutivo</h1>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Análisis técnico de comparativas referenciales</p>
                     </div>
                 </div>
                 {selectedPatient && (
@@ -170,38 +170,13 @@ export default function ControlPacientePage() {
                 ) : (
                     /* VISTA DE MONITOR ACTIVA REDISEÑADA */
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-in fade-in duration-1000">
-                        {/* IZQUIERDA: MONITOR DE EXÁMENES */}
                         <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
-                            <div className="bg-white border border-slate-100 rounded-[3rem] p-1 shadow-sm overflow-hidden">
-                                <div className="p-8 border-b border-slate-50">
-                                    <div className="flex items-center gap-5 mb-8">
-                                        <div className="w-14 h-14 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-slate-200">
-                                            <LayoutDashboard size={22} />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-widest leading-none mb-1.5">{selectedPatient.nombre}</h3>
-                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{selectedPatient.cedula}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100/50">
-                                        <div className="flex justify-between items-center text-[8px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">
-                                            <span>Estado del Historial</span>
-                                            <span className="text-emerald-500">Activo</span>
-                                        </div>
-                                        <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-emerald-500 w-[100%]" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-4">
-                                    <PatientMonitor
-                                        pacienteId={selectedPatient.id}
-                                        pacienteNombre={selectedPatient.nombre}
-                                        onExamSelect={setSelectedExam}
-                                    />
-                                </div>
+                            <div className="bg-white border border-slate-100 rounded-[3rem] p-4 shadow-sm">
+                                <PatientMonitor
+                                    pacienteId={selectedPatient.id}
+                                    pacienteNombre={selectedPatient.nombre}
+                                    onExamSelect={setSelectedExam}
+                                />
                             </div>
                         </div>
 
