@@ -16,6 +16,8 @@ import {
   AlertCircle,
   User,
   ArrowUpRight,
+  Copy,
+  Check,
 } from "lucide-react";
 import { formatDisplayDate } from "@/utils/date";
 import { useNotification } from "@/react-app/context/NotificationContext";
@@ -61,6 +63,7 @@ export default function ResultadosPage() {
   const [editEstado, setEditEstado] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showPortadaModal, setShowPortadaModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadExamenes();
@@ -183,6 +186,14 @@ export default function ResultadosPage() {
         }
       }
     });
+  };
+
+  const copyToClipboard = () => {
+    if (!selectedExamen?.uuid) return;
+    navigator.clipboard.writeText(selectedExamen.uuid);
+    setCopied(true);
+    showNotification("info", "Copiado", "Código de validación copiado al portapapeles");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const getStatusConfig = (estado: string) => {
@@ -442,7 +453,18 @@ export default function ResultadosPage() {
                   </div>
                   <div>
                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Código de Validación</p>
-                    <p className="font-mono text-[9px] font-bold text-slate-400 break-all">{selectedExamen.uuid || "PENDIENTE"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-[9px] font-bold text-slate-400 break-all">{selectedExamen.uuid || "PENDIENTE"}</p>
+                      {selectedExamen.uuid && (
+                        <button
+                          onClick={copyToClipboard}
+                          className="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-600 transition-all active:scale-95"
+                          title="Copiar código"
+                        >
+                          {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
