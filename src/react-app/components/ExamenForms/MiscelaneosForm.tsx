@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Save,
   Trash2,
   Plus,
   Layers,
@@ -121,60 +120,58 @@ export default function MiscelaneosForm({
     }
   };
 
-  const labelBase = "text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block";
-  const inputBase = "w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
+  const labelBase = "text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block";
+  const inputBase = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-slate-900 transition-all placeholder:text-slate-300";
 
   if (!Array.isArray(resultados)) return null;
 
   return (
     <div className="flex flex-col h-full max-h-[80vh] overflow-hidden bg-white border border-slate-200 rounded-2xl">
-      
-      {/* TABS SUPERIORES */}
-      <div className="flex items-center gap-2 p-3 bg-slate-50 border-b border-slate-200 overflow-x-auto no-scrollbar">
+
+      {/* TABS - Minimalista */}
+      <div className="flex items-center gap-1 p-2 bg-slate-50 border-b border-slate-200 overflow-x-auto no-scrollbar">
         {resultados.map((ex: any, i: number) => (
-          <div key={i} className="flex-shrink-0 flex items-center group">
+          <div key={i} className="flex-shrink-0 flex items-center">
             <button
               onClick={() => setIndexActivo(i)}
-              className={`px-4 py-2 rounded-l-lg text-[10px] font-black uppercase tracking-tight transition-all border-y border-l ${
-                indexActivo === i 
-                ? "bg-indigo-600 border-indigo-600 text-white shadow-sm" 
-                : "bg-white border-slate-200 text-slate-400 hover:text-slate-600"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${indexActivo === i
+                ? "bg-slate-900 text-white"
+                : "text-slate-400 hover:bg-slate-200"
+                }`}
             >
-              {ex.examen_solicitado || `Examen ${i + 1}`}
+              {ex.examen_solicitado || `Estudio ${i + 1}`}
             </button>
-            <button 
+            <button
               onClick={() => eliminarExamenDeLista(i)}
-              className={`px-2 py-2 rounded-r-lg border-y border-r transition-all ${
-                indexActivo === i ? "bg-indigo-600 border-indigo-600 text-indigo-200 hover:text-white" : "bg-white border-slate-200 text-slate-300 hover:text-rose-500"
-              }`}
+              className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors mr-2"
             >
-              <X size={14} />
+              <X size={12} />
             </button>
           </div>
         ))}
-        <button 
+        <button
           onClick={agregarNuevoExamen}
-          className="flex items-center gap-2 px-3 py-2 bg-white text-indigo-600 border border-dashed border-indigo-300 rounded-lg hover:bg-indigo-50 transition-all text-[10px] font-bold uppercase ml-2"
+          className="p-1.5 text-slate-400 hover:text-slate-900 transition-colors border-l border-slate-200 pl-3 ml-1"
+          title="Añadir Estudio"
         >
-          <Plus size={14} /> Nuevo Examen
+          <Plus size={16} />
         </button>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        
+
         {/* EDITOR */}
         <div className={`flex-1 flex flex-col p-6 space-y-4 overflow-y-auto custom-scrollbar transition-all ${showLibrary ? 'mr-0' : ''}`}>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className={labelBase}>Nombre del Examen</label>
+              <label className={labelBase}>Estudio</label>
               <input
                 type="text"
                 value={resultados[indexActivo]?.examen_solicitado || ""}
                 onChange={(e) => handleChange("examen_solicitado", e.target.value)}
                 className={inputBase}
-                placeholder="Ej: Citología"
+                placeholder="Nombre del examen"
               />
             </div>
             <div>
@@ -184,39 +181,39 @@ export default function MiscelaneosForm({
                 value={resultados[indexActivo]?.metodo || ""}
                 onChange={(e) => handleChange("metodo", e.target.value)}
                 className={inputBase}
-                placeholder="Ej: Coloración de Papanicolaou"
+                placeholder="Método utilizado"
               />
             </div>
             <div>
-              <label className={labelBase}>Tipo de Muestra</label>
+              <label className={labelBase}>Muestra</label>
               <input
                 type="text"
                 value={resultados[indexActivo]?.muestra || ""}
                 onChange={(e) => handleChange("muestra", e.target.value)}
                 className={inputBase}
-                placeholder="Ej: Exudado Vaginal"
+                placeholder="Tipo de muestra"
               />
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col min-h-[350px] mt-2">
-            <div className="flex justify-between items-end mb-2">
-              <label className={labelBase}>Descripción de Resultados / Informe</label>
+          <div className="flex-1 flex flex-col min-h-[300px] mt-4">
+            <div className="flex justify-between items-center mb-2 px-1">
+              <label className={labelBase}>Resultados / Informe</label>
               <div className="flex gap-2">
                 <button
                   onClick={guardarComoPlantilla}
                   disabled={isSaving}
-                  className="flex items-center gap-1.5 text-[9px] font-black uppercase bg-emerald-500 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 transition-all shadow-sm disabled:opacity-50"
+                  className="text-[9px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
                 >
-                  <Save size={14} /> {isSaving ? 'Guardando...' : 'Crear Plantilla'}
+                  Guardar Plantilla
                 </button>
+                <span className="text-slate-200">|</span>
                 <button
                   onClick={() => setShowLibrary(!showLibrary)}
-                  className={`flex items-center gap-1.5 text-[9px] font-black uppercase px-3 py-1.5 rounded-lg transition-all border ${
-                    showLibrary ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                  }`}
+                  className={`text-[9px] font-bold uppercase transition-colors ${showLibrary ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+                    }`}
                 >
-                  <Layers size={14} /> Biblioteca
+                  {showLibrary ? 'Cerrar Biblioteca' : 'Ver Plantillas'}
                 </button>
               </div>
             </div>
@@ -224,8 +221,8 @@ export default function MiscelaneosForm({
             <textarea
               value={resultados[indexActivo]?.resultado_texto || ""}
               onChange={(e) => handleChange("resultado_texto", e.target.value)}
-              className="flex-1 w-full p-6 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:bg-white outline-none font-mono text-[13px] leading-relaxed text-slate-700 shadow-inner resize-none transition-colors"
-              placeholder="Escriba el informe detallado..."
+              className="flex-1 w-full p-4 bg-white border border-slate-200 rounded-xl focus:border-slate-900 outline-none text-sm leading-relaxed text-slate-600 resize-none transition-all"
+              placeholder="Describa los resultados..."
             />
           </div>
         </div>
@@ -244,7 +241,7 @@ export default function MiscelaneosForm({
               </div>
               <div className="relative">
                 <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input 
+                <input
                   type="text"
                   placeholder="FILTRAR..."
                   value={searchTerm}
@@ -283,7 +280,7 @@ export default function MiscelaneosForm({
                 </div>
               )}
             </div>
-            
+
             <div className="p-4 bg-indigo-900/10 border-t border-slate-800">
               <p className="text-[9px] text-indigo-300 font-medium leading-tight text-center">
                 Al crear una plantilla, aparecerá aquí automáticamente.

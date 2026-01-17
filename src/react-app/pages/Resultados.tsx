@@ -596,62 +596,94 @@ export default function ResultadosPage() {
         </div>
       )}
 
-      {/* MODAL EDICIÓN */}
+      {/* MODAL EDICIÓN - Ampliado y Profesional */}
       {showEditModal && selectedExamen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[400] md:p-4 overflow-y-auto">
-          <div className="bg-white md:rounded-[3rem] shadow-2xl w-full max-w-4xl min-h-screen md:min-h-0 my-auto flex flex-col">
-            <div className="px-6 py-6 md:px-10 md:py-8 border-b flex justify-between items-center sticky top-0 bg-white z-10 md:rounded-t-[3rem]">
-              <div>
-                <h2 className="text-xl md:text-2xl font-black text-slate-900">Editor de Resultados</h2>
-                <p className="text-xs md:text-sm font-medium text-slate-500 truncate max-w-[200px] md:max-w-none">
-                  {selectedExamen.paciente_nombre}
-                </p>
+        <div className="fixed inset-0 z-[1000] flex items-stretch justify-end">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+            onClick={() => !isSaving && setShowEditModal(false)}
+          />
+          <div className="relative w-full max-w-5xl bg-[#F8FAFC] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-out">
+            {/* Header */}
+            <div className="px-8 py-6 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                  <Edit3 size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">Editor de Resultados</h2>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <User size={12} /> {selectedExamen.paciente_nombre}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="p-3 hover:bg-slate-100 rounded-2xl transition-colors"
+                className="p-3 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-2xl transition-all active:scale-90"
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-6 md:p-10 overflow-y-auto flex-1 custom-scrollbar">
-              <div className="mb-8">{renderExamenForm()}</div>
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar scroll-smooth">
+              <div className="max-w-4xl mx-auto space-y-8">
+                {/* Form Wrapper */}
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 lg:p-10">
+                  {renderExamenForm()}
+                </div>
 
-              <div className="bg-slate-50 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 block">
-                  Estatus del Informe
-                </label>
-                <div className="flex flex-wrap gap-2 md:gap-3">
-                  {["pendiente", "en_proceso", "completado"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setEditEstado(status)}
-                      className={`flex-1 min-w-[100px] px-4 py-3 rounded-xl font-bold text-[10px] md:text-xs uppercase border-2 transition-all ${editEstado === status
-                        ? "bg-blue-600 border-blue-600 text-white shadow-lg"
-                        : "bg-white border-slate-100 text-slate-400"
-                        }`}
-                    >
-                      {status.replace("_", " ")}
-                    </button>
-                  ))}
+                {/* Status Switcher */}
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-[0.2em] flex items-center gap-2 px-2">
+                    <CheckCircle2 size={14} /> Estatus del Informe Final
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { id: "pendiente", label: "Pendiente", active: "peer-checked:bg-amber-500 peer-checked:border-amber-500" },
+                      { id: "en_proceso", label: "En Proceso", active: "peer-checked:bg-blue-600 peer-checked:border-blue-600" },
+                      { id: "completado", label: "Completado", active: "peer-checked:bg-emerald-500 peer-checked:border-emerald-500" }
+                    ].map((st) => (
+                      <label key={st.id} className="relative cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="status"
+                          className="peer sr-only"
+                          checked={editEstado === st.id}
+                          onChange={() => setEditEstado(st.id)}
+                        />
+                        <div className={`
+                          py-4 px-3 text-center rounded-2xl border-2 border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400
+                          transition-all duration-200 group-hover:border-slate-200 group-hover:bg-white
+                          ${st.active} peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-[1.02]
+                        `}>
+                          {st.label}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-6 md:px-10 md:py-8 bg-slate-50 border-t flex flex-col md:flex-row gap-4 sticky bottom-0 md:rounded-b-[3rem]">
+            {/* Footer */}
+            <div className="px-8 py-6 bg-white border-t border-slate-200 flex gap-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="order-2 md:order-1 flex-1 py-4 font-black text-sm text-slate-400 hover:text-slate-600"
+                className="px-8 py-4 bg-slate-50 text-slate-500 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all border border-slate-100"
               >
                 DESCARTAR
               </button>
               <button
                 onClick={handleSaveResults}
                 disabled={isSaving}
-                className="order-1 md:order-2 flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-slate-900 hover:bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-900/10 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
               >
-                {isSaving ? "GUARDANDO..." : <><Save size={20} /> ACTUALIZAR EXPEDIENTE</>}
+                {isSaving ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <><Save size={20} /> ACTUALIZAR EXPEDIENTE</>
+                )}
               </button>
             </div>
           </div>

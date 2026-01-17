@@ -190,12 +190,12 @@ export default function PanelControlMaster() {
                 </div>
                 <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-800">Pacientes</h2>
               </div>
-              <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 text-slate-400"><X size={20}/></button>
+              <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 text-slate-400"><X size={20} /></button>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <input 
-                type="text" placeholder="Buscar..." 
+              <input
+                type="text" placeholder="Buscar..."
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-100 rounded-xl text-[11px] font-bold outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -207,9 +207,8 @@ export default function PanelControlMaster() {
               <button
                 key={p.id}
                 onClick={() => { setSelectedPacienteId(p.id); setIsSidebarOpen(false); }}
-                className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${
-                  selectedPacienteId === p.id ? "bg-blue-600 text-white shadow-blue-200" : "hover:bg-slate-50 text-slate-600"
-                }`}
+                className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${selectedPacienteId === p.id ? "bg-blue-600 text-white shadow-blue-200" : "hover:bg-slate-50 text-slate-600"
+                  }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black ${selectedPacienteId === p.id ? "bg-white/20" : "bg-blue-50 text-blue-600"}`}>
                   {p.nombre.charAt(0)}
@@ -231,9 +230,9 @@ export default function PanelControlMaster() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Header Móvil */}
         <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-100">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-slate-100 rounded-lg text-slate-600"><Menu size={20}/></button>
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-slate-100 rounded-lg text-slate-600"><Menu size={20} /></button>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Laboratorio</span>
-          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center"><Beaker size={18} className="text-slate-400"/></div>
+          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center"><Beaker size={18} className="text-slate-400" /></div>
         </header>
 
         {pacienteActivo ? (
@@ -247,7 +246,7 @@ export default function PanelControlMaster() {
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{pacienteActivo.cedula} • {hoy}</p>
                 </div>
               </div>
-              
+
               {pacienteActivo && examenesHoyPaciente.length > 0 && (
                 <div className="flex flex-col items-start gap-2">
                   <button onClick={handlePrintMasivo} disabled={completadosCount === 0} className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 ${completadosCount === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white'} rounded-xl shadow-lg transition-all active:scale-95`}>
@@ -283,11 +282,11 @@ export default function PanelControlMaster() {
                           </div>
                           <h4 className="font-bold text-[11px] uppercase tracking-tight mb-1 truncate">{ex.tipo}</h4>
                           <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase mb-4 ${ex.estado === "completado" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                             <Clock size={8} /> {ex.estado.replace("_", " ")}
+                            <Clock size={8} /> {ex.estado.replace("_", " ")}
                           </div>
                           <div className="flex gap-2">
                             <button onClick={() => { setActiveExamen(ex); setEditResultados(ex.resultados || {}); setEditEstado(ex.estado); setIsEditing(true); }} className="flex-1 py-2 bg-slate-900 text-white text-[9px] font-bold uppercase rounded-lg hover:bg-blue-600 transition-colors">Editar</button>
-                            <button disabled={ex.estado !== "completado"} onClick={() => handleOpenPrint(ex)} className="px-3 bg-slate-100 text-slate-500 rounded-lg hover:bg-blue-100 hover:text-blue-600 disabled:opacity-20 transition-colors"><Printer size={14}/></button>
+                            <button disabled={ex.estado !== "completado"} onClick={() => handleOpenPrint(ex)} className="px-3 bg-slate-100 text-slate-500 rounded-lg hover:bg-blue-100 hover:text-blue-600 disabled:opacity-20 transition-colors"><Printer size={14} /></button>
                           </div>
                         </div>
                       );
@@ -305,12 +304,12 @@ export default function PanelControlMaster() {
                       {CATALOGO_EXAMENES.map((tipo) => {
                         const yaExiste = examenesHoyPaciente.some((e) => e.tipo === tipo);
                         return (
-                          <button 
+                          <button
                             key={tipo} disabled={yaExiste} onClick={() => handleCreateExamen(tipo)}
                             className={`w-full p-3 rounded-xl border flex items-center justify-between text-[10px] font-bold uppercase transition-all ${yaExiste ? "bg-slate-50 border-transparent opacity-40" : "border-slate-100 hover:border-blue-500 hover:bg-blue-50"}`}
                           >
                             <span>{tipo}</span>
-                            {yaExiste ? <CheckCircle2 size={14} className="text-emerald-500"/> : <PlusCircle size={14} className="text-blue-500 opacity-0 group-hover:opacity-100"/>}
+                            {yaExiste ? <CheckCircle2 size={14} className="text-emerald-500" /> : <PlusCircle size={14} className="text-blue-500 opacity-0 group-hover:opacity-100" />}
                           </button>
                         );
                       })}
@@ -328,42 +327,96 @@ export default function PanelControlMaster() {
         )}
       </main>
 
-      {/* MODAL DE EDICIÓN - Tipo "Bottom Sheet" en móvil */}
+      {/* MODAL DE EDICIÓN - Panel Amplio y Lateral (Tipo Drawer) */}
       {isEditing && activeExamen && (
-        <div className="fixed inset-0 z-[1000] flex items-end lg:items-center justify-center p-0 lg:p-6">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSaving && setIsEditing(false)} />
-          <div className="relative w-full lg:max-w-5xl h-[92vh] lg:h-[85vh] bg-white rounded-t-[2rem] lg:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
-            <div className="p-4 lg:p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 ${EXAMEN_CONFIG[activeExamen.tipo]?.bg} ${EXAMEN_CONFIG[activeExamen.tipo]?.color} rounded-lg`}><FlaskConical size={18}/></div>
+        <div className="fixed inset-0 z-[1000] flex items-stretch justify-end">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+            onClick={() => !isSaving && setIsEditing(false)}
+          />
+          <div className="relative w-full max-w-4xl bg-[#F8FAFC] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-out">
+            {/* Header del Drawer */}
+            <div className="px-6 py-5 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 flex items-center justify-center rounded-2xl shadow-sm ${EXAMEN_CONFIG[activeExamen.tipo]?.bg} ${EXAMEN_CONFIG[activeExamen.tipo]?.color}`}>
+                  <FlaskConical size={24} />
+                </div>
                 <div>
-                  <h2 className="text-xs lg:text-sm font-black uppercase tracking-tight">{activeExamen.tipo}</h2>
-                  <p className="text-[9px] font-bold text-blue-600 uppercase">{pacienteActivo?.nombre}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">{activeExamen.tipo}</h2>
+                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest border border-blue-100">Editor</span>
+                  </div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <User size={12} /> {pacienteActivo?.nombre}
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors"><X size={20}/></button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="p-3 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-2xl transition-all active:scale-90"
+              >
+                <X size={24} />
+              </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
-              <div className="max-w-3xl mx-auto">
-                {renderExamenForm()}
-                <div className="mt-10 p-4 lg:p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                  <p className="text-[9px] font-black uppercase text-center text-slate-400 mb-4 tracking-widest">Estado del Análisis</p>
-                  <div className="flex bg-white p-1 rounded-xl border border-slate-200 gap-1">
-                    {["pendiente", "en_proceso", "completado"].map((st) => (
-                      <button key={st} onClick={() => setEditEstado(st as any)} className={`flex-1 py-2 text-[9px] font-black uppercase rounded-lg transition-all ${editEstado === st ? "bg-slate-900 text-white shadow-md" : "text-slate-400 hover:bg-slate-50"}`}>
-                        {st.replace("_", " ")}
-                      </button>
+
+            {/* Cuerpo del Formulario */}
+            <div className="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar scroll-smooth">
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 lg:p-10 mb-8">
+                  {renderExamenForm()}
+                </div>
+
+                {/* Status Selector - Más visual */}
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-[0.2em] flex items-center gap-2 px-2">
+                    <CheckCircle2 size={14} /> Estatus del Informe Final
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: "pendiente", label: "Pendiente", color: "peer-checked:bg-amber-500 peer-checked:border-amber-500" },
+                      { id: "en_proceso", label: "En Proceso", color: "peer-checked:bg-blue-600 peer-checked:border-blue-600" },
+                      { id: "completado", label: "Completado", color: "peer-checked:bg-emerald-500 peer-checked:border-emerald-500" }
+                    ].map((st) => (
+                      <label key={st.id} className="relative cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="status"
+                          className="peer sr-only"
+                          checked={editEstado === st.id}
+                          onChange={() => setEditEstado(st.id as any)}
+                        />
+                        <div className={`
+                          py-4 px-3 text-center rounded-2xl border-2 border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400
+                          transition-all duration-200 group-hover:border-slate-200 group-hover:bg-white
+                          ${st.color} peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-[1.02]
+                        `}>
+                          {st.label}
+                        </div>
+                      </label>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 bg-white border-t border-slate-100 flex gap-3">
-              <button onClick={() => setIsEditing(false)} className="px-6 py-3 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase rounded-xl">Cancelar</button>
-              <button onClick={handleSaveResults} disabled={isSaving} className="flex-1 py-3 bg-blue-600 text-white text-[10px] font-bold uppercase rounded-xl shadow-lg shadow-blue-100 flex items-center justify-center gap-2">
-                {isSaving ? "Guardando..." : <><Save size={16}/> Guardar Resultados</>}
+            {/* Footer de Acciones - Pegajoso */}
+            <div className="px-8 py-6 bg-white border-t border-slate-200 flex gap-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-8 py-4 bg-slate-50 text-slate-500 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all border border-slate-100"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveResults}
+                disabled={isSaving}
+                className="flex-1 py-4 bg-slate-900 hover:bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-900/10 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <><Save size={20} /> Guardar y Finalizar</>
+                )}
               </button>
             </div>
           </div>
@@ -376,7 +429,7 @@ export default function PanelControlMaster() {
           <div className="bg-white w-full h-full lg:max-w-6xl lg:h-[95vh] lg:rounded-[2rem] flex flex-col shadow-2xl overflow-hidden">
             <div className="flex justify-between items-center p-4 lg:p-6 bg-white border-b">
               <h2 className="text-xs lg:text-sm font-black uppercase flex items-center gap-2"><Printer size={18} className="text-blue-600" /> Vista Previa</h2>
-              <button onClick={() => setShowPrintModal(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20}/></button>
+              <button onClick={() => setShowPrintModal(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
             </div>
             <div className="flex-1 bg-slate-200/50 overflow-y-auto p-2 lg:p-6 custom-scrollbar flex justify-center">
               <div className="w-full max-w-[800px] shadow-2xl origin-top lg:scale-100">

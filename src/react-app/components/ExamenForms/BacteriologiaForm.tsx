@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
 import {
-  Save,
-  ClipboardList,
+  Search,
+  X,
   Plus,
   Trash2,
-  TestTube2,
   FlaskConical,
-  CheckCircle2,
-  Eraser,
-  Search,
   Layers,
 } from "lucide-react";
 
@@ -26,6 +22,7 @@ export default function BacteriologiaForm({
   // Estados de Datos
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showLibrary, setShowLibrary] = useState(false);
 
   // Estados de UI
   const [textoAnti, setTextoAnti] = useState("");
@@ -216,201 +213,185 @@ export default function BacteriologiaForm({
     handleChange("antibiograma_list", nuevaLista);
   };
 
-  const inputBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all";
-  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
-  const areaBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 outline-none focus:border-indigo-500 focus:bg-white transition-all min-h-[120px] resize-none";
+  const labelBase = "text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block";
+  const inputBase = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-slate-900 transition-all placeholder:text-slate-300";
+  const areaBase = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 outline-none focus:border-slate-900 transition-all min-h-[80px] resize-none";
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto pb-10">
+    <div className="max-w-5xl mx-auto pb-10 space-y-6">
       {/* NOTIFICACIÓN */}
       {notificacion && (
-        <div className="fixed top-6 right-6 z-[200] flex items-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-top-10 fade-in duration-500">
-          <CheckCircle2 className={notificacion.tipo === "success" ? "text-emerald-400" : "text-rose-400"} size={20} />
-          <span className="text-sm font-black uppercase tracking-wider">{notificacion.msg}</span>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-4 py-2 rounded-xl shadow-xl text-[10px] font-bold uppercase tracking-widest animate-in slide-in-from-top-2">
+          {notificacion.msg}
         </div>
       )}
 
-      {/* SECCIÓN PRINCIPAL: FORMULARIO */}
-      <div className="flex-1 space-y-6">
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-8">
-          <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                <FlaskConical size={24} />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-slate-800 tracking-tight">Cultivos y Bacteriología</h3>
-                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Registro de Hallazgos</p>
-              </div>
-            </div>
-            <button onClick={guardarPlantilla} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100">
-              <Save size={14} /> Guardar Formato
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-              <label className={labelBase}>Muestra / Origen</label>
-              <input type="text" value={resultados?.muestra || ""} onChange={(e) => handleChange("muestra", e.target.value)} className={inputBase} placeholder="Ej. Orina, Secreción..." />
-            </div>
-            <div>
-              <label className={labelBase}>Germen Aislado A</label>
-              <select value={resultados?.germen_a || ""} onChange={(e) => handleChange("germen_a", e.target.value)} className={inputBase}>
-                <option value="">Ninguno</option>
-                {germenes.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelBase}>Germen Aislado B</label>
-              <select value={resultados?.germen_b || ""} onChange={(e) => handleChange("germen_b", e.target.value)} className={inputBase}>
-                <option value="">Ninguno</option>
-                {germenes.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className={labelBase}>Observación Directa</label>
-                <textarea value={resultados?.obs_directa || ""} onChange={(e) => handleChange("obs_directa", e.target.value)} className={areaBase} />
-              </div>
-              <div>
-                <label className={labelBase}>Tinción de Gram</label>
-                <textarea value={resultados?.gram || ""} onChange={(e) => handleChange("gram", e.target.value)} className={areaBase} />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className={labelBase}>Recuento de Colonias</label>
-                <textarea value={resultados?.recuento || ""} onChange={(e) => handleChange("recuento", e.target.value)} className={areaBase} />
-              </div>
-              <div>
-                <label className={labelBase}>Resultado Cultivo</label>
-                <textarea value={resultados?.cultivo || ""} onChange={(e) => handleChange("cultivo", e.target.value)} className={areaBase} />
-              </div>
-            </div>
-          </div>
+      {/* HEADER MINIMALISTA */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="flex items-center gap-3">
+          <FlaskConical className="text-slate-400" size={20} />
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Bacteriología</h3>
         </div>
-
-        {/* ANTIBIOGRAMA INTEGRADO */}
-        <div className="bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-800">
-          <div className="px-8 py-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-800">
-            <div className="flex items-center gap-3">
-              <TestTube2 className="text-indigo-400" size={20} />
-              <h4 className="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">
-                Antibiograma
-                <span className="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                  {(resultados?.antibiograma_list || []).length}
-                </span>
-              </h4>
-            </div>
-            <div className="relative flex gap-2">
-              <div className="relative">
-                <input
-                  type="text" value={textoAnti}
-                  onChange={(e) => manejarEscrituraAnti(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Añadir antibiótico..."
-                  className="bg-slate-800 text-white text-xs px-5 py-3 rounded-xl outline-none w-64 border border-transparent focus:border-indigo-500 font-bold"
-                />
-                {mostrarSugerencias && sugerencias.length > 0 && (
-                  <div className="absolute z-[110] top-full mt-2 left-0 w-full bg-white border border-slate-100 shadow-2xl rounded-xl overflow-hidden">
-                    {sugerencias.map((s, idx) => (
-                      <div key={s} onClick={() => agregarAntibiotico(s)} onMouseEnter={() => setSelectedIndex(idx)} className={`px-4 py-2.5 text-xs font-bold cursor-pointer border-b last:border-0 ${idx === selectedIndex ? "bg-indigo-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}>
-                        {s}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button onClick={() => agregarAntibiotico()} className="bg-indigo-600 hover:bg-indigo-500 p-3 rounded-xl text-white shadow-lg"><Plus size={18} /></button>
-            </div>
-          </div>
-          <div className="overflow-x-auto min-h-[200px]">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-800/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                  <th className="px-8 py-4 text-left">Fármaco ({(resultados?.antibiograma_list || []).length})</th>
-                  <th className="px-8 py-4 text-center">G. Aislado A</th>
-                  <th className="px-8 py-4 text-center">G. Aislado B</th>
-                  <th className="px-8 py-4 text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {(resultados?.antibiograma_list || []).map((item: any, idx: number) => (
-                  <tr key={idx} className="hover:bg-slate-800/30 transition-colors group">
-                    <td className="px-8 py-4 font-black text-slate-200">{item.nombre}</td>
-                    <td onClick={() => toggleValor(item.nombre, "a")} className="px-8 py-4 text-center cursor-pointer select-none">
-                      <span className={`inline-block w-10 py-1.5 rounded-lg font-black text-[11px] ${item.a === "S" ? "bg-emerald-500/10 text-emerald-400" : item.a === "R" ? "bg-rose-500/10 text-rose-400" : item.a === "I" ? "bg-amber-500/10 text-amber-400" : "bg-slate-700 text-slate-500"}`}>
-                        {item.a || "-"}
-                      </span>
-                    </td>
-                    <td onClick={() => toggleValor(item.nombre, "b")} className="px-8 py-4 text-center cursor-pointer select-none">
-                      <span className={`inline-block w-10 py-1.5 rounded-lg font-black text-[11px] ${item.b === "S" ? "bg-emerald-500/10 text-emerald-400" : item.b === "R" ? "bg-rose-500/10 text-rose-400" : item.b === "I" ? "bg-amber-500/10 text-amber-400" : "bg-slate-700 text-slate-500"}`}>
-                        {item.b || "-"}
-                      </span>
-                    </td>
-                    <td className="px-8 py-4 text-right">
-                      <button onClick={() => eliminarAntibiotico(item.nombre)} className="text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="flex gap-4">
+          <button onClick={() => setShowLibrary(!showLibrary)} className={`text-[10px] font-bold uppercase transition-colors ${showLibrary ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}>
+            {showLibrary ? 'Cerrar Biblioteca' : 'Ver Plantillas'}
+          </button>
+          <button onClick={guardarPlantilla} className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors">
+            Guardar Formato
+          </button>
         </div>
       </div>
 
-      {/* SECCIÓN LATERAL: GESTOR DE PLANTILLAS */}
-      <div className="w-full lg:w-80 flex flex-col gap-4">
-        <div className="bg-slate-900 rounded-[2rem] overflow-hidden shadow-xl flex flex-col h-full max-h-[850px]">
-          <div className="p-6 border-b border-slate-800 space-y-4">
-            <div className="flex items-center gap-3 text-white">
-              <Layers size={18} className="text-indigo-400" />
-              <span className="font-black text-sm uppercase tracking-wider">Biblioteca</span>
-            </div>
-            <div className="relative group">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-              <input
-                type="text" placeholder="BUSCAR FORMATO..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2 pl-9 pr-4 text-[10px] font-black text-slate-300 outline-none focus:border-indigo-500/50 placeholder:text-slate-600 uppercase tracking-widest"
-              />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className={labelBase}>Muestra</label>
+          <input type="text" value={resultados?.muestra || ""} onChange={(e) => handleChange("muestra", e.target.value)} className={inputBase} placeholder="Ej: Orina" />
+        </div>
+        <div>
+          <label className={labelBase}>Germen A</label>
+          <select value={resultados?.germen_a || ""} onChange={(e) => handleChange("germen_a", e.target.value)} className={inputBase}>
+            <option value="">Negativo</option>
+            {germenes.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelBase}>Germen B</label>
+          <select value={resultados?.germen_b || ""} onChange={(e) => handleChange("germen_b", e.target.value)} className={inputBase}>
+            <option value="">Negativo</option>
+            {germenes.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </div>
+      </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {plantillasFiltradas.length === 0 ? (
-              <div className="py-10 text-center space-y-3">
-                <ClipboardList size={32} className="mx-auto text-slate-700 opacity-50" />
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sin resultados</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelBase}>Observación Directa</label>
+          <textarea value={resultados?.obs_directa || ""} onChange={(e) => handleChange("obs_directa", e.target.value)} className={areaBase} />
+        </div>
+        <div>
+          <label className={labelBase}>Tinción de Gram</label>
+          <textarea value={resultados?.gram || ""} onChange={(e) => handleChange("gram", e.target.value)} className={areaBase} />
+        </div>
+        <div>
+          <label className={labelBase}>Recuento de Colonias</label>
+          <textarea value={resultados?.recuento || ""} onChange={(e) => handleChange("recuento", e.target.value)} className={areaBase} />
+        </div>
+        <div>
+          <label className={labelBase}>Resultado Cultivo</label>
+          <textarea value={resultados?.cultivo || ""} onChange={(e) => handleChange("cultivo", e.target.value)} className={areaBase} />
+        </div>
+      </div>
+
+      <div>
+        <label className={labelBase}>Cultivo para Micosis (Hongos)</label>
+        <textarea
+          value={resultados?.cultivo_hongos || ""}
+          onChange={(e) => handleChange("cultivo_hongos", e.target.value)}
+          className={`${areaBase} min-h-[60px]`}
+          placeholder="Resultado de cultivo Sabouraud..."
+        />
+      </div>
+
+      {/* ANTIBIOGRAMA - Minimalista y Blanco */}
+      <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
+        <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+          <h4 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Antibiograma</h4>
+          <div className="flex gap-2 relative">
+            <input
+              type="text" value={textoAnti}
+              onChange={(e) => manejarEscrituraAnti(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Añadir fármaco..."
+              className="text-[10px] bg-white border border-slate-300 rounded px-3 py-1.5 w-40 outline-none focus:border-slate-900 transition-all uppercase"
+            />
+            {mostrarSugerencias && sugerencias.length > 0 && (
+              <div className="absolute z-[110] top-full left-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden w-40">
+                {sugerencias.map((s, idx) => (
+                  <div key={s} onClick={() => agregarAntibiotico(s)} onMouseEnter={() => setSelectedIndex(idx)} className={`px-3 py-2 text-[10px] font-bold cursor-pointer ${idx === selectedIndex ? "bg-slate-100" : "hover:bg-slate-50"}`}>
+                    {s}
+                  </div>
+                ))}
               </div>
-            ) : (
-              plantillasFiltradas.map((p) => (
-                <div key={p.id} className="group relative animate-in fade-in slide-in-from-right-2 duration-300">
-                  <button onClick={() => aplicarPlantilla(p)} className="w-full text-left p-4 bg-slate-800/50 border border-slate-800 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800 transition-all pr-10">
-                    <div className="font-black text-xs text-indigo-100 truncate mb-1 uppercase tracking-tight">{p.nombre_plantilla}</div>
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter truncate">Origen: {p.muestra_default || "No def."}</div>
+            )}
+            <button onClick={() => agregarAntibiotico()} className="text-slate-400 hover:text-slate-900 transition-colors"><Plus size={16} /></button>
+          </div>
+        </div>
+        <div className="bg-white overflow-x-auto">
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-tighter">
+                <th className="px-6 py-2 text-left">Fármaco</th>
+                <th className="px-6 py-2 text-center">G. Aislado A</th>
+                <th className="px-6 py-2 text-center">G. Aislado B</th>
+                <th className="px-6 py-2 text-right"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {(resultados?.antibiograma_list || []).map((item: any, idx: number) => (
+                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-2 font-bold text-slate-700">{item.nombre}</td>
+                  <td onClick={() => toggleValor(item.nombre, "a")} className="px-6 py-2 text-center cursor-pointer select-none">
+                    <span className={`px-2 py-0.5 rounded font-black ${item.a === "S" ? "text-emerald-600" : item.a === "R" ? "text-rose-600" : item.a === "I" ? "text-amber-600" : "text-slate-300"}`}>
+                      {item.a || "-"}
+                    </span>
+                  </td>
+                  <td onClick={() => toggleValor(item.nombre, "b")} className="px-6 py-2 text-center cursor-pointer select-none">
+                    <span className={`px-2 py-0.5 rounded font-black ${item.b === "S" ? "text-emerald-600" : item.b === "R" ? "text-rose-600" : item.b === "I" ? "text-amber-600" : "text-slate-300"}`}>
+                      {item.b || "-"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-2 text-right">
+                    <button onClick={() => eliminarAntibiotico(item.nombre)} className="text-slate-300 hover:text-rose-500 transition-colors"><X size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* BIBLIOTECA - Modal simple */}
+      {showLibrary && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={() => setShowLibrary(false)} />
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl flex flex-col max-h-[70vh] overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Plantillas de Bacteriología</span>
+              <button onClick={() => setShowLibrary(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={18} /></button>
+            </div>
+            <div className="p-3 bg-slate-50 border-b">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text" placeholder="Buscar formato..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-xs outline-none focus:border-slate-400 transition-all uppercase font-medium"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              {plantillasFiltradas.length === 0 && (
+                <div className="py-10 text-center text-slate-400 text-[10px] uppercase font-bold tracking-widest">No hay resultados</div>
+              )}
+              {plantillasFiltradas.map((p) => (
+                <div key={p.id} className="flex items-center group px-1">
+                  <button onClick={() => { aplicarPlantilla(p); setShowLibrary(false); }} className="flex-1 text-left p-3 hover:bg-slate-50 rounded-lg transition-all">
+                    <div className="text-[11px] font-bold uppercase text-slate-700">{p.nombre_plantilla}</div>
+                    <div className="text-[9px] text-slate-400 uppercase font-medium mt-0.5">Muestra: {p.muestra_default || "No def."}</div>
                   </button>
-                  <button onClick={(e) => eliminarPlantilla(e, p.id)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all p-1">
+                  <button onClick={(e) => eliminarPlantilla(e, p.id)} className="p-2 text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
                     <Trash2 size={14} />
                   </button>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
           </div>
+        </div>
+      )}
 
-          <div className="p-4 bg-slate-800/30 border-t border-slate-800">
-            <button onClick={limpiarFormulario} className="w-full flex items-center justify-center gap-2 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]">
-              <Eraser size={16} /> Vacear Todo
-            </button>
-          </div>
-        </div>
-        <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
-          <p className="text-[10px] font-bold text-indigo-400 uppercase leading-relaxed text-center">
-            Seleccione una plantilla para autocompletar Gram, Cultivo y Recuento automáticamente.
-          </p>
-        </div>
+      <div className="flex justify-start pt-4 border-t border-slate-100">
+        <button onClick={limpiarFormulario} className="text-[9px] font-bold uppercase text-slate-300 hover:text-rose-500 transition-colors">
+          Limpiar Formulario completamenta
+        </button>
       </div>
     </div>
   );
