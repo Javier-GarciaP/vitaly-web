@@ -172,41 +172,39 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
       </SectionCard>
 
       {/* PLAQUETAS Y VSG */}
-      <SectionCard title="Plaquetas & VSG">
+      <SectionCard title="Plaquetas">
         <ExamRow label="Recuento de Plaquetas" result={data?.plaquetas} reference={getRef("Plaquetas", "150.000 - 450.000 /mm³")} />
-
-        {(data?.vsg_1h || data?.vsg_2h) && (
-          <>
-            <View style={{ height: 1, backgroundColor: '#e2e8f0', marginVertical: 4 }} />
-            <View style={styles.vsgContainer}>
-              <View style={{ width: '35%' }}>
-                <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#800020' }}>V.S.G (Eritrosedimentación)</Text>
-                <Text style={{ fontSize: 6.5, color: '#666', marginTop: 1 }}>{vsgRefs}</Text>
-              </View>
-              <View style={styles.vsgGroup}>
-                {data?.vsg_1h && (
-                  <View style={styles.vsgItem}>
-                    <Text style={styles.vsgLabel}>1h:</Text>
-                    <Text style={styles.vsgValue}>{data.vsg_1h}</Text>
-                  </View>
-                )}
-                {data?.vsg_2h && (
-                  <View style={styles.vsgItem}>
-                    <Text style={styles.vsgLabel}>2h:</Text>
-                    <Text style={styles.vsgValue}>{data.vsg_2h}</Text>
-                  </View>
-                )}
-                {data?.vsg_indice && (
-                  <View style={styles.vsgItem}>
-                    <Text style={styles.vsgLabel}>Índice:</Text>
-                    <Text style={styles.vsgValue}>{data.vsg_indice}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </>
-        )}
       </SectionCard>
+
+      {(data?.vsg_1h || data?.vsg_2h) && (
+        <SectionCard title="V.S.G (Eritrosedimentación)">
+          <View style={styles.vsgContainer}>
+            <View style={{ width: '35%' }}>
+              <Text style={{ fontSize: 6.5, color: '#666', marginTop: 1 }}>{vsgRefs}</Text>
+            </View>
+            <View style={styles.vsgGroup}>
+              {data?.vsg_1h && (
+                <View style={styles.vsgItem}>
+                  <Text style={styles.vsgLabel}>1h:</Text>
+                  <Text style={styles.vsgValue}>{data.vsg_1h}</Text>
+                </View>
+              )}
+              {data?.vsg_2h && (
+                <View style={styles.vsgItem}>
+                  <Text style={styles.vsgLabel}>2h:</Text>
+                  <Text style={styles.vsgValue}>{data.vsg_2h}</Text>
+                </View>
+              )}
+              {data?.vsg_indice && (
+                <View style={styles.vsgItem}>
+                  <Text style={styles.vsgLabel}>Índice:</Text>
+                  <Text style={styles.vsgValue}>{data.vsg_indice}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </SectionCard>
+      )}
 
       {data?.observacion && data.observacion.trim() !== "" && (
         <View style={styles.obsCard}>

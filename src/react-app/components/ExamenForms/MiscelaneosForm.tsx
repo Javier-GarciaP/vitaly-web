@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Trash2,
   Plus,
   Layers,
   Search,
   X,
+  Save,
+  Bold,
 } from "lucide-react";
+import { useNotification } from "@/react-app/context/NotificationContext";
 import { MiscelaneosData } from "@/types/types";
 
 interface MiscelaneosFormProps {
@@ -13,15 +16,70 @@ interface MiscelaneosFormProps {
   onChange: (resultados: any) => void;
 }
 
+// Minimalist Input Modal Component (Shared style)
+const InputModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  defaultValue = ""
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (val: string) => void;
+  title: string;
+  defaultValue?: string;
+}) => {
+  const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    if (isOpen) setValue(defaultValue);
+  }, [isOpen, defaultValue]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-[320px] rounded-[2rem] shadow-2xl border border-slate-100 p-6 animate-in zoom-in-95 duration-200">
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 text-center">{title}</h3>
+        <input
+          autoFocus
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:border-slate-900 transition-all text-center mb-6 uppercase"
+          placeholder="Nombre..."
+          onKeyDown={(e) => e.key === 'Enter' && value.trim() && onConfirm(value)}
+        />
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-3 text-[9px] font-black uppercase text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">Cancelar</button>
+          <button
+            onClick={() => value.trim() && onConfirm(value)}
+            disabled={!value.trim()}
+            className="flex-1 py-3 bg-slate-900 text-white text-[9px] font-black uppercase rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function MiscelaneosForm({
   resultados,
   onChange,
 }: MiscelaneosFormProps) {
+  const { showNotification, confirmAction } = useNotification();
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [indexActivo, setIndexActivo] = useState(0);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!Array.isArray(resultados) || resultados.length === 0) {
@@ -77,12 +135,14 @@ export default function MiscelaneosForm({
       resultado_texto: p.contenido_plantilla,
     };
     onChange(nuevosResultados);
+    showNotification("success", "Plantilla aplicada");
   };
 
-  const guardarComoPlantilla = async () => {
+  const procesarGuardado = async (nombre: string) => {
+    setShowSaveModal(false);
     const actual = resultados[indexActivo];
     if (!actual?.examen_solicitado) {
-      alert("Asigne un nombre al examen solicitado antes de guardar");
+      showNotification("error", "Nombre de examen requerido");
       return;
     }
 
@@ -92,7 +152,11 @@ export default function MiscelaneosForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre_examen: actual.examen_solicitado,
+          nombre_examen: actual.examen_solicitado, // Usar el nombre del examen como base, pero la plantilla tiene su nombre?
+          // Nota: La API de miscelaneos parece usar nombre_examen como identificador principal.
+          // El modal pide "Nombre...", que sería el nombre_plantilla normalmente, pero miscelaneos usa nombre_examen.
+          // Usaremos el input del modal para sobreescribir o definir el nombre del examen en la plantilla.
+          nombre_plantilla: nombre, // Si la API lo soporta, sino usamos nombre_examen
           metodo: actual.metodo || "",
           muestra: actual.muestra || "",
           contenido_plantilla: actual.resultado_texto || "",
@@ -101,23 +165,57 @@ export default function MiscelaneosForm({
 
       if (res.ok) {
         await cargarPlantillas();
-        setShowLibrary(true); // Abrimos la biblioteca para ver la nueva plantilla
+        setShowLibrary(true);
+        showNotification("success", "Plantilla guardada");
       }
     } catch (error) {
-      alert("Error al guardar plantilla");
+      showNotification("error", "Error al guardar");
     } finally {
       setIsSaving(false);
     }
   };
 
   const eliminarPlantillaBase = async (id: number) => {
-    if (!confirm("¿Eliminar esta plantilla definitivamente?")) return;
-    try {
-      const res = await fetch(`/api/plantillas/miscelaneos/${id}`, { method: "DELETE" });
-      if (res.ok) setPlantillas((prev) => prev.filter((p) => p.id !== id));
-    } catch (error) {
-      console.error(error);
-    }
+    confirmAction({
+      title: "Eliminar Plantilla",
+      message: "¿Eliminar definitivamente?",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/plantillas/miscelaneos/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            setPlantillas((prev) => prev.filter((p) => p.id !== id));
+            showNotification("delete", "Eliminada");
+          }
+        } catch (error) {
+          showNotification("error", "Error conexión");
+        }
+      }
+    });
+  };
+
+  // Editor Simple
+  const insertarNegrita = () => {
+    if (!textareaRef.current) return;
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const text = resultados[indexActivo]?.resultado_texto || "";
+
+    // Usamos asteriscos o tags HTML? React-PDF soporta src que parsea?
+    // Asumiremos formato tipo <b>text</b> o similar. Usaremos asteriscos como markdown visual *texto*.
+    // O mejor <B> para asegurar que destaque si se implementa un parser simple.
+    // El usuario pidió "negrita". Pondré tags <b> que son más universales para parsear luego.
+    const before = text.substring(0, start);
+    const selection = text.substring(start, end);
+    const after = text.substring(end);
+
+    const newText = `${before}<b>${selection}</b>${after}`;
+    handleChange("resultado_texto", newText);
+
+    // Restaurar foco (aprox)
+    setTimeout(() => {
+      if (textareaRef.current) textareaRef.current.focus();
+    }, 50);
   };
 
   /* ESTILOS MINIMALISTAS */
@@ -129,6 +227,14 @@ export default function MiscelaneosForm({
 
   return (
     <div className="flex flex-col h-full bg-white w-full">
+      <InputModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onConfirm={procesarGuardado}
+        title="Guardar Plantilla"
+        defaultValue={resultados[indexActivo]?.examen_solicitado || ""}
+      />
+
       {/* TABS DE EXÁMENES */}
       <div className="flex items-center gap-2 pb-2 bg-white border-b border-slate-100 overflow-x-auto no-scrollbar mb-4">
         {resultados.map((ex: any, i: number) => (
@@ -213,21 +319,32 @@ export default function MiscelaneosForm({
                 <Search size={10} /> Plantillas
               </button>
               <button
-                onClick={guardarComoPlantilla}
+                onClick={() => setShowSaveModal(true)}
                 disabled={isSaving}
-                className="text-[9px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
+                className="text-[9px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1"
               >
-                Guardar
+                <Save size={12} /> Guardar
               </button>
             </div>
           </div>
 
-          <textarea
-            value={resultados[indexActivo]?.resultado_texto || ""}
-            onChange={(e) => handleChange("resultado_texto", e.target.value)}
-            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-slate-900 outline-none text-xs leading-relaxed text-slate-700 resize-none transition-all min-h-[200px]"
-            placeholder="Describa los resultados..."
-          />
+          <div className="relative border border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-slate-900 transition-colors">
+            {/* Simple Toolbar */}
+            <div className="flex items-center gap-1 p-1 bg-white border-b border-slate-100">
+              <button onClick={insertarNegrita} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded transition-colors" title="Negrita">
+                <Bold size={14} />
+              </button>
+              <div className="w-px h-3 bg-slate-200 mx-1" />
+              <span className="text-[9px] font-bold text-slate-300 uppercase px-2">Editor Básico</span>
+            </div>
+            <textarea
+              ref={textareaRef}
+              value={resultados[indexActivo]?.resultado_texto || ""}
+              onChange={(e) => handleChange("resultado_texto", e.target.value)}
+              className="w-full p-4 bg-transparent outline-none text-xs leading-relaxed text-slate-700 resize-none min-h-[200px]"
+              placeholder="Describa los resultados..."
+            />
+          </div>
         </div>
       </div>
 
@@ -236,7 +353,6 @@ export default function MiscelaneosForm({
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={() => setShowLibrary(false)} />
           <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col max-h-[60vh] overflow-hidden animate-in zoom-in-95 duration-200">
-
             <div className="p-3 border-b flex justify-between items-center bg-slate-50">
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
                 <Layers size={12} /> Biblioteca Misceláneos

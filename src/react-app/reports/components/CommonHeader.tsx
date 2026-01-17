@@ -100,7 +100,7 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) 
           </View>
           <View style={styles.infoGroup}>
             <Text style={styles.label}>EDAD</Text>
-            <Text style={styles.value}>{patient?.edad ? `${patient.edad} Años` : 'N/A'}</Text>
+            <Text style={styles.value}>{patient?.edad}</Text>
           </View>
           <View style={styles.infoGroup}>
             <Text style={styles.label}>FECHA</Text>

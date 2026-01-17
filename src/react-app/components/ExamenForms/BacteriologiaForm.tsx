@@ -5,8 +5,9 @@ import {
   Plus,
   Trash2,
   FlaskConical,
+  Save,
 } from "lucide-react";
-
+import { useNotification } from "@/react-app/context/NotificationContext";
 import { BacteriologiaData } from "@/types/types";
 
 interface BacteriologiaFormProps {
@@ -14,24 +15,76 @@ interface BacteriologiaFormProps {
   onChange: (resultados: any) => void;
 }
 
+// Minimalist Input Modal Component
+const InputModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  defaultValue = ""
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (val: string) => void;
+  title: string;
+  defaultValue?: string;
+}) => {
+  const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    if (isOpen) setValue(defaultValue);
+  }, [isOpen, defaultValue]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-[320px] rounded-[2rem] shadow-2xl border border-slate-100 p-6 animate-in zoom-in-95 duration-200">
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 text-center">{title}</h3>
+        <input
+          autoFocus
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:border-slate-900 transition-all text-center mb-6 uppercase"
+          placeholder="Nombre..."
+          onKeyDown={(e) => e.key === 'Enter' && value.trim() && onConfirm(value)}
+        />
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-3 text-[9px] font-black uppercase text-slate-400 hover:bg-slate-50 rounded-xl transition-colors">Cancelar</button>
+          <button
+            onClick={() => value.trim() && onConfirm(value)}
+            disabled={!value.trim()}
+            className="flex-1 py-3 bg-slate-900 text-white text-[9px] font-black uppercase rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function BacteriologiaForm({
   resultados,
   onChange,
 }: BacteriologiaFormProps) {
+  const { showNotification, confirmAction } = useNotification();
+
   // Estados de Datos
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showLibrary, setShowLibrary] = useState(false);
+
+  // Modal Save
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   // Estados de UI
   const [textoAnti, setTextoAnti] = useState("");
   const [sugerencias, setSugerencias] = useState<string[]>([]);
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [notificacion, setNotificacion] = useState<{
-    msg: string;
-    tipo: "success" | "error";
-  } | null>(null);
 
   const listaAntibioticos = [
     "Amikacina", "Amoxi-Ac.Clavulánico", "Ampicilina-Sulbactan", "Cefepime",
@@ -46,11 +99,6 @@ export default function BacteriologiaForm({
     "Negativo", "Escherichia coli", "Staphylococcus aureus",
     "Proteus vulgaris", "Klebsiella pneumoniae", "Pseudomonas aeruginosa",
   ];
-
-  const notify = (msg: string, tipo: "success" | "error" = "success") => {
-    setNotificacion({ msg, tipo });
-    setTimeout(() => setNotificacion(null), 3000);
-  };
 
   const cargarPlantillas = async () => {
     try {
@@ -86,13 +134,11 @@ export default function BacteriologiaForm({
       cultivo: p.cultivo || "",
       cultivo_hongos: p.cultivo_hongos || "",
     });
-    notify(`Plantilla aplicada`);
+    showNotification("success", "Plantilla aplicada");
   };
 
-  const guardarPlantilla = async () => {
-    const nombre = prompt("Nombre para la nueva plantilla:");
-    if (!nombre) return;
-
+  const procesarGuardado = async (nombre: string) => {
+    setShowSaveModal(false);
     const payload = {
       nombre_plantilla: nombre,
       muestra_default: resultados.muestra || "",
@@ -110,29 +156,34 @@ export default function BacteriologiaForm({
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        notify("Plantilla guardada");
+        showNotification("success", "Plantilla guardada");
         cargarPlantillas();
       }
     } catch (e) {
-      notify("Error al guardar", "error");
+      showNotification("error", "Error al guardar");
     }
   };
 
   const eliminarPlantilla = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    if (!confirm("¿Eliminar esta plantilla?")) return;
-
-    try {
-      const res = await fetch(`/api/plantillas/bacteriologia/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setPlantillas(prev => prev.filter(p => p.id !== id));
-        notify("Eliminada");
+    confirmAction({
+      title: "Eliminar Plantilla",
+      message: "¿Estás seguro de eliminar esta plantilla?",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/plantillas/bacteriologia/${id}`, {
+            method: "DELETE",
+          });
+          if (res.ok) {
+            setPlantillas(prev => prev.filter(p => p.id !== id));
+            showNotification("delete", "Plantilla eliminada");
+          }
+        } catch (e) {
+          showNotification("error", "Error de conexión");
+        }
       }
-    } catch (e) {
-      notify("Error conexión", "error");
-    }
+    });
   };
 
   const limpiarFormulario = () => {
@@ -147,7 +198,7 @@ export default function BacteriologiaForm({
       germen_a: "",
       germen_b: "",
     });
-    notify("Formulario vaciado");
+    showNotification("info", "Formulario vaciado");
   };
 
   // --- LÓGICA DE AUTOCOMPLETADO ---
@@ -219,12 +270,13 @@ export default function BacteriologiaForm({
 
   return (
     <div className="w-full pb-20 space-y-5">
-      {/* NOTIFICACIÓN */}
-      {notificacion && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-4 py-2 rounded-xl shadow-xl text-[10px] font-bold uppercase tracking-widest animate-in slide-in-from-top-2">
-          {notificacion.msg}
-        </div>
-      )}
+      <InputModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onConfirm={procesarGuardado}
+        title="Guardar Plantilla"
+        defaultValue={resultados.muestra || ""}
+      />
 
       {/* HEADER COMPACTO */}
       <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -238,8 +290,8 @@ export default function BacteriologiaForm({
           <button onClick={() => setShowLibrary(!showLibrary)} className={`text-[10px] font-bold uppercase transition-colors ${showLibrary ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}>
             {showLibrary ? 'Cerrar' : 'Plantillas'}
           </button>
-          <button onClick={guardarPlantilla} className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors">
-            Guardar
+          <button onClick={() => setShowSaveModal(true)} className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1">
+            <Save size={12} /> Guardar
           </button>
         </div>
       </div>
@@ -305,7 +357,12 @@ export default function BacteriologiaForm({
       {/* ANTIBIOGRAMA */}
       <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
         <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-          <h4 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Antibiograma</h4>
+          <h4 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+            Antibiograma
+            <span className="bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded text-[9px] w-6 text-center">
+              {(resultados?.antibiograma_list || []).length}
+            </span>
+          </h4>
           <div className="flex gap-2 relative">
             <input
               type="text" value={textoAnti}
