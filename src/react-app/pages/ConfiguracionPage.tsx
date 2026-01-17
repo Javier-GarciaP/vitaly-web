@@ -5,12 +5,12 @@ import {
   X,
   Layout,
   Search,
-  CheckCircle2,
   ChevronRight,
   Sliders,
   Trash2,
 } from "lucide-react";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput } from "@/utils/currency";
+import { useNotification } from "@/react-app/context/NotificationContext";
 
 // --- INTERFACES ---
 interface ExamenPredefinido {
@@ -30,6 +30,7 @@ interface ValorReferencia {
 type TabActiva = "catalogo" | "parametros" | "apariencia";
 
 export default function ConfiguracionPage() {
+  const { showNotification, confirmAction } = useNotification();
   // --- ESTADOS DE NAVEGACIÓN ---
   const [tabActiva, setTabActiva] = useState<TabActiva>("catalogo");
 
@@ -48,7 +49,6 @@ export default function ConfiguracionPage() {
   const [seccionActiva, setSeccionActiva] = useState<"quimica" | "hematologia" | "coagulacion">("quimica");
   const [valoresRef, setValoresRef] = useState<ValorReferencia[]>([]);
   const [savingRef, setSavingRef] = useState(false);
-  const [successMsg, setSuccessMsg] = useState(false);
 
   // --- ESTADOS DE APARIENCIA ---
   const [footerText, setFooterText] = useState("© 2024 Laboratorio Clínico - Todos los derechos reservados");
@@ -85,19 +85,33 @@ export default function ConfiguracionPage() {
         body: JSON.stringify({ ...formData, precio: precioLimpio }),
       });
       if (res.ok) {
+        showNotification("success", editingExamen ? "Estudio Actualizado" : "Nuevo Estudio Añadido", `${formData.nombre} ahora está en el catálogo`);
         setIsExamenModalOpen(false);
         setEditingExamen(null);
         loadExamenes();
       }
     } catch (error) {
-      alert("Error al procesar la solicitud");
+      showNotification("error", "Error", "No se pudo procesar la solicitud");
     }
   };
 
   const deleteExamen = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar este registro permanentemente?")) return;
-    await fetch(`/api/examenes-predefinidos/${id}`, { method: "DELETE" });
-    loadExamenes();
+    confirmAction({
+      title: "Eliminar Registro",
+      message: "¿Está seguro de eliminar este estudio permanentemente? Desaparecerá del catálogo de facturación.",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/examenes-predefinidos/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            showNotification("delete", "Estudio Eliminado", "El registro ha sido removido del catálogo");
+            loadExamenes();
+          }
+        } catch (e) {
+          showNotification("error", "Error", "No se pudo eliminar el registro");
+        }
+      }
+    });
   };
 
   // --- LÓGICA DE VALORES REF ---
@@ -120,12 +134,11 @@ export default function ConfiguracionPage() {
         body: JSON.stringify({ valores: valoresRef }),
       });
       if (res.ok) {
-        setSuccessMsg(true);
-        setTimeout(() => setSuccessMsg(false), 3000);
+        showNotification("success", "Sincronización Exitosa", "Los baremos técnicos han sido actualizados");
         loadValoresReferencia();
       }
     } catch (error) {
-      alert("Error al actualizar");
+      showNotification("error", "Error", "No se pudo actualizar los parámetros");
     } finally {
       setSavingRef(false);
     }
@@ -282,11 +295,6 @@ export default function ConfiguracionPage() {
                 <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3">
                   <Sliders size={16} /> Parámetros: {seccionActiva}
                 </h2>
-                {successMsg && (
-                  <span className="flex items-center gap-2 text-emerald-500 text-[9px] font-black uppercase animate-in zoom-in-95">
-                    <CheckCircle2 size={14} /> Sincronizado
-                  </span>
-                )}
               </div>
 
               <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-6">

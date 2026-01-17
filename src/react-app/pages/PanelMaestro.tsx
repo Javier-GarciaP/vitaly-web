@@ -18,6 +18,7 @@ import {
   Menu,
   ChevronRight,
 } from "lucide-react";
+import { useNotification } from "@/react-app/context/NotificationContext";
 
 // --- COMPONENTES EXTERNOS ---
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
@@ -54,6 +55,7 @@ interface Examen { id: number; paciente_id: number; tipo: string; fecha: string;
 interface Factura { paciente_id: number; fecha: string; }
 
 export default function PanelControlMaster() {
+  const { showNotification, confirmAction } = useNotification();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [examenes, setExamenes] = useState<Examen[]>([]);
   const [facturas, setFacturas] = useState<Factura[]>([]);
@@ -61,7 +63,6 @@ export default function PanelControlMaster() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
-  const [notification, setNotification] = useState("");
   const [activeExamen, setActiveExamen] = useState<Examen | null>(null);
   const [editResultados, setEditResultados] = useState<any>({});
   const [editEstado, setEditEstado] = useState<Examen["estado"]>("pendiente");
@@ -82,10 +83,6 @@ export default function PanelControlMaster() {
     } catch (e) { console.error("Error cargando datos"); }
   };
 
-  const showMsg = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 3000);
-  };
 
   const pacientesHoy = useMemo(() => {
     const idsConFacturaHoy = facturas.filter((f) => f.fecha === hoy).map((f) => f.paciente_id);
@@ -109,13 +106,25 @@ export default function PanelControlMaster() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paciente_id: selectedPacienteId, tipo, fecha: hoy, estado: "pendiente", resultados: {}, uuid: crypto.randomUUID() }),
     });
-    if (res.ok) { showMsg(`${tipo} añadido`); loadInitialData(); }
+    if (res.ok) {
+      showNotification("success", "Estudio Añadido", `${tipo} ha sido agregado al expediente`);
+      loadInitialData();
+    }
   };
 
   const handleDeleteExamen = async (ex: Examen) => {
-    if (!confirm(`¿Eliminar ${ex.tipo}?`)) return;
-    const res = await fetch(`/api/examenes/${ex.id}`, { method: "DELETE" });
-    if (res.ok) { showMsg("Eliminado"); loadInitialData(); }
+    confirmAction({
+      title: "Eliminar Estudio",
+      message: `¿Está seguro de eliminar el estudio de ${ex.tipo}? Esta acción no se puede deshacer.`,
+      variant: "danger",
+      onConfirm: async () => {
+        const res = await fetch(`/api/examenes/${ex.id}`, { method: "DELETE" });
+        if (res.ok) {
+          showNotification("delete", "Estudio Eliminado", `El estudio de ${ex.tipo} ha sido removido`);
+          loadInitialData();
+        }
+      }
+    });
   };
 
   const handleSaveResults = async () => {
@@ -126,7 +135,11 @@ export default function PanelControlMaster() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...activeExamen, resultados: editResultados, estado: editEstado }),
     });
-    if (res.ok) { showMsg("Guardado"); setIsEditing(false); loadInitialData(); }
+    if (res.ok) {
+      showNotification("success", "Cambios Guardados", `Resultados de ${activeExamen.tipo} actualizados`);
+      setIsEditing(false);
+      loadInitialData();
+    }
     setIsSaving(false);
   };
 
@@ -447,13 +460,6 @@ export default function PanelControlMaster() {
         </div>
       )}
 
-      {/* NOTIFICACIÓN FLOTANTE */}
-      {notification && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[2000] bg-slate-900 text-white px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5">
-          <CheckCircle2 className="text-emerald-400" size={20} />
-          <span className="text-[11px] font-black uppercase tracking-widest">{notification}</span>
-        </div>
-      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }

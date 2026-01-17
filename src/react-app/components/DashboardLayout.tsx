@@ -15,10 +15,12 @@ import {
 import { useState, useEffect } from "react";
 import { auth } from "@/react-app/lib/firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
+import { NotificationProvider, useNotification } from "@/react-app/context/NotificationContext";
 
-export default function DashboardLayout() {
+function DashboardLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; photo: string } | null>(null);
@@ -34,11 +36,16 @@ export default function DashboardLayout() {
         const next = !isFastMode;
         setIsFastMode(next);
         localStorage.setItem("fastMode", String(next));
+        if (next) {
+          showNotification("success", "Modo Fast Activo", "Operaciones críticas priorizadas");
+        } else {
+          showNotification("info", "Modo Normal", "Todos los módulos restablecidos");
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate, isFastMode]);
+  }, [navigate, isFastMode, showNotification]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -76,9 +83,11 @@ export default function DashboardLayout() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      showNotification("info", "Sesión Finalizada", "Has salido del sistema de forma segura");
       navigate("/login");
     } catch (error) {
       console.error("Error al cerrar sesión", error);
+      showNotification("error", "Error", "No se pudo cerrar la sesión");
     }
   };
 
@@ -269,5 +278,13 @@ export default function DashboardLayout() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
+  );
+}
+
+export default function DashboardLayout() {
+  return (
+    <NotificationProvider>
+      <DashboardLayoutContent />
+    </NotificationProvider>
   );
 }

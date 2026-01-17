@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, X, TrendingUp, Search } from "lucide-react";
 import { GraficaEvolucion } from "@/utils/GraficaEvolucion";
+import { useNotification } from "@/react-app/context/NotificationContext";
 
 interface Paciente {
   id: number;
@@ -12,6 +13,7 @@ interface Paciente {
 }
 
 export default function PacientesPage() {
+  const { showNotification, confirmAction } = useNotification();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -22,12 +24,9 @@ export default function PacientesPage() {
     edad: "",
     sexo: "",
   });
-  const [notification, setNotification] = useState("");
 
   const [showGraphModal, setShowGraphModal] = useState(false);
-  const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(
-    null
-  );
+  const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null);
   const [evolucionData, setEvolucionData] = useState<any[]>([]);
   const [tipoExamen, setTipoExamen] = useState("");
   const [parametro, setParametro] = useState("");
@@ -78,7 +77,9 @@ export default function PacientesPage() {
 
     if (res.ok) {
       showNotification(
-        editingPaciente ? "Paciente actualizado" : "Paciente registrado"
+        "success",
+        editingPaciente ? "Paciente Actualizado" : "Paciente Registrado",
+        editingPaciente ? `Los datos de ${formData.nombre} han sido actualizados` : `${formData.nombre} ha sido añadido a la base de datos`
       );
       loadPacientes();
       closeModal();
@@ -86,10 +87,17 @@ export default function PacientesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Eliminar este paciente?")) return;
-    await fetch(`/api/pacientes/${id}`, { method: "DELETE" });
-    showNotification("Paciente eliminado");
-    setPacientes((prev) => prev.filter((p) => p.id !== id));
+    const paciente = pacientes.find(p => p.id === id);
+    confirmAction({
+      title: "Eliminar Paciente",
+      message: `¿Estás seguro de eliminar a ${paciente?.nombre}? Esta acción borrará permanentemente su historial clínico.`,
+      variant: "danger",
+      onConfirm: async () => {
+        await fetch(`/api/pacientes/${id}`, { method: "DELETE" });
+        showNotification("delete", "Registro Eliminado", `El paciente ${paciente?.nombre || ''} ha sido removido`);
+        setPacientes((prev) => prev.filter((p) => p.id !== id));
+      }
+    });
   };
 
   const openModal = (paciente?: Paciente) => {
@@ -111,11 +119,6 @@ export default function PacientesPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingPaciente(null);
-  };
-
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(""), 3000);
   };
 
   const filteredPacientes = pacientes.filter(
@@ -153,13 +156,6 @@ export default function PacientesPage() {
           className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-xl focus:border-slate-300 outline-none text-[11px] font-bold uppercase tracking-wide transition-all placeholder:text-slate-300 shadow-sm"
         />
       </div>
-
-      {notification && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] md:w-max bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg z-[200] animate-slide-in flex items-center gap-3">
-          <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-          <span className="text-sm font-semibold">{notification}</span>
-        </div>
-      )}
 
       <div className="hidden md:block bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-left">
@@ -253,69 +249,74 @@ export default function PacientesPage() {
         ))}
       </div>
 
-      {/* MODAL REGISTRO - Minimalista */}
+      {/* MODAL REGISTRO/EDICIÓN */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                {editingPaciente ? "Edición de Paciente" : "Nuevo Registro"}
-              </p>
-              <button onClick={closeModal} className="text-slate-300 hover:text-slate-900 transition-colors">
+        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-50">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-[12px] font-black uppercase tracking-[0.3em] text-slate-900">
+                {editingPaciente ? "Editar Paciente" : "Nuevo Registro"}
+              </h2>
+              <button onClick={closeModal} className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Identificación</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Nombre Completo</label>
                   <input
-                    type="text" required value={formData.cedula}
-                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold uppercase tracking-tight transition-all"
-                    placeholder="Documento..."
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Nombre Apellido</label>
-                  <input
-                    type="text" required value={formData.nombre}
+                    type="text"
+                    required
+                    value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold uppercase tracking-tight transition-all"
-                    placeholder="Nombre completo..."
+                    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold uppercase tracking-wide"
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Edad</label>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Cédula</label>
                     <input
-                      type="text" value={formData.edad}
-                      onChange={(e) => setFormData({ ...formData, edad: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold transition-all"
+                      type="text"
+                      required
+                      value={formData.cedula}
+                      onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold font-mono uppercase"
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Sexo</label>
-                    <select
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Edad</label>
+                    <input
+                      type="text"
                       required
-                      value={formData.sexo}
-                      onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold appearance-none transition-all cursor-pointer"
-                    >
-                      <option value="">- SELECCIONAR -</option>
-                      <option value="M">MASCULINO</option>
-                      <option value="F">FEMENINO</option>
-                    </select>
+                      value={formData.edad}
+                      onChange={(e) => setFormData({ ...formData, edad: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold uppercase"
+                    />
                   </div>
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Sexo (Obligatorio)</label>
+                  <select
+                    required
+                    value={formData.sexo}
+                    onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
+                    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold uppercase tracking-wide appearance-none cursor-pointer"
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <button type="submit" className="flex-1 py-3 bg-slate-900 text-white font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
-                  Guardar Cambios
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 py-4 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-slate-800 shadow-xl shadow-slate-200 transition-all active:scale-[0.98]"
+                >
+                  {editingPaciente ? "Actualizar Datos" : "Confirmar Registro"}
                 </button>
               </div>
             </form>
@@ -323,87 +324,65 @@ export default function PacientesPage() {
         </div>
       )}
 
-      {/* MODAL DE GRÁFICA (FULLSCREEN MOBILE) */}
+      {/* MODAL EVOLUCIÓN */}
       {showGraphModal && selectedPaciente && (
-        <div className="fixed inset-0 bg-white sm:bg-slate-900/60 sm:backdrop-blur-md flex items-center justify-center z-[160]">
-          <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden">
-            <div className="p-4 sm:p-6 bg-slate-900 text-white flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <TrendingUp size={18} />
+        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-4xl rounded-[3rem] p-8 shadow-2xl border border-slate-50 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center mb-8 shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg">
+                  <TrendingUp size={20} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold truncate">
-                    Evolución: {selectedPaciente.nombre}
-                  </h2>
-                  <p className="text-[10px] text-slate-400">
-                    CI: {selectedPaciente.cedula}
-                  </p>
+                  <h2 className="text-[12px] font-black uppercase tracking-[0.3em] text-slate-900 leading-none mb-1">Evolución Clínica</h2>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{selectedPaciente.nombre}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowGraphModal(false)}
-                className="p-2 hover:bg-white/10 rounded-lg"
-              >
+              <button onClick={() => setShowGraphModal(false)} className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto bg-slate-50">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-white p-3 rounded-xl border border-slate-200">
-                  <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">
-                    Estudio
-                  </label>
-                  <select
-                    className="w-full bg-transparent font-bold text-sm outline-none"
-                    value={tipoExamen}
-                    onChange={(e) => {
-                      setTipoExamen(e.target.value);
-                      fetchHistory(e.target.value);
-                    }}
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="Hematología">Hematología</option>
-                    <option value="Química Sanguínea">Química Sanguínea</option>
-                  </select>
+            <div className="flex gap-4 mb-6 shrink-0">
+              <select
+                className="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none text-[10px] font-black uppercase tracking-widest"
+                value={tipoExamen || ""}
+                onChange={(e) => {
+                  setTipoExamen(e.target.value);
+                  fetchHistory(e.target.value);
+                }}
+              >
+                <option value="">Seleccionar Tipo...</option>
+                <option value="Hematología">Hematología</option>
+                <option value="Química Clínica">Química Clínica</option>
+                <option value="Coagulación">Coagulación</option>
+              </select>
+
+              <select
+                className="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none text-[10px] font-black uppercase tracking-widest"
+                value={parametro || ""}
+                onChange={(e) => setParametro(e.target.value)}
+                disabled={!evolucionData.length}
+              >
+                <option value="">Seleccionar Parámetro...</option>
+                {evolucionData.length > 0 &&
+                  Object.keys(evolucionData[0].resultados || {}).map((key) => (
+                    <option key={key} value={key}>
+                      {key.toUpperCase()}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex-1 min-h-[300px] border border-slate-50 rounded-[2rem] bg-slate-50/30 p-8 overflow-hidden">
+              {tipoExamen && parametro ? (
+                <GraficaEvolucion data={evolucionData} parametro={parametro} />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-slate-300">
+                  <TrendingUp size={48} strokeWidth={1} className="mb-4 opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Seleccione tipo y parámetro</p>
                 </div>
-
-                {evolucionData.length > 0 && (
-                  <div className="bg-white p-3 rounded-xl border border-slate-200 animate-in fade-in">
-                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">
-                      Parámetro
-                    </label>
-                    <select
-                      className="w-full bg-transparent font-bold text-sm text-blue-600 outline-none"
-                      value={parametro}
-                      onChange={(e) => setParametro(e.target.value)}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {Object.keys(evolucionData[0].valores).map((key) => (
-                        <option key={key} value={key}>
-                          {key.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex-1 min-h-[300px] flex items-center justify-center">
-                {parametro ? (
-                  <div className="w-full h-full">
-                    <GraficaEvolucion
-                      data={evolucionData}
-                      parametro={parametro}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-slate-400 text-xs font-bold text-center">
-                    Seleccione los filtros para ver la gráfica
-                  </p>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>

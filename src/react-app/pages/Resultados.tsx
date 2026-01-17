@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { formatDisplayDate } from "@/utils/date";
+import { useNotification } from "@/react-app/context/NotificationContext";
 
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
 import QuimicaClinicaForm from "@/react-app/components/ExamenForms/QuimicaClinicaForm";
@@ -46,6 +47,7 @@ interface Examen {
 }
 
 export default function ResultadosPage() {
+  const { showNotification, confirmAction } = useNotification();
   const [examenes, setExamenes] = useState<Examen[]>([]);
   const [filteredExamenes, setFilteredExamenes] = useState<Examen[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,7 +59,6 @@ export default function ResultadosPage() {
   const [qrCodeImage, setQrCodeImage] = useState<string>("");
   const [editResultados, setEditResultados] = useState<any>({});
   const [editEstado, setEditEstado] = useState("");
-  const [notification, setNotification] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showPortadaModal, setShowPortadaModal] = useState(false);
 
@@ -68,7 +69,6 @@ export default function ResultadosPage() {
   useEffect(() => {
     let filtered = examenes;
 
-    // Filtrar por término de búsqueda (nombre o cédula)
     if (searchTerm.trim() !== "") {
       filtered = filtered.filter(
         (ex) =>
@@ -77,7 +77,6 @@ export default function ResultadosPage() {
       );
     }
 
-    // Filtrar por estado
     if (statusFilter !== "todos") {
       filtered = filtered.filter((ex) => ex.estado === statusFilter);
     }
@@ -95,8 +94,6 @@ export default function ResultadosPage() {
     }
   };
 
-
-
   const handleOpenPrint = async () => {
     if (!selectedExamen) return;
     try {
@@ -105,7 +102,7 @@ export default function ResultadosPage() {
       setQrCodeImage(qrBase64);
       setShowPrintModal(true);
     } catch (error) {
-      alert("No se pudo generar el código de validación.");
+      showNotification("error", "Error", "No se pudo generar el código de validación");
     }
   };
 
@@ -113,7 +110,6 @@ export default function ResultadosPage() {
     setSelectedExamen(examen);
     setCurrentIndex(index);
     setQrCodeImage("");
-    // En móvil, hacer scroll suave hacia las acciones si se selecciona uno
     if (window.innerWidth < 1280) {
       setTimeout(() => {
         document.getElementById('action-panel')?.scrollIntoView({ behavior: 'smooth' });
@@ -147,7 +143,7 @@ export default function ResultadosPage() {
       });
 
       if (res.ok) {
-        showNotification("Cambios aplicados correctamente");
+        showNotification("success", "Cambios Aplicados", `El estudio de ${selectedExamen.tipo} ha sido actualizado`);
         setShowEditModal(false);
         await loadExamenes();
         setSelectedExamen({
@@ -155,11 +151,10 @@ export default function ResultadosPage() {
           resultados: editResultados,
           estado: editEstado,
         });
-      } else {
-        alert("Error al guardar en el servidor");
       }
     } catch (e) {
       console.error("Error en la petición:", e);
+      showNotification("error", "Error", "No se pudieron guardar los cambios");
     } finally {
       setIsSaving(false);
     }
@@ -167,32 +162,27 @@ export default function ResultadosPage() {
 
   const handleDeleteExamen = async () => {
     if (!selectedExamen) return;
-    const confirmar = window.confirm(
-      `¿Está seguro de eliminar el examen de ${selectedExamen.tipo} para ${selectedExamen.paciente_nombre}? Esta acción no se puede deshacer.`
-    );
+    confirmAction({
+      title: "Eliminar Registro",
+      message: `¿Está seguro de eliminar el examen de ${selectedExamen.tipo} para ${selectedExamen.paciente_nombre}? Esta acción no se puede deshacer.`,
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/examenes/${selectedExamen.id}`, {
+            method: "DELETE",
+          });
 
-    if (!confirmar) return;
-
-    try {
-      const res = await fetch(`/api/examenes/${selectedExamen.id}`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        showNotification("Registro eliminado correctamente");
-        setSelectedExamen(null);
-        loadExamenes();
-      } else {
-        alert("Error al intentar eliminar el registro.");
+          if (res.ok) {
+            showNotification("delete", "Registro Eliminado", `El estudio de ${selectedExamen.tipo} ha sido removido`);
+            setSelectedExamen(null);
+            loadExamenes();
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showNotification("error", "Error", "No se pudo eliminar el registro");
+        }
       }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(""), 3000);
+    });
   };
 
   const getStatusConfig = (estado: string) => {
@@ -292,20 +282,10 @@ export default function ResultadosPage() {
         ))}
       </div>
 
-      {notification && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] animate-in fade-in slide-in-from-bottom-5 w-[90%] md:w-auto">
-          <div className="bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-center gap-3 border border-slate-700">
-            <CheckCircle2 className="text-emerald-400" size={20} />
-            <span className="font-bold text-sm md:text-base">{notification}</span>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         {/* Tabla / Lista de Registros */}
         <div className="xl:col-span-8 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            {/* Desktop Table - Minimalista */}
             <div className="hidden md:block overflow-x-auto max-h-[650px]">
               <table className="w-full text-left">
                 <thead>
@@ -351,7 +331,7 @@ export default function ResultadosPage() {
               </table>
             </div>
 
-            {/* Mobile Cards - Minimalista */}
+            {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-slate-50">
               {filteredExamenes.map((examen, index) => {
                 const isSelected = selectedExamen?.id === examen.id;
@@ -375,7 +355,7 @@ export default function ResultadosPage() {
             </div>
           </div>
 
-          {/* Navegación - Desktop & Mobile */}
+          {/* Pagination/Nav */}
           {selectedExamen && (
             <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-3 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest md:ml-4">
@@ -415,7 +395,7 @@ export default function ResultadosPage() {
           )}
         </div>
 
-        {/* Panel Lateral (Acciones y Detalles) */}
+        {/* Action Panel */}
         <div id="action-panel" className="xl:col-span-4 space-y-6">
           {selectedExamen ? (
             <div className="sticky top-6 space-y-6">
@@ -517,7 +497,7 @@ export default function ResultadosPage() {
         </div>
       )}
 
-      {/* MODAL EDICIÓN - Ampliado y Profesional */}
+      {/* MODAL EDICIÓN */}
       {showEditModal && selectedExamen && (
         <div className="fixed inset-0 z-[1000] flex items-stretch justify-end">
           <div
@@ -525,11 +505,10 @@ export default function ResultadosPage() {
             onClick={() => !isSaving && setShowEditModal(false)}
           />
           <div className="relative w-full max-w-5xl bg-[#F8FAFC] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-out">
-            {/* Header */}
             <div className="px-8 py-6 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                  <Edit2 size={20} /> EDITAR RESULTADOS
+                  <Edit2 size={20} />
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">Editor de Resultados</h2>
@@ -546,15 +525,12 @@ export default function ResultadosPage() {
               </button>
             </div>
 
-            {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar scroll-smooth">
               <div className="max-w-4xl mx-auto space-y-8">
-                {/* Form Wrapper */}
                 <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 lg:p-10">
                   {renderExamenForm()}
                 </div>
 
-                {/* Status Switcher */}
                 <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
                   <h3 className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-[0.2em] flex items-center gap-2 px-2">
                     <CheckCircle2 size={14} /> Estatus del Informe Final
@@ -587,7 +563,6 @@ export default function ResultadosPage() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="px-8 py-6 bg-white border-t border-slate-200 flex gap-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
               <button
                 onClick={() => setShowEditModal(false)}

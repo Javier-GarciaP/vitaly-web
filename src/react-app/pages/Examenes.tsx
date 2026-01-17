@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, X, User, CheckCircle2, Activity, Search, ClipboardList } from "lucide-react";
+import { Plus, X, User, Activity, Search, ClipboardList } from "lucide-react";
 import { getTodayDate } from "@/utils/date";
+import { useNotification } from "@/react-app/context/NotificationContext";
 
 interface Paciente {
   id: number;
@@ -9,9 +10,9 @@ interface Paciente {
 }
 
 export default function ExamenesPage() {
+  const { showNotification } = useNotification();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [notification, setNotification] = useState("");
 
   const [pacienteInput, setPacienteInput] = useState("");
   const [showSugerencias, setShowSugerencias] = useState(false);
@@ -89,10 +90,12 @@ export default function ExamenesPage() {
 
       const respuestas = await Promise.all(promesas);
       if (respuestas.every(res => res.ok)) {
-        showNotification(`${selectedTipos.length} estudios registrados`);
+        showNotification("success", "Orden Generada", `${selectedTipos.length} estudios han sido registrados correctamente`);
         closeModal();
       }
-    } catch (e) { alert("Error al guardar."); }
+    } catch (e) {
+      showNotification("error", "Error", "No se pudo procesar la solicitud");
+    }
   };
 
   const openModal = () => {
@@ -104,11 +107,6 @@ export default function ExamenesPage() {
   };
 
   const closeModal = () => { setShowModal(false); setShowSugerencias(false); };
-
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(""), 3000);
-  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-10">
@@ -128,14 +126,6 @@ export default function ExamenesPage() {
           <Plus size={14} /> Nueva Orden
         </button>
       </div>
-
-      {/* NOTIFICACIÓN FLOTANTE */}
-      {notification && (
-        <div className="fixed bottom-8 right-8 bg-slate-900/90 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 z-[100] animate-slide-in">
-          <CheckCircle2 className="text-emerald-400" size={18} />
-          <span className="font-semibold text-sm">{notification}</span>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* COLUMNA IZQUIERDA - Minimalista */}
@@ -178,7 +168,7 @@ export default function ExamenesPage() {
       {/* MODAL ORDEN - Minimalista */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-sm:aspect-auto max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-50 flex justify-between items-center">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
                 Nueva Orden de Laboratorio

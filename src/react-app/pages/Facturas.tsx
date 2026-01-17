@@ -5,12 +5,11 @@ import {
   X,
   Search,
   Edit2,
-  Check,
   Receipt,
   ChevronRight
 } from "lucide-react";
 
-import { useAppSounds } from "@/utils/sounds";
+import { useNotification } from "@/react-app/context/NotificationContext";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput, numberToWords } from "@/utils/currency";
 import { getTodayDate } from "@/utils/date";
 
@@ -46,11 +45,11 @@ interface Factura {
 }
 
 export default function FacturasPage() {
+  const { showNotification, confirmAction } = useNotification();
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [examenesPredefinidos, setExamenesPredefinidos] = useState<ExamenPredefinido[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [notification, setNotification] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -65,8 +64,6 @@ export default function FacturasPage() {
   const [busquedaExamen, setBusquedaExamen] = useState("");
   const [selectedExamenIndex, setSelectedExamenIndex] = useState(0);
   const [customExamen, setCustomExamen] = useState({ nombre: "", precio: "" });
-
-  const { playSuccess, playDelete } = useAppSounds();
 
   useEffect(() => {
     loadFacturas();
@@ -127,6 +124,7 @@ export default function FacturasPage() {
     setIsNuevoPaciente(false);
     setFecha(getTodayDate());
     setShowModal(true);
+    (window as any)._selected_patient_id = null;
   };
 
   const closeModal = () => {
@@ -137,7 +135,6 @@ export default function FacturasPage() {
   const seleccionarPaciente = (p: Paciente) => {
     setPacienteInput(p.nombre);
     setNuevoPaciente({ nombre: p.nombre, cedula: p.cedula, edad: p.edad || "", sexo: p.sexo || "" });
-    // Guardamos el ID en un ref oculto o manejamos el estado
     (window as any)._selected_patient_id = p.id;
     setShowSugerencias(false);
     setIsNuevoPaciente(false);
@@ -145,7 +142,6 @@ export default function FacturasPage() {
 
   const toggleNuevoPaciente = () => {
     if (!isNuevoPaciente) {
-      // Auto-completar según lo buscado
       const input = pacienteInput.trim();
       const esCedula = /^\d+$/.test(input);
       setNuevoPaciente({
@@ -154,13 +150,14 @@ export default function FacturasPage() {
         edad: "",
         sexo: ""
       });
+      (window as any)._selected_patient_id = null;
     }
     setIsNuevoPaciente(!isNuevoPaciente);
   };
 
   const handleRegistrarPaciente = async () => {
     if (!nuevoPaciente.nombre || !nuevoPaciente.cedula || !nuevoPaciente.sexo) {
-      alert("Nombre, Cédula y Sexo son requeridos");
+      showNotification("error", "Datos Incompletos", "Nombre, Cédula y Sexo son obligatorios");
       return;
     }
     try {
@@ -172,17 +169,14 @@ export default function FacturasPage() {
       if (!res.ok) throw new Error("Error al guardar paciente");
       const newP = (await res.json()) as Paciente;
 
-      // Seleccionar automáticamente
       (window as any)._selected_patient_id = newP.id;
       setPacienteInput(newP.nombre);
       setIsNuevoPaciente(false);
-      loadPacientes(); // Recargar lista para que aparezca en el estado local si es necesario
-      setNotification("Paciente registrado y seleccionado");
-      setTimeout(() => setNotification(""), 3000);
-      playSuccess();
+      loadPacientes();
+      showNotification("success", "Paciente Registrado", `${newP.nombre} ha sido añadido y seleccionado`);
     } catch (e) {
       console.error(e);
-      alert("Error al registrar paciente");
+      showNotification("error", "Error", "No se pudo registrar al paciente");
     }
   };
 
@@ -198,6 +192,15 @@ export default function FacturasPage() {
 
   const total = carrito.reduce((sum, item) => sum + item.precio, 0);
 
+  const resetPOS = () => {
+    setEditingId(null);
+    setPacienteInput("");
+    setCarrito([]);
+    setIsNuevoPaciente(false);
+    setBusquedaExamen("");
+    (window as any)._selected_patient_id = null;
+  };
+
   const handleGuardarFactura = async () => {
     if (carrito.length === 0) return;
 
@@ -205,10 +208,9 @@ export default function FacturasPage() {
 
     setIsSaving(true);
     try {
-      // Si llegamos aquí con el formulario de nuevo paciente abierto y no ha sido registrado
       if (isNuevoPaciente && !patientId) {
         if (!nuevoPaciente.nombre || !nuevoPaciente.cedula) {
-          alert("Nombre y Cédula son requeridos");
+          showNotification("error", "Datos de Paciente", "Complete nombre y cédula para continuar");
           setIsSaving(false);
           return;
         }
@@ -224,7 +226,7 @@ export default function FacturasPage() {
       }
 
       if (!patientId) {
-        alert("Seleccione o registre un paciente");
+        showNotification("info", "Falta Paciente", "Debe elegir o registrar un paciente");
         setIsSaving(false);
         return;
       }
@@ -245,29 +247,37 @@ export default function FacturasPage() {
       });
 
       if (res.ok) {
-        setNotification(editingId ? "Actualizado correctamente" : "Venta completada");
-        setTimeout(() => setNotification(""), 3000);
+        showNotification("success", editingId ? "Factura Actualizada" : "Factura Generada", `Total: ${formatCurrency(total)}`);
         loadFacturas();
-        closeModal();
-        playSuccess();
+        setShowModal(false);
+        resetPOS();
       }
     } catch (e) {
       console.error(e);
-      alert("Error en el proceso de facturación");
+      showNotification("error", "Error", "Error en el proceso de facturación");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleEliminarFactura = async (id: number) => {
-    if (!confirm("¿Eliminar registro?")) return;
-    try {
-      const res = await fetch(`/api/facturas/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        loadFacturas();
-        playDelete();
+    confirmAction({
+      title: "Eliminar Factura",
+      message: "¿Estás seguro de eliminar este registro? Esta acción removerá permanentemente la factura del historial.",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/facturas/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            showNotification("delete", "Factura Eliminada", "El registro ha sido removido del historial");
+            loadFacturas();
+          }
+        } catch (e) {
+          console.error(e);
+          showNotification("error", "Error", "No se pudo eliminar la factura");
+        }
       }
-    } catch (e) { console.error(e); }
+    });
   };
 
   const handleEditarFactura = (f: Factura) => {
@@ -322,7 +332,7 @@ export default function FacturasPage() {
                   <p className="text-[11px] font-bold text-slate-700 uppercase leading-none mb-1">{f.paciente_nombre}</p>
                   <p className="text-[9px] text-slate-400 font-bold font-mono">{f.paciente_cedula}</p>
                 </td>
-                <td className="px-6 py-4 text-[11px] font-bold text-slate-500">{f.fecha.split("-").reverse().join("/")}</td>
+                <td className="px-6 py-4 text-[11px] font-bold text-slate-500">{f.fecha?.split("-").reverse().join("/") || "N/A"}</td>
                 <td className="px-6 py-4 text-right font-black text-slate-900 text-xs">${formatCurrency(f.total)}</td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -524,13 +534,6 @@ export default function FacturasPage() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {notification && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl z-[200] animate-in slide-in-from-bottom-10 flex items-center gap-3">
-          <Check size={18} className="text-emerald-400" />
-          <span className="font-bold text-sm tracking-tight">{notification}</span>
         </div>
       )}
     </div>
