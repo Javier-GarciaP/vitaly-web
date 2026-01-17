@@ -120,182 +120,179 @@ export default function MiscelaneosForm({
     }
   };
 
-  const labelBase = "text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block";
-  const inputBase = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-slate-900 transition-all placeholder:text-slate-300";
+  /* ESTILOS MINIMALISTAS */
+  const labelBase = "text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block";
+  const inputBase = "w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-slate-900 transition-all placeholder:text-slate-300";
+  const sectionCard = "p-4 rounded-xl bg-white border border-slate-100 shadow-sm transition-all hover:shadow-md";
 
   if (!Array.isArray(resultados)) return null;
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh] overflow-hidden bg-white border border-slate-200 rounded-2xl">
-
-      {/* TABS - Minimalista */}
-      <div className="flex items-center gap-1 p-2 bg-slate-50 border-b border-slate-200 overflow-x-auto no-scrollbar">
+    <div className="flex flex-col h-full bg-white w-full">
+      {/* TABS DE EXÁMENES */}
+      <div className="flex items-center gap-2 pb-2 bg-white border-b border-slate-100 overflow-x-auto no-scrollbar mb-4">
         {resultados.map((ex: any, i: number) => (
-          <div key={i} className="flex-shrink-0 flex items-center">
+          <div key={i} className="flex-shrink-0 flex items-center group">
             <button
               onClick={() => setIndexActivo(i)}
-              className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${indexActivo === i
-                ? "bg-slate-900 text-white"
-                : "text-slate-400 hover:bg-slate-200"
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${indexActivo === i
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-400 border-slate-200 hover:border-slate-300"
                 }`}
             >
-              {ex.examen_solicitado || `Estudio ${i + 1}`}
+              <span className="truncate max-w-[80px] inline-block align-bottom">{ex.examen_solicitado || `Estudio ${i + 1}`}</span>
             </button>
-            <button
-              onClick={() => eliminarExamenDeLista(i)}
-              className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors mr-2"
-            >
-              <X size={12} />
-            </button>
+            {resultados.length > 1 && (
+              <button
+                onClick={() => eliminarExamenDeLista(i)}
+                className="ml-1 p-1 text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <X size={10} />
+              </button>
+            )}
           </div>
         ))}
         <button
           onClick={agregarNuevoExamen}
-          className="p-1.5 text-slate-400 hover:text-slate-900 transition-colors border-l border-slate-200 pl-3 ml-1"
+          className="p-1.5 bg-slate-50 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all border border-slate-200"
           title="Añadir Estudio"
         >
-          <Plus size={16} />
+          <Plus size={14} />
         </button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex-1 space-y-4 pb-20">
 
-        {/* EDITOR */}
-        <div className={`flex-1 flex flex-col p-6 space-y-4 overflow-y-auto custom-scrollbar transition-all ${showLibrary ? 'mr-0' : ''}`}>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className={labelBase}>Estudio</label>
-              <input
-                type="text"
-                value={resultados[indexActivo]?.examen_solicitado || ""}
-                onChange={(e) => handleChange("examen_solicitado", e.target.value)}
-                className={inputBase}
-                placeholder="Nombre del examen"
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Método</label>
-              <input
-                type="text"
-                value={resultados[indexActivo]?.metodo || ""}
-                onChange={(e) => handleChange("metodo", e.target.value)}
-                className={inputBase}
-                placeholder="Método utilizado"
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Muestra</label>
-              <input
-                type="text"
-                value={resultados[indexActivo]?.muestra || ""}
-                onChange={(e) => handleChange("muestra", e.target.value)}
-                className={inputBase}
-                placeholder="Tipo de muestra"
-              />
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col min-h-[300px] mt-4">
-            <div className="flex justify-between items-center mb-2 px-1">
-              <label className={labelBase}>Resultados / Informe</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={guardarComoPlantilla}
-                  disabled={isSaving}
-                  className="text-[9px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
-                >
-                  Guardar Plantilla
-                </button>
-                <span className="text-slate-200">|</span>
-                <button
-                  onClick={() => setShowLibrary(!showLibrary)}
-                  className={`text-[9px] font-bold uppercase transition-colors ${showLibrary ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                >
-                  {showLibrary ? 'Cerrar Biblioteca' : 'Ver Plantillas'}
-                </button>
+        <div className={sectionCard}>
+          <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className={labelBase}>Estudio Solicitado</label>
+                <input
+                  type="text"
+                  value={resultados[indexActivo]?.examen_solicitado || ""}
+                  onChange={(e) => handleChange("examen_solicitado", e.target.value)}
+                  className={inputBase}
+                  placeholder="Nombre del examen"
+                />
               </div>
             </div>
-
-            <textarea
-              value={resultados[indexActivo]?.resultado_texto || ""}
-              onChange={(e) => handleChange("resultado_texto", e.target.value)}
-              className="flex-1 w-full p-4 bg-white border border-slate-200 rounded-xl focus:border-slate-900 outline-none text-sm leading-relaxed text-slate-600 resize-none transition-all"
-              placeholder="Describa los resultados..."
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelBase}>Método</label>
+                <input
+                  type="text"
+                  value={resultados[indexActivo]?.metodo || ""}
+                  onChange={(e) => handleChange("metodo", e.target.value)}
+                  className={inputBase}
+                  placeholder="Método..."
+                />
+              </div>
+              <div>
+                <label className={labelBase}>Muestra</label>
+                <input
+                  type="text"
+                  value={resultados[indexActivo]?.muestra || ""}
+                  onChange={(e) => handleChange("muestra", e.target.value)}
+                  className={inputBase}
+                  placeholder="Tipo..."
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* BIBLIOTECA LATERAL */}
-        {showLibrary && (
-          <div className="w-72 bg-slate-900 flex flex-col border-l border-slate-800 animate-in slide-in-from-right duration-200">
-            <div className="p-4 border-b border-slate-800">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                  <Layers size={14} className="text-indigo-400" /> Mis Plantillas
-                </span>
-                <button onClick={() => setShowLibrary(false)} className="text-slate-400 hover:text-white transition-colors">
-                  <X size={16} />
-                </button>
-              </div>
+        <div className="flex-1 flex flex-col">
+          <div className="flex justify-between items-center mb-2 px-1">
+            <label className={labelBase}>Resultados / Informe</label>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLibrary(true)}
+                className="text-[9px] font-bold uppercase text-slate-400 hover:text-indigo-600 transition-colors flex items-center gap-1"
+              >
+                <Search size={10} /> Plantillas
+              </button>
+              <button
+                onClick={guardarComoPlantilla}
+                disabled={isSaving}
+                className="text-[9px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            value={resultados[indexActivo]?.resultado_texto || ""}
+            onChange={(e) => handleChange("resultado_texto", e.target.value)}
+            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-slate-900 outline-none text-xs leading-relaxed text-slate-700 resize-none transition-all min-h-[200px]"
+            placeholder="Describa los resultados..."
+          />
+        </div>
+      </div>
+
+      {/* BIBLIOTECA - MODAL */}
+      {showLibrary && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={() => setShowLibrary(false)} />
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col max-h-[60vh] overflow-hidden animate-in zoom-in-95 duration-200">
+
+            <div className="p-3 border-b flex justify-between items-center bg-slate-50">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Layers size={12} /> Biblioteca Misceláneos
+              </span>
+              <button onClick={() => setShowLibrary(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={16} /></button>
+            </div>
+
+            <div className="p-2 border-b">
               <div className="relative">
-                <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="FILTRAR..."
+                  placeholder="BUSCAR..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-800 border-none rounded-lg py-2 pl-9 pr-4 text-[10px] text-white outline-none focus:ring-1 focus:ring-indigo-500 uppercase font-bold"
+                  className="w-full bg-slate-100 border-none rounded-lg py-1.5 pl-8 pr-3 text-[10px] text-slate-600 outline-none focus:ring-1 focus:ring-slate-300 uppercase font-bold"
                 />
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
               {plantillasFiltradas.length > 0 ? (
                 plantillasFiltradas.map((p) => (
-                  <div key={p.id} className="group relative">
+                  <div key={p.id} className="group relative flex items-center">
                     <button
-                      onClick={() => aplicarPlantilla(p)}
-                      className="w-full text-left p-3 bg-slate-800/40 border border-slate-800 rounded-lg hover:border-indigo-500/50 hover:bg-slate-800 transition-all pr-10"
+                      onClick={() => { aplicarPlantilla(p); setShowLibrary(false); }}
+                      className="flex-1 text-left p-2 hover:bg-slate-50 rounded-lg transition-all"
                     >
-                      <div className="font-bold text-[10px] text-indigo-100 uppercase truncate">
+                      <div className="font-bold text-[10px] text-slate-700 uppercase truncate">
                         {p.nombre_examen}
                       </div>
-                      <div className="text-[8px] text-slate-500 uppercase mt-1">
+                      <div className="text-[8px] text-slate-400 uppercase mt-0.5">
                         {p.metodo || 'Sin método'}
                       </div>
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); eliminarPlantillaBase(p.id); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Trash2 size={12} />
                     </button>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">No hay plantillas</p>
+                <div className="text-center py-8">
+                  <p className="text-[9px] text-slate-300 font-bold uppercase">No hay plantillas</p>
                 </div>
               )}
             </div>
-
-            <div className="p-4 bg-indigo-900/10 border-t border-slate-800">
-              <p className="text-[9px] text-indigo-300 font-medium leading-tight text-center">
-                Al crear una plantilla, aparecerá aquí automáticamente.
-              </p>
-            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
       `}</style>
     </div>
   );

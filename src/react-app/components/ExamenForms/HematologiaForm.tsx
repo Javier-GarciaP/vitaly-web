@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Activity, Beaker, BarChart3, Clock, FileText } from "lucide-react";
+import { Activity, Beaker, BarChart3, Clock } from "lucide-react";
 
 interface HematologiaFormProps {
   resultados: any;
@@ -70,33 +70,30 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
     }
   };
 
-  const sectionCard = "bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-5 transition-all hover:shadow-md";
-  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
-  const inputBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-red-500 focus:bg-white transition-all placeholder:text-slate-300";
+  const sectionCard = "p-5 rounded-2xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-slate-50 group";
+  const labelBase = "text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block";
+  const inputBase = "w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[13px] font-bold text-slate-700 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:text-slate-300";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-10" ref={formRef} onKeyDown={handleKeyDown}>
-      
-      {/* HEADER PRINCIPAL */}
-      <div className="flex items-center gap-4 bg-slate-900 p-6 rounded-[2.5rem] text-white shadow-xl">
-        <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/20">
-          <Activity size={24} />
+    <div className="w-full space-y-6 pb-20" ref={formRef} onKeyDown={handleKeyDown}>
+
+      {/* HEADER SIMPLE */}
+      <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+        <div className="w-8 h-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center">
+          <Activity size={16} />
         </div>
-        <div>
-          <h3 className="text-xl font-black tracking-tight">Hematología Completa</h3>
-          <p className="text-[10px] font-bold text-red-400 uppercase tracking-[0.2em]">Citometría Hemática y VSG</p>
-        </div>
+        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Hematología Completa</h3>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+      <div className="grid grid-cols-1 gap-6">
+
         {/* SERIE ROJA */}
         <div className={sectionCard}>
-          <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">
-            <Beaker size={18} className="text-red-500" />
-            <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider">Serie Roja (Eritrocitos)</h4>
+          <div className="flex items-center gap-2 mb-4">
+            <Beaker size={14} className="text-red-500" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Serie Roja</h4>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Hematíes</label>
               <input name="hematies" type="text" value={resultados?.hematies || ""} onChange={(e) => handleChange("hematies", e.target.value)} className={inputBase} placeholder="4.5 - 5.5" />
@@ -126,87 +123,81 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
 
         {/* SERIE BLANCA Y PLAQUETAS */}
         <div className={sectionCard}>
-          <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">
-            <BarChart3 size={18} className="text-red-500" />
-            <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider">Serie Blanca y Plaquetas</h4>
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 size={14} className="text-red-500" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Serie Blanca & Plaquetas</h4>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="col-span-1">
-              <label className={labelBase}>Leucocitos</label>
-              <input name="leucocitos" type="text" value={resultados?.leucocitos || ""} onChange={(e) => handleChange("leucocitos", e.target.value)} className={`${inputBase} border-blue-100 bg-blue-50/30`} placeholder="5k - 10k" />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelBase}>Leucocitos</label>
+                <input name="leucocitos" type="text" value={resultados?.leucocitos || ""} onChange={(e) => handleChange("leucocitos", e.target.value)} className={`${inputBase} bg-blue-50/10 border-blue-200 focus:border-blue-500 focus:ring-blue-500/10`} placeholder="5k - 10k" />
+              </div>
+              <div>
+                <label className={labelBase}>Plaquetas</label>
+                <input name="plaquetas" type="text" value={resultados?.plaquetas || ""} onChange={(e) => handleChange("plaquetas", e.target.value)} className={`${inputBase} bg-blue-50/10 border-blue-200 focus:border-blue-500 focus:ring-blue-500/10`} placeholder="150k - 450k" />
+              </div>
             </div>
-            <div className="col-span-1">
-              <label className={labelBase}>Plaquetas</label>
-              <input name="plaquetas" type="text" value={resultados?.plaquetas || ""} onChange={(e) => handleChange("plaquetas", e.target.value)} className={`${inputBase} border-blue-100 bg-blue-50/30`} placeholder="150k - 450k" />
-            </div>
-            <div className="hidden md:block"></div> {/* Spacer */}
-            
-            <div>
-              <label className={labelBase}>Neutrófilos</label>
-              <input name="neutrofilos" type="text" value={resultados?.neutrofilos || ""} onChange={(e) => handleChange("neutrofilos", e.target.value)} className={inputBase} placeholder="55 - 70" />
-            </div>
-            <div>
-              <label className={labelBase}>Linfocitos</label>
-              <input name="linfocitos" type="text" value={resultados?.linfocitos || ""} onChange={(e) => handleChange("linfocitos", e.target.value)} className={inputBase} placeholder="20 - 40" />
-            </div>
-            <div>
-              <label className={labelBase}>Monocitos</label>
-              <input name="monocitos" type="text" value={resultados?.monocitos || ""} onChange={(e) => handleChange("monocitos", e.target.value)} className={inputBase} placeholder="2 - 8" />
-            </div>
-            <div>
-              <label className={labelBase}>Eosinófilos</label>
-              <input name="eosinofilos" type="text" value={resultados?.eosinofilos || ""} onChange={(e) => handleChange("eosinofilos", e.target.value)} className={inputBase} placeholder="1 - 4" />
-            </div>
-            <div>
-              <label className={labelBase}>Basófilos</label>
-              <input name="basofilos" type="text" value={resultados?.basofilos || ""} onChange={(e) => handleChange("basofilos", e.target.value)} className={inputBase} placeholder="0 - 1" />
+
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-100">
+              <div className="col-span-1">
+                <label className={labelBase}>Neut.</label>
+                <input name="neutrofilos" type="text" value={resultados?.neutrofilos || ""} onChange={(e) => handleChange("neutrofilos", e.target.value)} className={inputBase} placeholder="%" />
+              </div>
+              <div className="col-span-1">
+                <label className={labelBase}>Linf.</label>
+                <input name="linfocitos" type="text" value={resultados?.linfocitos || ""} onChange={(e) => handleChange("linfocitos", e.target.value)} className={inputBase} placeholder="%" />
+              </div>
+              <div className="col-span-1">
+                <label className={labelBase}>Mono.</label>
+                <input name="monocitos" type="text" value={resultados?.monocitos || ""} onChange={(e) => handleChange("monocitos", e.target.value)} className={inputBase} placeholder="%" />
+              </div>
+              <div className="col-span-1">
+                <label className={labelBase}>Eos.</label>
+                <input name="eosinofilos" type="text" value={resultados?.eosinofilos || ""} onChange={(e) => handleChange("eosinofilos", e.target.value)} className={inputBase} placeholder="%" />
+              </div>
+              <div className="col-span-1">
+                <label className={labelBase}>Baso.</label>
+                <input name="basofilos" type="text" value={resultados?.basofilos || ""} onChange={(e) => handleChange("basofilos", e.target.value)} className={inputBase} placeholder="%" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* V.S.G. Y KATZ */}
-        <div className={`${sectionCard} lg:col-span-2 !bg-slate-50 border-slate-200`}>
-          <div className="flex items-center gap-2 mb-2 border-b border-slate-200 pb-3">
-            <Clock size={18} className="text-slate-600" />
-            <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider">Velocidad de Sedimentación Globular</h4>
+        <div className={sectionCard}>
+          <div className="flex items-center gap-2 mb-4">
+            <Clock size={14} className="text-slate-400" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">VSG & Índice de Katz</h4>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
-              <label className={labelBase}>Lectura 1 Hora</label>
-              <input name="vsg_1h" type="text" value={resultados?.vsg_1h || ""} onChange={(e) => handleChange("vsg_1h", e.target.value)} className={`${inputBase} !bg-white`} placeholder="mm" />
+              <label className={labelBase}>1ª Hora</label>
+              <input name="vsg_1h" type="text" value={resultados?.vsg_1h || ""} onChange={(e) => handleChange("vsg_1h", e.target.value)} className={inputBase} placeholder="mm" />
             </div>
             <div>
-              <label className={labelBase}>Lectura 2 Horas</label>
-              <input name="vsg_2h" type="text" value={resultados?.vsg_2h || ""} onChange={(e) => handleChange("vsg_2h", e.target.value)} className={`${inputBase} !bg-white`} placeholder="mm" />
+              <label className={labelBase}>2ª Hora</label>
+              <input name="vsg_2h" type="text" value={resultados?.vsg_2h || ""} onChange={(e) => handleChange("vsg_2h", e.target.value)} className={inputBase} placeholder="mm" />
             </div>
-            <div className="relative group">
-              <label className={`${labelBase} text-red-600`}>Índice de Katz</label>
+            <div className="col-span-2 lg:col-span-1">
+              <label className={`${labelBase} text-red-500`}>Índice Katz</label>
               <div className="relative">
-                <input 
-                  name="vsg_indice" 
-                  type="text" 
-                  value={resultados?.vsg_indice || ""} 
-                  readOnly 
-                  className="w-full bg-red-600 border-2 border-red-700 rounded-xl px-4 py-2.5 text-lg font-black text-white outline-none shadow-lg shadow-red-200" 
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-red-200 font-bold uppercase tracking-tighter">Auto</div>
+                <input name="vsg_indice" type="text" value={resultados?.vsg_indice || ""} readOnly className={`${inputBase} bg-red-50 border-red-100 text-red-600 font-black`} />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-red-300 uppercase">Auto</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* OBSERVACIONES */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center gap-2 mb-2 ml-4">
-            <FileText size={14} className="text-slate-400" />
-            <label className={labelBase}>Observaciones de Frotis / Morfología</label>
-          </div>
+        <div>
+          <label className={labelBase}>Notas / Observaciones</label>
           <textarea
             name="observacion"
             value={resultados?.observacion || ""}
             onChange={(e) => handleChange("observacion", e.target.value)}
-            className="w-full bg-white border-2 border-slate-100 rounded-[2rem] px-8 py-6 text-sm font-medium text-slate-600 outline-none focus:border-red-500 transition-all min-h-[120px] shadow-sm resize-none"
-            placeholder="Describa anisocitosis, poiquilocitosis, hipocromía o presencia de células inmaduras..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 outline-none focus:border-slate-400 focus:bg-white transition-all min-h-[80px] resize-none"
+            placeholder="Observaciones adicionales..."
           />
         </div>
       </div>

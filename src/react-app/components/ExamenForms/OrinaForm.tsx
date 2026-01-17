@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Droplets, TestTube, Microscope, ClipboardCheck, AlertCircle } from "lucide-react";
+import { Droplets, TestTube, Microscope, ClipboardCheck } from "lucide-react";
 
 interface OrinaFormProps {
   resultados: any;
@@ -61,34 +61,31 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
     }
   };
 
-  const sectionCard = "bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-5 transition-all hover:shadow-md";
-  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
-  const selectBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-amber-500 focus:bg-white transition-all appearance-none cursor-pointer";
-  const inputBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-amber-500 focus:bg-white transition-all placeholder:text-slate-300";
+  const sectionCard = "p-5 rounded-2xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-slate-50 group";
+  const labelBase = "text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block";
+  const selectBase = "w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[12px] font-bold text-slate-700 outline-none focus:border-amber-500 transition-all cursor-pointer";
+  const inputBase = "w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[12px] font-bold text-slate-700 outline-none focus:border-amber-500 transition-all placeholder:text-slate-300";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-10" ref={formRef} onKeyDown={handleKeyDown}>
+    <div className="w-full space-y-6 pb-20" ref={formRef} onKeyDown={handleKeyDown}>
 
-      {/* HEADER DINÁMICO */}
-      <div className="flex items-center gap-4 bg-amber-500 p-6 rounded-[2.5rem] text-white shadow-xl shadow-amber-500/10">
-        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
-          <Droplets size={24} />
+      {/* HEADER SIMPLE */}
+      <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+        <div className="w-8 h-8 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center">
+          <Droplets size={16} />
         </div>
-        <div>
-          <h3 className="text-xl font-black tracking-tight text-white">Uroanálisis Completo</h3>
-          <p className="text-[10px] font-bold text-amber-100 uppercase tracking-[0.2em]">Examen Físico - Químico - Sedimento</p>
-        </div>
+        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Uroanálisis Completo</h3>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
 
-        {/* CARACTERES GENERALES (FÍSICO) */}
+        {/* CARACTERES GENERALES */}
         <div className={sectionCard}>
-          <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">
-            <ClipboardCheck size={18} className="text-amber-500" />
-            <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider">Análisis Físico</h4>
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardCheck size={14} className="text-amber-500" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Análisis Físico</h4>
           </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelBase}>Aspecto</label>
               <select value={resultados?.aspecto || "Lig. Turbia"} onChange={(e) => handleChange("aspecto", e.target.value)} className={selectBase}>
@@ -106,40 +103,37 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
                 <option value="Incoloro">Incoloro</option>
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelBase}>Reacción</label>
-                <select value={resultados?.reaccion || "Acida"} onChange={(e) => handleChange("reaccion", e.target.value)} className={selectBase}>
-                  <option value="Acida">Acida</option>
-                  <option value="Alcalina">Alcalina</option>
-                  <option value="Neutra">Neutra</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelBase}>PH</label>
-                <input type="text" value={resultados?.ph || ""} onChange={(e) => handleChange("ph", e.target.value)} className={inputBase} placeholder="5.0 - 7.0" />
-              </div>
+            <div>
+              <label className={labelBase}>Reacción</label>
+              <select value={resultados?.reaccion || "Acida"} onChange={(e) => handleChange("reaccion", e.target.value)} className={selectBase}>
+                <option value="Acida">Acida</option>
+                <option value="Alcalina">Alcalina</option>
+                <option value="Neutra">Neutra</option>
+              </select>
             </div>
             <div>
-              <label className={labelBase}>Densidad</label>
-              <input type="text" value={resultados?.densidad || ""} onChange={(e) => handleChange("densidad", e.target.value)} className={inputBase} placeholder="1.015 - 1.025" />
+              <label className={labelBase}>PH / Densidad</label>
+              <div className="flex gap-2">
+                <input type="text" value={resultados?.ph || ""} onChange={(e) => handleChange("ph", e.target.value)} className={inputBase} placeholder="PH" />
+                <input type="text" value={resultados?.densidad || ""} onChange={(e) => handleChange("densidad", e.target.value)} className={inputBase} placeholder="Dens." />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* EXAMEN QUÍMICO */}
-        <div className={`${sectionCard} lg:col-span-2`}>
-          <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">
-            <TestTube size={18} className="text-amber-500" />
-            <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider">Examen Químico (Tira Reactiva)</h4>
+        {/* QUÍMICO */}
+        <div className={sectionCard}>
+          <div className="flex items-center gap-2 mb-4">
+            <TestTube size={14} className="text-amber-500" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Examen Químico</h4>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { label: "Pigmento Bil.", key: "pigmento_bil" },
+              { label: "P. Biliar", key: "pigmento_bil" },
               { label: "Glucosa", key: "glucosa" },
               { label: "Nitritos", key: "nitritos" },
               { label: "Proteína", key: "proteina" },
-              { label: "Hemoglobina", key: "hemoglobina" },
+              { label: "Hb", key: "hemoglobina" },
               { label: "Acetona", key: "acetona" },
             ].map((item) => (
               <div key={item.key}>
@@ -147,7 +141,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
                 <select
                   value={resultados?.[item.key] || "Negativo"}
                   onChange={(e) => handleChange(item.key, e.target.value)}
-                  className={`${selectBase} ${resultados?.[item.key]?.includes('Post') ? '!border-red-300 !bg-red-50' : ''}`}
+                  className={`${selectBase} ${resultados?.[item.key]?.includes('Post') ? '!bg-rose-50 text-rose-600 !border-rose-100' : ''}`}
                 >
                   <option value="Negativo">Negativo</option>
                   <option value="Trazas">Trazas</option>
@@ -161,105 +155,77 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
               <label className={labelBase}>Urobilín</label>
               <select value={resultados?.urobilin || "Normal"} onChange={(e) => handleChange("urobilin", e.target.value)} className={selectBase}>
                 <option value="Normal">Normal</option>
-                <option value="Lig. Aumentado">Lig. Aumentado</option>
+                <option value="Lig. Aumentado">Lig. Aum.</option>
                 <option value="Aumentado">Aumentado</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* EXAMEN MICROSCÓPICO (SEDIMENTO) */}
-        <div className={`${sectionCard} lg:col-span-3 !bg-slate-900 text-white`}>
-          <div className="flex items-center gap-2 mb-2 border-b border-slate-700 pb-3">
-            <Microscope size={18} className="text-amber-400" />
-            <h4 className="font-black text-amber-50 text-xs uppercase tracking-wider">Sedimento Urinario (Microscopio)</h4>
+        {/* SEDIMENTO - AHORA TEMA CLARO */}
+        <div className={sectionCard}>
+          <div className="flex items-center gap-2 mb-4">
+            <Microscope size={14} className="text-amber-500" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Sedimento Urinario</h4>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4">
             <div>
-              <label className={`${labelBase} text-slate-500`}>Leucocitos</label>
-              <input
-                type="text"
-                name="leucocitos"
-                value={resultados?.leucocitos || ""}
-                onChange={(e) => handleChange("leucocitos", e.target.value)}
-                className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`}
-                placeholder="0-2 xc"
-              />
+              <label className={labelBase}>Leucocitos</label>
+              <input type="text" name="leucocitos" value={resultados?.leucocitos || ""} onChange={(e) => handleChange("leucocitos", e.target.value)} className={inputBase} placeholder="0-2 xc" />
             </div>
             <div>
-              <label className={`${labelBase} text-slate-500`}>Hematies</label>
-              <input
-                type="text"
-                name="hematies"
-                value={resultados?.hematies || ""}
-                onChange={(e) => handleChange("hematies", e.target.value)}
-                className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`}
-                placeholder="0-1 xc"
-              />
+              <label className={labelBase}>Hematies</label>
+              <input type="text" name="hematies" value={resultados?.hematies || ""} onChange={(e) => handleChange("hematies", e.target.value)} className={inputBase} placeholder="0-1 xc" />
             </div>
             <div>
-              <label className={`${labelBase} text-slate-500`}>Células Epit.</label>
-              <input
-                type="text"
-                name="celulas_epit"
-                value={resultados?.celulas_epit || ""}
-                onChange={(e) => handleChange("celulas_epit", e.target.value)}
-                className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`}
-                placeholder="Escasas"
-              />
+              <label className={labelBase}>C. Epiteliales</label>
+              <input type="text" name="celulas_epit" value={resultados?.celulas_epit || ""} onChange={(e) => handleChange("celulas_epit", e.target.value)} className={inputBase} />
             </div>
             <div>
-              <label className={`${labelBase} text-slate-500`}>Cilindros</label>
-              <input type="text" value={resultados?.cilindros || ""} onChange={(e) => handleChange("cilindros", e.target.value)} className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`} placeholder="No se observan" />
+              <label className={labelBase}>Cilindros</label>
+              <input type="text" value={resultados?.cilindros || ""} onChange={(e) => handleChange("cilindros", e.target.value)} className={inputBase} />
             </div>
             <div>
-              <label className={`${labelBase} text-slate-500`}>Cristales</label>
-              <input type="text" value={resultados?.cristales || ""} onChange={(e) => handleChange("cristales", e.target.value)} className={`${inputBase} !bg-slate-800 border-slate-700 text-white focus:border-amber-400`} placeholder="No se observan" />
+              <label className={labelBase}>Cristales</label>
+              <input type="text" value={resultados?.cristales || ""} onChange={(e) => handleChange("cristales", e.target.value)} className={inputBase} />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-800">
             <div>
-              <label className={`${labelBase} text-amber-400`}>Bacterias</label>
-              <select value={resultados?.bacterias || "Escasas"} onChange={(e) => handleChange("bacterias", e.target.value)} className={`${selectBase} !bg-slate-800 border-slate-700 text-white`}>
+              <label className={labelBase}>Bacterias</label>
+              <select value={resultados?.bacterias || "Escasas"} onChange={(e) => handleChange("bacterias", e.target.value)} className={selectBase}>
                 <option value="Escasas">Escasas</option>
-                <option value="Reg. Cantidad">Reg. Cantidad</option>
-                <option value="Abundante">Abundantes</option>
+                <option value="Reg. Cantidad">Reg. Cant.</option>
+                <option value="Abundante">Abundante</option>
                 <option value="Moderadas">Moderadas</option>
               </select>
             </div>
             <div>
-              <label className={`${labelBase} text-amber-400`}>Levaduras</label>
-              <select value={resultados?.levaduras || "No se observan"} onChange={(e) => handleChange("levaduras", e.target.value)} className={`${selectBase} !bg-slate-800 border-slate-700 text-white`}>
-                <option value="No se observan">No se observan</option>
+              <label className={labelBase}>Levaduras</label>
+              <select value={resultados?.levaduras || "No se observan"} onChange={(e) => handleChange("levaduras", e.target.value)} className={selectBase}>
+                <option value="No se observan">Negativo</option>
                 <option value="Aisladas">Aisladas</option>
-                <option value="Aisladas - Gemación">Aisladas - Gemación</option>
+                <option value="Aisladas - Gemación">Gemación</option>
               </select>
             </div>
             <div>
-              <label className={`${labelBase} text-amber-400`}>Filam. de Moco</label>
-              <select value={resultados?.filam_moco || "No contiene"} onChange={(e) => handleChange("filam_moco", e.target.value)} className={`${selectBase} !bg-slate-800 border-slate-700 text-white`}>
-                <option value="No contiene">No contiene</option>
+              <label className={labelBase}>Filam. Moco</label>
+              <select value={resultados?.filam_moco || "No contiene"} onChange={(e) => handleChange("filam_moco", e.target.value)} className={selectBase}>
+                <option value="No contiene">Negativo</option>
                 <option value="Escasas">Escasas</option>
-                <option value="Reg. Cantidad">Reg. Cantidad</option>
+                <option value="Reg. Cantidad">Reg. Cant.</option>
                 <option value="Abundante">Abundante</option>
-                <option value="Moderado">Moderado</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* OBSERVACIÓN */}
-        <div className="lg:col-span-3">
-          <div className="flex items-center gap-2 mb-2 ml-4">
-            <AlertCircle size={14} className="text-slate-400" />
-            <label className={labelBase}>Notas del Examen</label>
-          </div>
+        {/* OBSERVACIONES */}
+        <div>
+          <label className={labelBase}>Notas / Observaciones</label>
           <textarea
             value={resultados?.observacion || ""}
             onChange={(e) => handleChange("observacion", e.target.value)}
-            className="w-full bg-white border-2 border-slate-100 rounded-[2rem] px-8 py-6 text-sm font-medium text-slate-600 outline-none focus:border-amber-500 transition-all min-h-[100px] shadow-sm resize-none"
-            placeholder="Morfología bacteriana, descripción de cristales específicos, etc."
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 outline-none focus:border-slate-400 focus:bg-white transition-all min-h-[80px] resize-none"
+            placeholder="Observaciones adicionales..."
           />
         </div>
       </div>

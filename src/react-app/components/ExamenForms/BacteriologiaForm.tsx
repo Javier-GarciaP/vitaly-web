@@ -212,12 +212,13 @@ export default function BacteriologiaForm({
     handleChange("antibiograma_list", nuevaLista);
   };
 
-  const labelBase = "text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block";
-  const inputBase = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-slate-900 transition-all placeholder:text-slate-300";
-  const areaBase = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 outline-none focus:border-slate-900 transition-all min-h-[80px] resize-none";
+  const labelBase = "text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block";
+  const inputBase = "w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-slate-900 transition-all placeholder:text-slate-300";
+  const areaBase = "w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 outline-none focus:border-slate-900 transition-all min-h-[60px] resize-none";
+  const sectionCard = "p-4 rounded-xl bg-white border border-slate-100 shadow-sm";
 
   return (
-    <div className="max-w-5xl mx-auto pb-10 space-y-6">
+    <div className="w-full pb-20 space-y-5">
       {/* NOTIFICACIÓN */}
       {notificacion && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-4 py-2 rounded-xl shadow-xl text-[10px] font-bold uppercase tracking-widest animate-in slide-in-from-top-2">
@@ -225,86 +226,96 @@ export default function BacteriologiaForm({
         </div>
       )}
 
-      {/* HEADER MINIMALISTA */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <div className="flex items-center gap-3">
-          <FlaskConical className="text-slate-400" size={20} />
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Bacteriología</h3>
+      {/* HEADER COMPACTO */}
+      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center">
+            <FlaskConical size={16} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Bacteriología</h3>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button onClick={() => setShowLibrary(!showLibrary)} className={`text-[10px] font-bold uppercase transition-colors ${showLibrary ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}>
-            {showLibrary ? 'Cerrar Biblioteca' : 'Ver Plantillas'}
+            {showLibrary ? 'Cerrar' : 'Plantillas'}
           </button>
           <button onClick={guardarPlantilla} className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors">
-            Guardar Formato
+            Guardar
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className={labelBase}>Muestra</label>
-          <input type="text" value={resultados?.muestra || ""} onChange={(e) => handleChange("muestra", e.target.value)} className={inputBase} placeholder="Ej: Orina" />
+      <div className="space-y-4">
+        <div className={sectionCard}>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className={labelBase}>Muestra</label>
+              <input type="text" value={resultados?.muestra || ""} onChange={(e) => handleChange("muestra", e.target.value)} className={inputBase} placeholder="Ej: Orina" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelBase}>Germen A</label>
+                <select value={resultados?.germen_a || ""} onChange={(e) => handleChange("germen_a", e.target.value)} className={inputBase}>
+                  <option value="">Negativo</option>
+                  {germenes.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelBase}>Germen B</label>
+                <select value={resultados?.germen_b || ""} onChange={(e) => handleChange("germen_b", e.target.value)} className={inputBase}>
+                  <option value="">Negativo</option>
+                  {germenes.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label className={labelBase}>Germen A</label>
-          <select value={resultados?.germen_a || ""} onChange={(e) => handleChange("germen_a", e.target.value)} className={inputBase}>
-            <option value="">Negativo</option>
-            {germenes.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
+
+        <div className={sectionCard}>
+          <div className="space-y-3">
+            <div>
+              <label className={labelBase}>Observación Directa</label>
+              <textarea value={resultados?.obs_directa || ""} onChange={(e) => handleChange("obs_directa", e.target.value)} className={areaBase} />
+            </div>
+            <div>
+              <label className={labelBase}>Tinción de Gram</label>
+              <textarea value={resultados?.gram || ""} onChange={(e) => handleChange("gram", e.target.value)} className={areaBase} />
+            </div>
+            <div>
+              <label className={labelBase}>Recuento de Colonias</label>
+              <textarea value={resultados?.recuento || ""} onChange={(e) => handleChange("recuento", e.target.value)} className={areaBase} />
+            </div>
+            <div>
+              <label className={labelBase}>Resultado Cultivo</label>
+              <textarea value={resultados?.cultivo || ""} onChange={(e) => handleChange("cultivo", e.target.value)} className={areaBase} />
+            </div>
+          </div>
         </div>
-        <div>
-          <label className={labelBase}>Germen B</label>
-          <select value={resultados?.germen_b || ""} onChange={(e) => handleChange("germen_b", e.target.value)} className={inputBase}>
-            <option value="">Negativo</option>
-            {germenes.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
+
+        <div className={sectionCard}>
+          <label className={labelBase}>Cultivo para Micosis (Hongos)</label>
+          <textarea
+            value={resultados?.cultivo_hongos || ""}
+            onChange={(e) => handleChange("cultivo_hongos", e.target.value)}
+            className={`${areaBase} min-h-[50px]`}
+            placeholder="Resultado de cultivo Sabouraud..."
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className={labelBase}>Observación Directa</label>
-          <textarea value={resultados?.obs_directa || ""} onChange={(e) => handleChange("obs_directa", e.target.value)} className={areaBase} />
-        </div>
-        <div>
-          <label className={labelBase}>Tinción de Gram</label>
-          <textarea value={resultados?.gram || ""} onChange={(e) => handleChange("gram", e.target.value)} className={areaBase} />
-        </div>
-        <div>
-          <label className={labelBase}>Recuento de Colonias</label>
-          <textarea value={resultados?.recuento || ""} onChange={(e) => handleChange("recuento", e.target.value)} className={areaBase} />
-        </div>
-        <div>
-          <label className={labelBase}>Resultado Cultivo</label>
-          <textarea value={resultados?.cultivo || ""} onChange={(e) => handleChange("cultivo", e.target.value)} className={areaBase} />
-        </div>
-      </div>
-
-      <div>
-        <label className={labelBase}>Cultivo para Micosis (Hongos)</label>
-        <textarea
-          value={resultados?.cultivo_hongos || ""}
-          onChange={(e) => handleChange("cultivo_hongos", e.target.value)}
-          className={`${areaBase} min-h-[60px]`}
-          placeholder="Resultado de cultivo Sabouraud..."
-        />
-      </div>
-
-      {/* ANTIBIOGRAMA - Minimalista y Blanco */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+      {/* ANTIBIOGRAMA */}
+      <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+        <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
           <h4 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Antibiograma</h4>
           <div className="flex gap-2 relative">
             <input
               type="text" value={textoAnti}
               onChange={(e) => manejarEscrituraAnti(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Añadir fármaco..."
-              className="text-[10px] bg-white border border-slate-300 rounded px-3 py-1.5 w-40 outline-none focus:border-slate-900 transition-all uppercase"
+              placeholder="Fármaco..."
+              className="text-[10px] bg-white border border-slate-300 rounded px-2 py-1 w-24 outline-none focus:border-slate-900 transition-all uppercase"
             />
             {mostrarSugerencias && sugerencias.length > 0 && (
-              <div className="absolute z-[110] top-full left-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden w-40">
+              <div className="absolute z-[110] top-full right-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden w-40 max-h-40 overflow-y-auto">
                 {sugerencias.map((s, idx) => (
                   <div key={s} onClick={() => agregarAntibiotico(s)} onMouseEnter={() => setSelectedIndex(idx)} className={`px-3 py-2 text-[10px] font-bold cursor-pointer ${idx === selectedIndex ? "bg-slate-100" : "hover:bg-slate-50"}`}>
                     {s}
@@ -312,38 +323,43 @@ export default function BacteriologiaForm({
                 ))}
               </div>
             )}
-            <button onClick={() => agregarAntibiotico()} className="text-slate-400 hover:text-slate-900 transition-colors"><Plus size={16} /></button>
+            <button onClick={() => agregarAntibiotico()} className="text-slate-400 hover:text-slate-900 transition-colors"><Plus size={14} /></button>
           </div>
         </div>
-        <div className="bg-white overflow-x-auto">
-          <table className="w-full text-[11px]">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[10px]">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-tighter">
-                <th className="px-6 py-2 text-left">Fármaco</th>
-                <th className="px-6 py-2 text-center">G. Aislado A</th>
-                <th className="px-6 py-2 text-center">G. Aislado B</th>
-                <th className="px-6 py-2 text-right"></th>
+              <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-tighter bg-slate-50/50">
+                <th className="px-3 py-2 text-left">Fármaco</th>
+                <th className="px-1 py-2 text-center w-10">A</th>
+                <th className="px-1 py-2 text-center w-10">B</th>
+                <th className="px-2 py-2 text-right w-8"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {(resultados?.antibiograma_list || []).map((item: any, idx: number) => (
-                <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-2 font-bold text-slate-700">{item.nombre}</td>
-                  <td onClick={() => toggleValor(item.nombre, "a")} className="px-6 py-2 text-center cursor-pointer select-none">
-                    <span className={`px-2 py-0.5 rounded font-black ${item.a === "S" ? "text-emerald-600" : item.a === "R" ? "text-rose-600" : item.a === "I" ? "text-amber-600" : "text-slate-300"}`}>
+                <tr key={idx} className="hover:bg-slate-50 transition-colors group">
+                  <td className="px-3 py-1.5 font-bold text-slate-700">{item.nombre}</td>
+                  <td onClick={() => toggleValor(item.nombre, "a")} className="px-1 py-1.5 text-center cursor-pointer select-none">
+                    <span className={`block px-1 rounded-md font-black ${item.a === "S" ? "bg-emerald-100 text-emerald-600" : item.a === "R" ? "bg-rose-100 text-rose-600" : item.a === "I" ? "bg-amber-100 text-amber-600" : "text-slate-200"}`}>
                       {item.a || "-"}
                     </span>
                   </td>
-                  <td onClick={() => toggleValor(item.nombre, "b")} className="px-6 py-2 text-center cursor-pointer select-none">
-                    <span className={`px-2 py-0.5 rounded font-black ${item.b === "S" ? "text-emerald-600" : item.b === "R" ? "text-rose-600" : item.b === "I" ? "text-amber-600" : "text-slate-300"}`}>
+                  <td onClick={() => toggleValor(item.nombre, "b")} className="px-1 py-1.5 text-center cursor-pointer select-none">
+                    <span className={`block px-1 rounded-md font-black ${item.b === "S" ? "bg-emerald-100 text-emerald-600" : item.b === "R" ? "bg-rose-100 text-rose-600" : item.b === "I" ? "bg-amber-100 text-amber-600" : "text-slate-200"}`}>
                       {item.b || "-"}
                     </span>
                   </td>
-                  <td className="px-6 py-2 text-right">
-                    <button onClick={() => eliminarAntibiotico(item.nombre)} className="text-slate-300 hover:text-rose-500 transition-colors"><X size={14} /></button>
+                  <td className="px-2 py-1.5 text-right">
+                    <button onClick={() => eliminarAntibiotico(item.nombre)} className="text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><X size={12} /></button>
                   </td>
                 </tr>
               ))}
+              {(resultados?.antibiograma_list || []).length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-3 py-4 text-center text-slate-300 italic">No hay antibióticos registrados</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -353,32 +369,32 @@ export default function BacteriologiaForm({
       {showLibrary && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={() => setShowLibrary(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl flex flex-col max-h-[70vh] overflow-hidden">
-            <div className="p-4 border-b flex justify-between items-center">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Plantillas de Bacteriología</span>
-              <button onClick={() => setShowLibrary(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={18} /></button>
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col max-h-[60vh] overflow-hidden">
+            <div className="p-3 border-b flex justify-between items-center bg-slate-50">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Plantillas</span>
+              <button onClick={() => setShowLibrary(false)} className="text-slate-400 hover:text-slate-900 transition-colors"><X size={16} /></button>
             </div>
-            <div className="p-3 bg-slate-50 border-b">
+            <div className="p-2 border-b">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="text" placeholder="Buscar formato..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-xs outline-none focus:border-slate-400 transition-all uppercase font-medium"
+                  type="text" placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-slate-100 border-none rounded-lg py-1.5 pl-8 pr-3 text-[10px] outline-none focus:ring-1 focus:ring-slate-300 transition-all uppercase font-bold text-slate-600"
                 />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               {plantillasFiltradas.length === 0 && (
-                <div className="py-10 text-center text-slate-400 text-[10px] uppercase font-bold tracking-widest">No hay resultados</div>
+                <div className="py-8 text-center text-slate-300 text-[9px] uppercase font-bold tracking-widest">Sin resultados</div>
               )}
               {plantillasFiltradas.map((p) => (
                 <div key={p.id} className="flex items-center group px-1">
-                  <button onClick={() => { aplicarPlantilla(p); setShowLibrary(false); }} className="flex-1 text-left p-3 hover:bg-slate-50 rounded-lg transition-all">
-                    <div className="text-[11px] font-bold uppercase text-slate-700">{p.nombre_plantilla}</div>
-                    <div className="text-[9px] text-slate-400 uppercase font-medium mt-0.5">Muestra: {p.muestra_default || "No def."}</div>
+                  <button onClick={() => { aplicarPlantilla(p); setShowLibrary(false); }} className="flex-1 text-left p-2 hover:bg-slate-50 rounded-lg transition-all">
+                    <div className="text-[10px] font-bold uppercase text-slate-700">{p.nombre_plantilla}</div>
+                    <div className="text-[8px] text-slate-400 uppercase font-medium">Muestra: {p.muestra_default || "-"}</div>
                   </button>
                   <button onClick={(e) => eliminarPlantilla(e, p.id)} className="p-2 text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
-                    <Trash2 size={14} />
+                    <Trash2 size={12} />
                   </button>
                 </div>
               ))}
@@ -387,9 +403,9 @@ export default function BacteriologiaForm({
         </div>
       )}
 
-      <div className="flex justify-start pt-4 border-t border-slate-100">
+      <div className="pt-2 border-t border-slate-100 text-center">
         <button onClick={limpiarFormulario} className="text-[9px] font-bold uppercase text-slate-300 hover:text-rose-500 transition-colors">
-          Limpiar Formulario completamenta
+          Limpiar Todo
         </button>
       </div>
     </div>

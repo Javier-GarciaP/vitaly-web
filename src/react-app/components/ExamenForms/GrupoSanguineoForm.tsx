@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Droplets, Dna, FileText, AlertCircle } from "lucide-react";
+import { Droplets, Dna, AlertCircle } from "lucide-react";
 
 interface GrupoSanguineoFormProps {
   resultados: any;
@@ -13,8 +13,8 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
   // Sincronizamos valores iniciales para que el estado no esté 'undefined'
   useEffect(() => {
     if (resultados && (!resultados.grupo_sanguineo || !resultados.factor_rh)) {
-      onChange({ 
-        ...resultados, 
+      onChange({
+        ...resultados,
         grupo_sanguineo: resultados.grupo_sanguineo || "O", // Valor común por defecto
         factor_rh: resultados.factor_rh || "Post.(+)",
         du: resultados.du || ""
@@ -32,7 +32,7 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
       if (form) {
         const focusableElements = form.querySelectorAll('select, textarea');
         const index = Array.from(focusableElements).indexOf(e.target as HTMLElement);
-        
+
         if (index > -1 && index < focusableElements.length - 1) {
           e.preventDefault();
           (focusableElements[index + 1] as HTMLElement).focus();
@@ -41,38 +41,36 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
     }
   };
 
-  const labelBase = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block";
-  const selectBase = "w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-rose-500 focus:bg-white transition-all appearance-none cursor-pointer";
+  const labelBase = "text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block";
+  const selectBase = "w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[12px] font-bold text-slate-700 outline-none focus:border-rose-500 transition-all cursor-pointer";
+  const sectionCard = "p-5 rounded-2xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-slate-50 group";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-10" ref={formRef} onKeyDown={handleKeyDown}>
-      
-      {/* CABECERA ESTILO HEMATOLOGÍA */}
-      <div className="flex items-center gap-4 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <div className="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200 animate-pulse">
-          <Droplets size={28} />
+    <div className="w-full space-y-6 pb-20" ref={formRef} onKeyDown={handleKeyDown}>
+
+      {/* HEADER SIMPLE */}
+      <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+        <div className="w-8 h-8 bg-rose-50 text-rose-500 rounded-lg flex items-center justify-center">
+          <Droplets size={16} />
         </div>
-        <div>
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Grupo Sanguíneo y Factor Rh</h3>
-          <p className="text-[10px] font-bold text-rose-400 uppercase tracking-[0.2em]">Inmunohematología Clínica</p>
-        </div>
+        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Inmunohematología</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
         {/* PANEL DE SELECCIÓN */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Dna size={18} className="text-slate-400" />
-            <h4 className="font-black text-slate-700 text-xs uppercase tracking-wider">Configuración de Tipaje</h4>
+        <div className={sectionCard}>
+          <div className="flex items-center gap-2 mb-4">
+            <Dna size={14} className="text-slate-400" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Configuración de Tipaje</h4>
           </div>
 
           <div className="space-y-4">
             <div className="relative">
               <label className={labelBase}>Grupo Sanguíneo (Sistema ABO)</label>
-              <select 
-                value={resultados?.grupo_sanguineo || "O"} 
-                onChange={(e) => handleChange("grupo_sanguineo", e.target.value)} 
+              <select
+                value={resultados?.grupo_sanguineo || "O"}
+                onChange={(e) => handleChange("grupo_sanguineo", e.target.value)}
                 className={selectBase}
               >
                 <option value="A">Grupo A</option>
@@ -84,9 +82,9 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
 
             <div className="relative">
               <label className={labelBase}>Factor RH</label>
-              <select 
-                value={resultados?.factor_rh || "Post.(+)"} 
-                onChange={(e) => handleChange("factor_rh", e.target.value)} 
+              <select
+                value={resultados?.factor_rh || "Post.(+)"}
+                onChange={(e) => handleChange("factor_rh", e.target.value)}
                 className={selectBase}
               >
                 <option value="Post.(+)">Positivo (+)</option>
@@ -96,9 +94,9 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
 
             <div className="relative">
               <label className={labelBase}>Variante Du (Si aplica)</label>
-              <select 
-                value={resultados?.du || "Neg.(-)"} 
-                onChange={(e) => handleChange("du", e.target.value)} 
+              <select
+                value={resultados?.du || "Neg.(-)"}
+                onChange={(e) => handleChange("du", e.target.value)}
                 className={selectBase}
               >
                 <option value=" ">Seleccionar...</option>
@@ -109,53 +107,48 @@ export default function GrupoSanguineoForm({ resultados, onChange }: GrupoSangui
           </div>
         </div>
 
-        {/* VISUALIZADOR DE RESULTADO TIPO CARNET */}
-        <div className="flex flex-col items-center justify-center space-y-6">
-          <div className="relative group w-full max-w-[300px]">
-            {/* Fondo decorativo */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 to-orange-500 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-            
-            <div className="relative bg-white border border-slate-100 rounded-[2rem] p-8 text-center shadow-xl">
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Tipificación Final</span>
-              
-              <div className="flex items-center justify-center mt-4">
-                <span className="text-8xl font-black text-slate-800 leading-none">
-                  {resultados?.grupo_sanguineo || "O"}
-                </span>
-                <span className="text-6xl font-black text-rose-500 ml-2 self-start mt-2">
-                  {resultados?.factor_rh === "Post.(+)" ? "+" : resultados?.factor_rh === "Neg.(-)" ? "−" : ""}
-                </span>
-              </div>
+        {/* VISUALIZADOR DE RESULTADO */}
+        <div className="flex flex-col items-center justify-center space-y-4">
 
-              <div className="mt-6 pt-6 border-t border-slate-50">
-                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-900 rounded-full">
-                    <div className={`w-2 h-2 rounded-full ${resultados?.factor_rh === "Post.(+)" ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
-                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-                      {resultados?.factor_rh === "Post.(+)" ? "RH POSITIVO" : "RH NEGATIVO"}
-                    </span>
-                 </div>
-              </div>
+          <div className="w-full bg-slate-900 rounded-2xl p-6 text-center shadow-lg relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Droplets size={64} className="text-white" />
+            </div>
+
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Tipificación Final</p>
+
+            <div className="flex items-center justify-center">
+              <span className="text-6xl font-black text-white leading-none">
+                {resultados?.grupo_sanguineo || "O"}
+              </span>
+              <span className={`text-4xl font-black ml-2 self-start mt-1 ${resultados?.factor_rh === "Post.(+)" ? "text-emerald-400" : "text-rose-400"}`}>
+                {resultados?.factor_rh === "Post.(+)" ? "+" : resultados?.factor_rh === "Neg.(-)" ? "−" : ""}
+              </span>
+            </div>
+
+            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full">
+              <div className={`w-1.5 h-1.5 rounded-full ${resultados?.factor_rh === "Post.(+)" ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+              <span className="text-[9px] font-bold text-white uppercase tracking-widest">
+                {resultados?.factor_rh === "Post.(+)" ? "Positivo" : "Negativo"}
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-slate-400 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
-            <AlertCircle size={16} />
-            <p className="text-[10px] font-bold uppercase tracking-tight leading-relaxed">
-              Verifique la aglutinación en placa <br/> antes de confirmar el resultado.
+          <div className="flex items-start gap-3 text-slate-400 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 w-full">
+            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+            <p className="text-[9px] font-bold uppercase tracking-tight leading-relaxed">
+              Verifique la aglutinación en placa antes de confirmar.
             </p>
           </div>
         </div>
 
         {/* OBSERVACIONES */}
         <div className="md:col-span-2 space-y-3">
-          <div className="flex items-center gap-2 ml-4">
-            <FileText size={14} className="text-slate-400" />
-            <label className={labelBase}>Notas de Laboratorio</label>
-          </div>
+          <label className={labelBase}>Notas de Laboratorio</label>
           <textarea
             value={resultados?.observacion || ""}
             onChange={(e) => handleChange("observacion", e.target.value)}
-            className="w-full bg-white border-2 border-slate-100 rounded-[2rem] px-8 py-6 text-sm font-medium text-slate-600 outline-none focus:border-rose-500 transition-all min-h-[100px] shadow-sm resize-none"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 outline-none focus:border-rose-500 transition-all min-h-[80px] resize-none"
             placeholder="Escriba aquí observaciones sobre aglutinación débil, pruebas cruzadas, etc."
           />
         </div>
