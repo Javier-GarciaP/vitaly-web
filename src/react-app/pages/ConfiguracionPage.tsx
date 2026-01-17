@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput } from "@/utils/currency";
 import { useNotification } from "@/react-app/context/NotificationContext";
+import { FORM_FIELDS } from "@/utils/formFields";
 
 // --- INTERFACES ---
 interface ExamenPredefinido {
@@ -18,6 +19,7 @@ interface ExamenPredefinido {
   nombre: string;
   precio: number;
   categoria: string;
+  parametros?: string[];
 }
 
 interface ValorReferencia {
@@ -43,6 +45,7 @@ export default function ConfiguracionPage() {
     nombre: "",
     precio: "",
     categoria: "Hematología",
+    parametros: [] as string[],
   });
 
   // --- ESTADOS DE VALORES DE REFERENCIA ---
@@ -63,10 +66,12 @@ export default function ConfiguracionPage() {
   const loadExamenes = async () => {
     try {
       const res = await fetch("/api/examenes-predefinidos");
+      if (!res.ok) throw new Error("Error al cargar exámenes");
       const data = (await res.json()) as ExamenPredefinido[];
       setExamenes(data);
     } catch (error) {
       console.error("Error:", error);
+      showNotification("error", "Error de Conexión", "No se pudo cargar el catálogo de exámenes");
     }
   };
 
@@ -199,10 +204,36 @@ export default function ConfiguracionPage() {
                   className="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-slate-100 transition-all placeholder:text-slate-300"
                 />
               </div>
+
+              {/* Category Filters */}
+              <div className="flex gap-2 w-full md:w-auto overflow-x-auto no-scrollbar py-2">
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${searchTerm === "" ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-400 hover:bg-slate-100"}`}
+                >
+                  Todos
+                </button>
+                {Object.keys(FORM_FIELDS).map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSearchTerm(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${searchTerm === cat ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-400 hover:bg-slate-100"}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setSearchTerm("Materiales")}
+                  className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${searchTerm === "Materiales" ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-400 hover:bg-slate-100"}`}
+                >
+                  Materiales
+                </button>
+              </div>
+
               <button
                 onClick={() => {
                   setEditingExamen(null);
-                  setFormData({ nombre: "", precio: "", categoria: "Hematología" });
+                  setFormData({ nombre: "", precio: "", categoria: "Hematología", parametros: [] });
                   setIsExamenModalOpen(true);
                 }}
                 className="w-full md:w-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
@@ -240,7 +271,12 @@ export default function ConfiguracionPage() {
                           <button
                             onClick={() => {
                               setEditingExamen(ex);
-                              setFormData({ nombre: ex.nombre, precio: ex.precio.toString(), categoria: ex.categoria });
+                              setFormData({
+                                nombre: ex.nombre,
+                                precio: ex.precio.toString(),
+                                categoria: ex.categoria,
+                                parametros: ex.parametros || []
+                              });
                               setIsExamenModalOpen(true);
                             }}
                             className="p-2 text-slate-300 hover:text-slate-900 rounded-lg transition-all"
@@ -414,6 +450,41 @@ export default function ConfiguracionPage() {
                   />
                 </div>
               </div>
+
+              {/* SELECCIÓN DE PARÁMETROS */}
+              {FORM_FIELDS[formData.categoria] && (
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-3 block tracking-widest">
+                    Parámetros que incluye
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar">
+                    {FORM_FIELDS[formData.categoria].map((field) => {
+                      const isSelected = formData.parametros.includes(field.id);
+                      return (
+                        <button
+                          key={field.id}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              parametros: isSelected
+                                ? prev.parametros.filter(p => p !== field.id)
+                                : [...prev.parametros, field.id]
+                            }));
+                          }}
+                          className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center gap-2 ${isSelected
+                            ? "bg-slate-900 text-white shadow-md shadow-slate-200"
+                            : "bg-white text-slate-400 hover:bg-slate-100 border border-slate-100"
+                            }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full ${isSelected ? "bg-green-400" : "bg-slate-200"}`} />
+                          {field.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button

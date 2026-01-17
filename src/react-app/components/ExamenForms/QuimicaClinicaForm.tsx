@@ -13,6 +13,8 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
     onChange({ ...resultados, [field]: value });
   };
 
+  const isHighlighted = (field: string) => resultados?._highlightFields?.includes(field) ? "ring-2 ring-blue-500 bg-blue-50" : "";
+
   // Cálculos Automáticos
   useEffect(() => {
     // 1. Cálculo de Bilirrubina Indirecta
@@ -73,15 +75,15 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Glicemia</label>
-              <input type="text" value={resultados?.glicemia || ""} onChange={(e) => handleChange("glicemia", e.target.value)} className={inputBase} placeholder="mg/dL" />
+              <input type="text" value={resultados?.glicemia || ""} onChange={(e) => handleChange("glicemia", e.target.value)} className={`${inputBase} ${isHighlighted("glicemia")}`} placeholder="mg/dL" />
             </div>
             <div>
               <label className={labelBase}>Urea</label>
-              <input type="text" value={resultados?.urea || ""} onChange={(e) => handleChange("urea", e.target.value)} className={inputBase} placeholder="mg/dL" />
+              <input type="text" value={resultados?.urea || ""} onChange={(e) => handleChange("urea", e.target.value)} className={`${inputBase} ${isHighlighted("urea")}`} placeholder="mg/dL" />
             </div>
             <div>
               <label className={labelBase}>Creatinina</label>
-              <input type="text" value={resultados?.creatinina || ""} onChange={(e) => handleChange("creatinina", e.target.value)} className={inputBase} placeholder="mg/dL" />
+              <input type="text" value={resultados?.creatinina || ""} onChange={(e) => handleChange("creatinina", e.target.value)} className={`${inputBase} ${isHighlighted("creatinina")}`} placeholder="mg/dL" />
             </div>
           </div>
         </div>
@@ -95,15 +97,15 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Colesterol</label>
-              <input type="text" value={resultados?.colesterol || ""} onChange={(e) => handleChange("colesterol", e.target.value)} className={inputBase} placeholder="Total" />
+              <input type="text" value={resultados?.colesterol || ""} onChange={(e) => handleChange("colesterol", e.target.value)} className={`${inputBase} ${isHighlighted("colesterol")}`} placeholder="Total" />
             </div>
             <div>
               <label className={labelBase}>HDL</label>
-              <input type="text" value={resultados?.hdl || ""} onChange={(e) => handleChange("hdl", e.target.value)} className={inputBase} placeholder="Bueno" />
+              <input type="text" value={resultados?.hdl || ""} onChange={(e) => handleChange("hdl", e.target.value)} className={`${inputBase} ${isHighlighted("hdl")}`} placeholder="Bueno" />
             </div>
             <div>
               <label className={labelBase}>Triglicéridos</label>
-              <input type="text" value={resultados?.trigliceridos || ""} onChange={(e) => handleChange("trigliceridos", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.trigliceridos || ""} onChange={(e) => handleChange("trigliceridos", e.target.value)} className={`${inputBase} ${isHighlighted("trigliceridos")}`} />
             </div>
           </div>
         </div>
@@ -118,33 +120,33 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
               <div>
                 <label className={labelBase}>TGO</label>
-                <input type="text" value={resultados?.tgo || ""} onChange={(e) => handleChange("tgo", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.tgo || ""} onChange={(e) => handleChange("tgo", e.target.value)} className={`${inputBase} ${isHighlighted("tgo")}`} />
               </div>
               <div>
                 <label className={labelBase}>TGP</label>
-                <input type="text" value={resultados?.tgp || ""} onChange={(e) => handleChange("tgp", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.tgp || ""} onChange={(e) => handleChange("tgp", e.target.value)} className={`${inputBase} ${isHighlighted("tgp")}`} />
               </div>
               <div>
                 <label className={labelBase}>Fosf.</label>
-                <input type="text" value={resultados?.fosf_alc || ""} onChange={(e) => handleChange("fosf_alc", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.fosf_alc || ""} onChange={(e) => handleChange("fosf_alc", e.target.value)} className={`${inputBase} ${isHighlighted("fosf_alc")}`} />
               </div>
               <div>
                 <label className={labelBase}>LDH</label>
-                <input type="text" value={resultados?.ldh || ""} onChange={(e) => handleChange("ldh", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.ldh || ""} onChange={(e) => handleChange("ldh", e.target.value)} className={`${inputBase} ${isHighlighted("ldh")}`} />
               </div>
               <div>
                 <label className={labelBase}>Amilasa</label>
-                <input type="text" value={resultados?.amilasa || ""} onChange={(e) => handleChange("amilasa", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.amilasa || ""} onChange={(e) => handleChange("amilasa", e.target.value)} className={`${inputBase} ${isHighlighted("amilasa")}`} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-3">
               <div>
                 <label className={labelBase}>Bilirr. Tot.</label>
-                <input type="text" value={resultados?.bilirr_total || ""} onChange={(e) => handleChange("bilirr_total", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.bilirr_total || ""} onChange={(e) => handleChange("bilirr_total", e.target.value)} className={`${inputBase} ${isHighlighted("bilirr_total")}`} />
               </div>
               <div>
                 <label className={labelBase}>Bilirr. Dir.</label>
-                <input type="text" value={resultados?.bilirr_directa || ""} onChange={(e) => handleChange("bilirr_directa", e.target.value)} className={inputBase} />
+                <input type="text" value={resultados?.bilirr_directa || ""} onChange={(e) => handleChange("bilirr_directa", e.target.value)} className={`${inputBase} ${isHighlighted("bilirr_directa")}`} />
               </div>
               <div>
                 <label className={`${labelBase} text-blue-500`}>Indir. <span className="opacity-50">(Auto)</span></label>
@@ -163,27 +165,27 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Proteínas T.</label>
-              <input type="text" value={resultados?.proteinas_tot || ""} onChange={(e) => handleChange("proteinas_tot", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.proteinas_tot || ""} onChange={(e) => handleChange("proteinas_tot", e.target.value)} className={`${inputBase} ${isHighlighted("proteinas_tot")}`} />
             </div>
             <div>
               <label className={labelBase}>Albúmina</label>
-              <input type="text" value={resultados?.albumina || ""} onChange={(e) => handleChange("albumina", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.albumina || ""} onChange={(e) => handleChange("albumina", e.target.value)} className={`${inputBase} ${isHighlighted("albumina")}`} />
             </div>
             <div>
               <label className={labelBase}>Globulinas</label>
-              <input type="text" value={resultados?.globulinas || ""} onChange={(e) => handleChange("globulinas", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.globulinas || ""} onChange={(e) => handleChange("globulinas", e.target.value)} className={`${inputBase} ${isHighlighted("globulinas")}`} />
             </div>
             <div>
               <label className={labelBase}>Ác. Úrico</label>
-              <input type="text" value={resultados?.ac_urico || ""} onChange={(e) => handleChange("ac_urico", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.ac_urico || ""} onChange={(e) => handleChange("ac_urico", e.target.value)} className={`${inputBase} ${isHighlighted("ac_urico")}`} />
             </div>
             <div>
               <label className={labelBase}>Calcio</label>
-              <input type="text" value={resultados?.calcio || ""} onChange={(e) => handleChange("calcio", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.calcio || ""} onChange={(e) => handleChange("calcio", e.target.value)} className={`${inputBase} ${isHighlighted("calcio")}`} />
             </div>
             <div>
               <label className={labelBase}>Fósforo</label>
-              <input type="text" value={resultados?.fosforo || ""} onChange={(e) => handleChange("fosforo", e.target.value)} className={inputBase} />
+              <input type="text" value={resultados?.fosforo || ""} onChange={(e) => handleChange("fosforo", e.target.value)} className={`${inputBase} ${isHighlighted("fosforo")}`} />
             </div>
             <div className="col-span-2">
               <label className={`${labelBase} text-blue-500`}>Rel. A/G</label>

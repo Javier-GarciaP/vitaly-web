@@ -31,6 +31,8 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
     onChange({ ...resultados, [field]: value });
   };
 
+  const isHighlighted = (field: string) => resultados?._highlightFields?.includes(field) ? "ring-2 ring-red-500 bg-red-50" : "";
+
   // Cálculo del Índice de Katz automático
   useEffect(() => {
     const h1 = parseFloat(resultados?.vsg_1h);
@@ -96,27 +98,27 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Hematíes</label>
-              <input name="hematies" type="text" value={resultados?.hematies || ""} onChange={(e) => handleChange("hematies", e.target.value)} className={inputBase} placeholder="4.5 - 5.5" />
+              <input name="hematies" type="text" value={resultados?.hematies || ""} onChange={(e) => handleChange("hematies", e.target.value)} className={`${inputBase} ${isHighlighted("hematies")}`} placeholder="4.5 - 5.5" />
             </div>
             <div>
               <label className={labelBase}>Hemoglobina</label>
-              <input name="hemoglobina" type="text" value={resultados?.hemoglobina || ""} onChange={(e) => handleChange("hemoglobina", e.target.value)} className={inputBase} placeholder="12.0 - 16.0" />
+              <input name="hemoglobina" type="text" value={resultados?.hemoglobina || ""} onChange={(e) => handleChange("hemoglobina", e.target.value)} className={`${inputBase} ${isHighlighted("hemoglobina")}`} placeholder="12.0 - 16.0" />
             </div>
             <div>
               <label className={labelBase}>Hematocrito</label>
-              <input name="hematocrito" type="text" value={resultados?.hematocrito || ""} onChange={(e) => handleChange("hematocrito", e.target.value)} className={inputBase} placeholder="37 - 47" />
+              <input name="hematocrito" type="text" value={resultados?.hematocrito || ""} onChange={(e) => handleChange("hematocrito", e.target.value)} className={`${inputBase} ${isHighlighted("hematocrito")}`} placeholder="37 - 47" />
             </div>
             <div>
               <label className={labelBase}>V.C.M.</label>
-              <input name="vcm" type="text" value={resultados?.vcm || ""} onChange={(e) => handleChange("vcm", e.target.value)} className={inputBase} placeholder="80 - 100" />
+              <input name="vcm" type="text" value={resultados?.vcm || ""} onChange={(e) => handleChange("vcm", e.target.value)} className={`${inputBase} ${isHighlighted("vcm")}`} placeholder="80 - 100" />
             </div>
             <div>
               <label className={labelBase}>H.C.M.</label>
-              <input name="hcm" type="text" value={resultados?.hcm || ""} onChange={(e) => handleChange("hcm", e.target.value)} className={inputBase} placeholder="27 - 32" />
+              <input name="hcm" type="text" value={resultados?.hcm || ""} onChange={(e) => handleChange("hcm", e.target.value)} className={`${inputBase} ${isHighlighted("hcm")}`} placeholder="27 - 32" />
             </div>
             <div>
               <label className={labelBase}>C.H.C.M.</label>
-              <input name="chcm" type="text" value={resultados?.chcm || ""} onChange={(e) => handleChange("chcm", e.target.value)} className={inputBase} placeholder="32 - 36" />
+              <input name="chcm" type="text" value={resultados?.chcm || ""} onChange={(e) => handleChange("chcm", e.target.value)} className={`${inputBase} ${isHighlighted("chcm")}`} placeholder="32 - 36" />
             </div>
           </div>
         </div>
@@ -131,34 +133,34 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelBase}>Leucocitos</label>
-                <input name="leucocitos" type="text" value={resultados?.leucocitos || ""} onChange={(e) => handleChange("leucocitos", e.target.value)} className={`${inputBase} bg-blue-50/10 border-blue-200 focus:border-blue-500 focus:ring-blue-500/10`} placeholder="5k - 10k" />
+                <input name="leucocitos" type="text" value={resultados?.leucocitos || ""} onChange={(e) => handleChange("leucocitos", e.target.value)} className={`${inputBase} bg-blue-50/10 border-blue-200 focus:border-blue-500 focus:ring-blue-500/10 ${isHighlighted("leucocitos")}`} placeholder="5k - 10k" />
               </div>
               <div>
                 <label className={labelBase}>Plaquetas</label>
-                <input name="plaquetas" type="text" value={resultados?.plaquetas || ""} onChange={(e) => handleChange("plaquetas", e.target.value)} className={`${inputBase} bg-blue-50/10 border-blue-200 focus:border-blue-500 focus:ring-blue-500/10`} placeholder="150k - 450k" />
+                <input name="plaquetas" type="text" value={resultados?.plaquetas || ""} onChange={(e) => handleChange("plaquetas", e.target.value)} className={`${inputBase} bg-blue-50/10 border-blue-200 focus:border-blue-500 focus:ring-blue-500/10 ${isHighlighted("plaquetas")}`} placeholder="150k - 450k" />
               </div>
             </div>
 
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-100">
               <div className="col-span-1">
                 <label className={labelBase}>Neut.</label>
-                <input name="neutrofilos" type="text" value={resultados?.neutrofilos || ""} onChange={(e) => handleChange("neutrofilos", e.target.value)} className={inputBase} placeholder="%" />
+                <input name="neutrofilos" type="text" value={resultados?.neutrofilos || ""} onChange={(e) => handleChange("neutrofilos", e.target.value)} className={`${inputBase} ${isHighlighted("neutrofilos")}`} placeholder="%" />
               </div>
               <div className="col-span-1">
                 <label className={labelBase}>Linf.</label>
-                <input name="linfocitos" type="text" value={resultados?.linfocitos || ""} onChange={(e) => handleChange("linfocitos", e.target.value)} className={inputBase} placeholder="%" />
+                <input name="linfocitos" type="text" value={resultados?.linfocitos || ""} onChange={(e) => handleChange("linfocitos", e.target.value)} className={`${inputBase} ${isHighlighted("linfocitos")}`} placeholder="%" />
               </div>
               <div className="col-span-1">
                 <label className={labelBase}>Mono.</label>
-                <input name="monocitos" type="text" value={resultados?.monocitos || ""} onChange={(e) => handleChange("monocitos", e.target.value)} className={inputBase} placeholder="%" />
+                <input name="monocitos" type="text" value={resultados?.monocitos || ""} onChange={(e) => handleChange("monocitos", e.target.value)} className={`${inputBase} ${isHighlighted("monocitos")}`} placeholder="%" />
               </div>
               <div className="col-span-1">
                 <label className={labelBase}>Eos.</label>
-                <input name="eosinofilos" type="text" value={resultados?.eosinofilos || ""} onChange={(e) => handleChange("eosinofilos", e.target.value)} className={inputBase} placeholder="%" />
+                <input name="eosinofilos" type="text" value={resultados?.eosinofilos || ""} onChange={(e) => handleChange("eosinofilos", e.target.value)} className={`${inputBase} ${isHighlighted("eosinofilos")}`} placeholder="%" />
               </div>
               <div className="col-span-1">
                 <label className={labelBase}>Baso.</label>
-                <input name="basofilos" type="text" value={resultados?.basofilos || ""} onChange={(e) => handleChange("basofilos", e.target.value)} className={inputBase} placeholder="%" />
+                <input name="basofilos" type="text" value={resultados?.basofilos || ""} onChange={(e) => handleChange("basofilos", e.target.value)} className={`${inputBase} ${isHighlighted("basofilos")}`} placeholder="%" />
               </div>
             </div>
           </div>
@@ -173,11 +175,11 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label className={labelBase}>1ª Hora</label>
-              <input name="vsg_1h" type="text" value={resultados?.vsg_1h || ""} onChange={(e) => handleChange("vsg_1h", e.target.value)} className={inputBase} placeholder="mm" />
+              <input name="vsg_1h" type="text" value={resultados?.vsg_1h || ""} onChange={(e) => handleChange("vsg_1h", e.target.value)} className={`${inputBase} ${isHighlighted("vsg_1h")}`} placeholder="mm" />
             </div>
             <div>
               <label className={labelBase}>2ª Hora</label>
-              <input name="vsg_2h" type="text" value={resultados?.vsg_2h || ""} onChange={(e) => handleChange("vsg_2h", e.target.value)} className={inputBase} placeholder="mm" />
+              <input name="vsg_2h" type="text" value={resultados?.vsg_2h || ""} onChange={(e) => handleChange("vsg_2h", e.target.value)} className={`${inputBase} ${isHighlighted("vsg_2h")}`} placeholder="mm" />
             </div>
             <div className="col-span-2 lg:col-span-1">
               <label className={`${labelBase} text-red-500`}>Índice Katz</label>

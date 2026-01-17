@@ -31,6 +31,8 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
     onChange({ ...resultados, [field]: value });
   };
 
+  const isHighlighted = (field: string) => resultados?._highlightFields?.includes(field) ? "ring-2 ring-emerald-500 bg-emerald-50" : "";
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       const form = formRef.current;
@@ -74,14 +76,14 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Aspecto</label>
-              <select value={resultados?.aspecto || "Heterogeneo"} onChange={(e) => handleChange("aspecto", e.target.value)} className={selectBase}>
+              <select value={resultados?.aspecto || "Heterogeneo"} onChange={(e) => handleChange("aspecto", e.target.value)} className={`${selectBase} ${isHighlighted("aspecto")}`}>
                 <option value="Heterogeneo">Heterogeneo</option>
                 <option value="Homogeneo">Homogeneo</option>
               </select>
             </div>
             <div>
               <label className={labelBase}>Color</label>
-              <select value={resultados?.color || "Marron"} onChange={(e) => handleChange("color", e.target.value)} className={selectBase}>
+              <select value={resultados?.color || "Marron"} onChange={(e) => handleChange("color", e.target.value)} className={`${selectBase} ${isHighlighted("color")}`}>
                 <option value="Amarillo">Amarillo</option>
                 <option value="Marron">Marron</option>
                 <option value="Rojizo">Rojizo</option>
@@ -92,7 +94,7 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
             </div>
             <div>
               <label className={labelBase}>Consistencia</label>
-              <select value={resultados?.consistencia || "Pastosa"} onChange={(e) => handleChange("consistencia", e.target.value)} className={selectBase}>
+              <select value={resultados?.consistencia || "Pastosa"} onChange={(e) => handleChange("consistencia", e.target.value)} className={`${selectBase} ${isHighlighted("consistencia")}`}>
                 <option value="Blanda">Blanda</option>
                 <option value="Dura">Dura</option>
                 <option value="Pastosa">Pastosa</option>
@@ -103,7 +105,7 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
             </div>
             <div>
               <label className={labelBase}>HB (Sangre)</label>
-              <select value={resultados?.hb || "Negativo"} onChange={(e) => handleChange("hb", e.target.value)} className={selectBase}>
+              <select value={resultados?.hb || "Negativo"} onChange={(e) => handleChange("hb", e.target.value)} className={`${selectBase} ${isHighlighted("hb")}`}>
                 <option value="Negativo">Negativo</option>
                 <option value="Trazas">Trazas</option>
                 <option value="Post(+)">Positivo (+)</option>
@@ -113,7 +115,7 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
             </div>
             <div>
               <label className={labelBase}>Moco</label>
-              <select value={resultados?.moco || "Ausente"} onChange={(e) => handleChange("moco", e.target.value)} className={selectBase}>
+              <select value={resultados?.moco || "Ausente"} onChange={(e) => handleChange("moco", e.target.value)} className={`${selectBase} ${isHighlighted("moco")}`}>
                 <option value="Ausente">Ausente</option>
                 <option value="Escaso">Escaso</option>
                 <option value="Reg. Cantidad">Reg. Cantidad</option>
@@ -122,7 +124,7 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
             </div>
             <div>
               <label className={labelBase}>Reacción</label>
-              <select value={resultados?.reaccion || "Neutra"} onChange={(e) => handleChange("reaccion", e.target.value)} className={selectBase}>
+              <select value={resultados?.reaccion || "Neutra"} onChange={(e) => handleChange("reaccion", e.target.value)} className={`${selectBase} ${isHighlighted("reaccion")}`}>
                 <option value="Alcalina">Alcalina</option>
                 <option value="Acida">Acida</option>
                 <option value="Neutra">Neutra</option>
@@ -130,7 +132,7 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
             </div>
             <div className="col-span-1">
               <label className={labelBase}>PH</label>
-              <input type="text" value={resultados?.ph || ""} onChange={(e) => handleChange("ph", e.target.value)} className={inputBase} placeholder="Ej. 7.0" />
+              <input type="text" value={resultados?.ph || ""} onChange={(e) => handleChange("ph", e.target.value)} className={`${inputBase} ${isHighlighted("ph")}`} placeholder="Ej. 7.0" />
             </div>
           </div>
         </div>
@@ -146,14 +148,14 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelBase}>Sangre Oculta</label>
-                <select value={resultados?.sangre_oculta || "Negativa"} onChange={(e) => handleChange("sangre_oculta", e.target.value)} className={selectBase}>
+                <select value={resultados?.sangre_oculta || "Negativa"} onChange={(e) => handleChange("sangre_oculta", e.target.value)} className={`${selectBase} ${isHighlighted("sangre_oculta")}`}>
                   <option value="Negativa">Negativa</option>
                   <option value="Post(+)">Positiva (+)</option>
                 </select>
               </div>
               <div>
                 <label className={labelBase}>Flora Bacteriana</label>
-                <select value={resultados?.flora_bacteriana || "Reg. Cantidad"} onChange={(e) => handleChange("flora_bacteriana", e.target.value)} className={selectBase}>
+                <select value={resultados?.flora_bacteriana || "Reg. Cantidad"} onChange={(e) => handleChange("flora_bacteriana", e.target.value)} className={`${selectBase} ${isHighlighted("flora_bacteriana")}`}>
                   <option value="Reg. Cantidad">Reg. Cantidad</option>
                   <option value="Escasa">Escasa</option>
                   <option value="Aumentada">Aumentada</option>
@@ -163,7 +165,7 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
 
             <div>
               <label className={labelBase}>Parásitos / Observación</label>
-              <select value={resultados?.parasitos || "No se observan"} onChange={(e) => handleChange("parasitos", e.target.value)} className={selectBase}>
+              <select value={resultados?.parasitos || "No se observan"} onChange={(e) => handleChange("parasitos", e.target.value)} className={`${selectBase} ${isHighlighted("parasitos")}`}>
                 <option value="No se observan">No se observan</option>
                 <option value="Blastocystis sp xc">Blastocystis sp xc</option>
                 <option value="Quiste de Entamoeba histolytica">Quiste de Entamoeba histolytica</option>
@@ -183,15 +185,15 @@ export default function HecesForm({ resultados, onChange }: HecesFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Polimorfonucleares</label>
-              <input type="text" value={resultados?.po_nucleares || ""} onChange={(e) => handleChange("po_nucleares", e.target.value)} className={inputBase} placeholder="0-2 xc" />
+              <input type="text" value={resultados?.po_nucleares || ""} onChange={(e) => handleChange("po_nucleares", e.target.value)} className={`${inputBase} ${isHighlighted("po_nucleares")}`} placeholder="0-2 xc" />
             </div>
             <div>
               <label className={labelBase}>Restos Alimenticios</label>
-              <input type="text" value={resultados?.re_alimenticios || ""} onChange={(e) => handleChange("re_alimenticios", e.target.value)} className={inputBase} placeholder="Moderados" />
+              <input type="text" value={resultados?.re_alimenticios || ""} onChange={(e) => handleChange("re_alimenticios", e.target.value)} className={`${inputBase} ${isHighlighted("re_alimenticios")}`} placeholder="Moderados" />
             </div>
             <div>
               <label className={labelBase}>Azúcares Reductores</label>
-              <input type="text" value={resultados?.az_reductores || ""} onChange={(e) => handleChange("az_reductores", e.target.value)} className={inputBase} placeholder="Negativo" />
+              <input type="text" value={resultados?.az_reductores || ""} onChange={(e) => handleChange("az_reductores", e.target.value)} className={`${inputBase} ${isHighlighted("az_reductores")}`} placeholder="Negativo" />
             </div>
           </div>
         </div>

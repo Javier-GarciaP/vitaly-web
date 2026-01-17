@@ -26,12 +26,14 @@ interface ExamenPredefinido {
   nombre: string;
   precio: number;
   categoria: string;
+  parametros?: string[];
 }
 
 interface ExamenFactura {
   nombre: string;
   precio: number;
   categoria: string;
+  parametros?: string[];
 }
 
 interface Factura {
@@ -90,6 +92,7 @@ export default function FacturasPage() {
   const loadExamenesPredefinidos = async () => {
     try {
       const res = await fetch("/api/examenes-predefinidos");
+      if (!res.ok) throw new Error("Error al cargar exámenes predefinidos");
       const data = await res.json();
       setExamenesPredefinidos(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
@@ -180,8 +183,8 @@ export default function FacturasPage() {
     }
   };
 
-  const addToCarrito = (nombre: string, precio: number, categoria: string) => {
-    setCarrito([...carrito, { nombre, precio, categoria }]);
+  const addToCarrito = (nombre: string, precio: number, categoria: string, parametros?: string[]) => {
+    setCarrito([...carrito, { nombre, precio, categoria, parametros }]);
     setBusquedaExamen("");
     setSelectedExamenIndex(0);
   };
@@ -446,7 +449,7 @@ export default function FacturasPage() {
                             e.preventDefault();
                           } else if (e.key === "Enter") {
                             const ex = sugerenciasExamenes[selectedExamenIndex];
-                            addToCarrito(ex.nombre, ex.precio, ex.categoria);
+                            addToCarrito(ex.nombre, ex.precio, ex.categoria, ex.parametros);
                             e.preventDefault();
                           }
                         }
@@ -458,7 +461,7 @@ export default function FacturasPage() {
                           <button
                             key={ex.id}
                             onMouseEnter={() => setSelectedExamenIndex(idx)}
-                            onClick={() => addToCarrito(ex.nombre, ex.precio, ex.categoria)}
+                            onClick={() => addToCarrito(ex.nombre, ex.precio, ex.categoria, ex.parametros)}
                             className={`w-full px-4 py-3 text-left border-b border-slate-50 last:border-0 flex justify-between items-center transition-colors ${selectedExamenIndex === idx ? "bg-slate-50 border-l-4 border-l-blue-500" : "bg-white"}`}
                           >
                             <div>
