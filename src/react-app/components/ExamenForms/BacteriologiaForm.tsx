@@ -5,7 +5,6 @@ import {
   Plus,
   Trash2,
   FlaskConical,
-  Layers,
 } from "lucide-react";
 
 import { BacteriologiaData } from "@/types/types";
