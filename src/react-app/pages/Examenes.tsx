@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, X, User, CheckCircle2, ChevronRight, Activity, Search, ClipboardList } from "lucide-react";
+import { Plus, X, User, CheckCircle2, Activity, Search, ClipboardList } from "lucide-react";
+import { getTodayDate } from "@/utils/date";
 
 interface Paciente {
   id: number;
@@ -19,7 +20,7 @@ export default function ExamenesPage() {
 
   const [formData, setFormData] = useState({
     paciente_id: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: getTodayDate(),
     estado: "pendiente",
   });
 
@@ -95,7 +96,7 @@ export default function ExamenesPage() {
   };
 
   const openModal = () => {
-    setFormData({ paciente_id: "", fecha: new Date().toISOString().split("T")[0], estado: "pendiente" });
+    setFormData({ paciente_id: "", fecha: getTodayDate(), estado: "pendiente" });
     setSelectedTipos([]);
     setPacienteInput("");
     setErrorPaciente("");
@@ -112,58 +113,49 @@ export default function ExamenesPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-10">
 
-      {/* HEADER PROFESIONAL */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+      {/* TOP HEADER */}
+      <div className="flex items-end justify-between border-b border-slate-100 pb-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Registro de Exámenes</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">
-            Gestión de Órdenes y Laboratorio
+          <h1 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">Órdenes</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1">
+            Gestión de solicitudes de laboratorio
           </p>
         </div>
         <button
           onClick={openModal}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-sm font-semibold"
+          className="text-[10px] font-bold uppercase text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
         >
-          <Plus size={18} />
-          <span>Nueva Orden</span>
+          <Plus size={14} /> Nueva Orden
         </button>
       </div>
 
       {/* NOTIFICACIÓN FLOTANTE */}
       {notification && (
-        <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 z-[100] animate-slide-in">
+        <div className="fixed bottom-8 right-8 bg-slate-900/90 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 z-[100] animate-slide-in">
           <CheckCircle2 className="text-emerald-400" size={18} />
           <span className="font-semibold text-sm">{notification}</span>
         </div>
       )}
 
-      {/* PANEL PRINCIPAL: 2 COLUMNAS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* COLUMNA IZQUIERDA: Info y Guía */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <div className="">
-              <Activity className="text-blue-600 mb-4" size={24} />
-              <h2 className="text-lg font-bold text-slate-900 leading-tight mb-2">Órdenes Rápidas</h2>
-              <p className="text-slate-600 text-sm leading-relaxed mb-5">
-                Asigne múltiples estudios a un paciente en una sola operación. Los resultados se sincronizarán automáticamente.
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                  <CheckCircle2 size={16} /> 100% Sincronizado
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* COLUMNA IZQUIERDA - Minimalista */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Activity size={14} className="text-slate-400" /> Registro Rápido
+            </h2>
+            <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+              Cree órdenes médicas vinculando múltiples estudios a un paciente. El sistema generará automáticamente las entradas necesarias en el panel de resultados.
+            </p>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-              <ClipboardList size={16} /> Tipos Frecuentes
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+            <h3 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <ClipboardList size={14} className="text-slate-400" /> Estudios Disponibles
             </h3>
             <div className="flex flex-wrap gap-2">
-              {tiposExamen.slice(0, 5).map(t => (
-                <span key={t} className="text-xs font-medium bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-100">
+              {tiposExamen.map(t => (
+                <span key={t} className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded uppercase tracking-tighter">
                   {t}
                 </span>
               ))}
@@ -171,129 +163,107 @@ export default function ExamenesPage() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Placeholder de historial o Lista */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
-          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
-            <Search size={32} />
+        {/* COLUMNA DERECHA - Pantalla Vacía Minimalista */}
+        <div className="lg:col-span-8 bg-white border border-slate-100 rounded-[2rem] p-12 flex flex-col items-center justify-center text-center shadow-sm">
+          <div className="w-12 h-12 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mb-6 border border-slate-100">
+            <Search size={24} />
           </div>
-          <h3 className="text-lg font-black text-slate-800">No hay órdenes seleccionadas</h3>
-          <p className="text-slate-400 text-sm max-w-xs mt-2">
-            Haga clic en <b>"Nueva Orden"</b> para comenzar a registrar estudios médicos.
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Esperando Selección</h3>
+          <p className="text-[10px] text-slate-300 font-bold uppercase tracking-tight mt-2">
+            Use el botón superior para crear una nueva orden de laboratorio
           </p>
         </div>
       </div>
 
-      {/* MODAL COMPACTO */}
+      {/* MODAL ORDEN - Minimalista */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden border border-slate-200">
-            {/* Modal Header */}
-            <div className="bg-slate-50/50 px-6 py-4 flex justify-between items-center border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">Nueva Orden Médica</h2>
-              </div>
-              <button onClick={closeModal} className="p-2 hover:bg-red-50 rounded-lg transition-all text-slate-400 hover:text-red-500">
+        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                Nueva Orden de Laboratorio
+              </p>
+              <button onClick={closeModal} className="text-slate-300 hover:text-slate-900 transition-colors">
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              {/* Buscador Paciente */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="relative">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Paciente</label>
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Paciente</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                   <input
-                    type="text"
-                    placeholder="Buscar por nombre o cédula..."
-                    value={pacienteInput}
+                    type="text" placeholder="BUSCAR PACIENTE..." value={pacienteInput}
                     onChange={(e) => { setPacienteInput(e.target.value); setShowSugerencias(true); }}
-                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border-2 rounded-xl outline-none transition-all text-sm font-bold ${errorPaciente ? "border-red-200 bg-red-50" : "border-transparent focus:border-blue-500 focus:bg-white text-slate-700"
-                      }`}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl outline-none text-[11px] font-bold uppercase transition-all ${errorPaciente ? "border-rose-200" : "border-slate-100 focus:border-slate-400"}`}
                   />
                 </div>
-
                 {showSugerencias && sugerenciasFiltradas.length > 0 && (
-                  <div className="absolute z-[90] w-full bg-white border border-slate-200 mt-1 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1">
+                  <div className="absolute z-[160] w-full bg-white border border-slate-100 mt-1 rounded-xl shadow-xl overflow-hidden">
                     {sugerenciasFiltradas.map((p) => (
                       <button
-                        key={p.id} type="button"
-                        className="w-full px-4 py-3 text-left hover:bg-blue-50 flex items-center justify-between group border-b border-slate-50 last:border-0"
-                        onClick={() => seleccionarPaciente(p)}
+                        key={p.id} type="button" onClick={() => seleccionarPaciente(p)}
+                        className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-50 last:border-0 group"
                       >
-                        <div>
-                          <p className="font-bold text-slate-800 text-xs">{p.nombre}</p>
-                          <p className="text-[9px] text-slate-400 font-bold">{p.cedula}</p>
-                        </div>
-                        <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-500" />
+                        <p className="text-[10px] font-bold text-slate-900 uppercase tracking-tight">{p.nombre}</p>
+                        <p className="text-[8px] text-slate-400 font-bold font-mono">CI: {p.cedula}</p>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Selección de Exámenes */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Estudios</label>
+              <div>
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Selección de Estudios</label>
                 <select
-                  value=""
-                  onChange={(e) => addTipoExamen(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600 appearance-none transition-all cursor-pointer"
+                  value="" onChange={(e) => addTipoExamen(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase transition-all cursor-pointer appearance-none"
                 >
-                  <option value="">+ Seleccionar estudio médico...</option>
+                  <option value="">+ AÑADIR EXAMEN...</option>
                   {tiposExamen.map((tipo) => (
-                    <option key={tipo} value={tipo} disabled={selectedTipos.includes(tipo)}>{tipo}</option>
+                    <option key={tipo} value={tipo} disabled={selectedTipos.includes(tipo)}>{tipo.toUpperCase()}</option>
                   ))}
                 </select>
 
-                <div className="flex flex-wrap gap-1.5 min-h-[30px]">
+                <div className="flex flex-wrap gap-1.5 mt-3">
                   {selectedTipos.map((tipo) => (
-                    <span key={tipo} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight animate-in zoom-in-50">
+                    <span key={tipo} className="inline-flex items-center gap-1.5 bg-slate-50 text-[9px] font-bold text-slate-600 border border-slate-100 px-2.5 py-1.5 rounded-lg uppercase tracking-tight">
                       {tipo}
-                      <button type="button" onClick={() => removeTipoExamen(tipo)} className="text-blue-400 hover:text-red-500">
-                        <X size={12} />
-                      </button>
+                      <button type="button" onClick={() => removeTipoExamen(tipo)} className="text-slate-300 hover:text-rose-500"><X size={12} /></button>
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Fecha y Estado Compacto */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Fecha</label>
                   <input
-                    type="date"
-                    value={formData.fecha}
+                    type="date" value={formData.fecha}
                     onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600"
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label>
+                <div>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Estado</label>
                   <select
                     value={formData.estado}
                     onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none text-xs font-bold text-slate-600"
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase transition-all cursor-pointer"
                   >
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en_proceso">En Proceso</option>
+                    <option value="pendiente">PENDIENTE</option>
+                    <option value="en_proceso">EN PROCESO</option>
                   </select>
                 </div>
               </div>
 
-              {/* Botones de Acción */}
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  disabled={selectedTipos.length === 0}
-                  className={`flex-1 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${selectedTipos.length > 0 ? "bg-slate-900 text-white shadow-lg hover:bg-blue-600" : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                    }`}
-                >
-                  Registrar Orden ({selectedTipos.length})
-                </button>
-              </div>
+              <button
+                type="submit" disabled={selectedTipos.length === 0}
+                className={`w-full py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl ${selectedTipos.length > 0 ? "bg-slate-900 text-white shadow-slate-200" : "bg-slate-100 text-slate-300 cursor-not-allowed shadow-none"}`}
+              >
+                Crear Orden Médico
+              </button>
             </form>
           </div>
         </div>

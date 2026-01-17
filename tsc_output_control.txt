@@ -1,0 +1,1 @@
+src/react-app/pages/ControlPacientePage.tsx(159,50): error TS2304: Cannot find name 'ChevronRight'.

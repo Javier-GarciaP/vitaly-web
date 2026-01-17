@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Search,
-  Edit3,
+  Edit2,
   Trash2,
   ChevronFirst,
   ChevronLeft,
@@ -15,10 +15,9 @@ import {
   Clock,
   AlertCircle,
   User,
-  Calendar,
-  Fingerprint,
-  Activity,
+  ArrowUpRight,
 } from "lucide-react";
+import { formatDisplayDate } from "@/utils/date";
 
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
 import QuimicaClinicaForm from "@/react-app/components/ExamenForms/QuimicaClinicaForm";
@@ -246,97 +245,51 @@ export default function ResultadosPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto pb-10 px-4 md:px-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6 mt-6">
+      {/* TOP HEADER */}
+      <div className="flex items-end justify-between border-b border-slate-100 pb-4 mb-6 mt-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            <FileText className="text-blue-600" size={32} />
-            Gestión de Resultados
-          </h1>
-          <p className="text-sm md:text-base text-slate-500 font-medium">
-            Validación, edición y despacho de informes médicos
+          <h1 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">Resultados</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1">
+            Gestión y validación de estudios
           </p>
-        </div>
-
-        <div className="relative w-full lg:w-96 group">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o cédula..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
-          />
         </div>
       </div>
 
-      {/* Estado Filter */}
-      <div className="mb-6 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-            Filtrar por Estado:
-          </span>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setStatusFilter("todos")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "todos"
-                ? "bg-slate-900 text-white border-slate-900 shadow-lg"
-                : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300"
-                }`}
-            >
-              <FileText size={14} />
-              Todos
-              <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-[10px]">
-                {examenes.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setStatusFilter("completado")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "completado"
-                ? "bg-emerald-500 text-white border-emerald-500 shadow-lg"
-                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300"
-                }`}
-            >
-              <CheckCircle2 size={14} />
-              Completado
-              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${statusFilter === "completado" ? "bg-white/20" : "bg-emerald-100"
-                }`}>
-                {examenes.filter(ex => ex.estado === "completado").length}
-              </span>
-            </button>
-            <button
-              onClick={() => setStatusFilter("en_proceso")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "en_proceso"
-                ? "bg-blue-500 text-white border-blue-500 shadow-lg"
-                : "bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-300"
-                }`}
-            >
-              <Clock size={14} />
-              En Proceso
-              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${statusFilter === "en_proceso" ? "bg-white/20" : "bg-blue-100"
-                }`}>
-                {examenes.filter(ex => ex.estado === "en_proceso").length}
-              </span>
-            </button>
-            <button
-              onClick={() => setStatusFilter("pendiente")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border-2 ${statusFilter === "pendiente"
-                ? "bg-amber-500 text-white border-amber-500 shadow-lg"
-                : "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-300"
-                }`}
-            >
-              <AlertCircle size={14} />
-              Pendiente
-              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${statusFilter === "pendiente" ? "bg-white/20" : "bg-amber-100"
-                }`}>
-                {examenes.filter(ex => ex.estado === "pendiente").length}
-              </span>
-            </button>
-          </div>
-        </div>
+      {/* BUSCADOR MINIMALISTA */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+        <input
+          type="text"
+          placeholder="BUSCAR POR NOMBRE O CÉDULA..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-xl focus:border-slate-300 outline-none text-[11px] font-bold uppercase tracking-wide transition-all placeholder:text-slate-300 shadow-sm"
+        />
+      </div>
+
+      {/* FILTROS MINIMALISTAS */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        {[
+          { id: "todos", label: "Todos", count: examenes.length, icon: FileText },
+          { id: "completado", label: "Completados", count: examenes.filter(ex => ex.estado === "completado").length, icon: CheckCircle2 },
+          { id: "en_proceso", label: "En Proceso", count: examenes.filter(ex => ex.estado === "en_proceso").length, icon: Clock },
+          { id: "pendiente", label: "Pendientes", count: examenes.filter(ex => ex.estado === "pendiente").length, icon: AlertCircle },
+        ].map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setStatusFilter(f.id)}
+            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border flex items-center gap-2 ${statusFilter === f.id
+              ? "bg-slate-900 text-white border-slate-900 shadow-lg"
+              : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"
+              }`}
+          >
+            <f.icon size={14} />
+            {f.label}
+            <span className={`ml-1 px-1.5 py-0.5 rounded ${statusFilter === f.id ? "bg-white/20" : "bg-slate-50 text-slate-400"}`}>
+              {f.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {notification && (
@@ -351,42 +304,33 @@ export default function ResultadosPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         {/* Tabla / Lista de Registros */}
         <div className="xl:col-span-8 space-y-4">
-          <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
-            {/* Desktop Table */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {/* Desktop Table - Minimalista */}
             <div className="hidden md:block overflow-x-auto max-h-[650px]">
-              <table className="w-full border-collapse">
-                <thead className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md border-b border-slate-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Información Paciente</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo de Estudio</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha</th>
-                    <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-slate-50 text-slate-400 text-[9px] font-bold uppercase tracking-widest bg-slate-50/50">
+                    <th className="px-6 py-4">Paciente</th>
+                    <th className="px-6 py-4">Estudio</th>
+                    <th className="px-6 py-4">Fecha</th>
+                    <th className="px-6 py-4 text-center">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {filteredExamenes.map((examen, index) => {
+                    const isSelected = selectedExamen?.id === examen.id;
                     const status = getStatusConfig(examen.estado);
                     return (
                       <tr
-                        key={examen.id}
-                        onClick={() => handleSelectExamen(examen, index)}
-                        className={`group cursor-pointer transition-all ${selectedExamen?.id === examen.id ? "bg-blue-50/80" : "hover:bg-slate-50"
-                          }`}
+                        key={examen.id} onClick={() => handleSelectExamen(examen, index)}
+                        className={`cursor-pointer transition-colors ${isSelected ? "bg-blue-50/50" : "hover:bg-slate-50"}`}
                       >
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${selectedExamen?.id === examen.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
-                              }`}>
-                              {examen.paciente_nombre.charAt(0)}
-                            </div>
-                            <div>
-                              <div className="font-bold text-slate-800 leading-tight">{examen.paciente_nombre}</div>
-                              <div className="text-xs font-medium text-slate-400">CI: {examen.paciente_cedula}</div>
-                            </div>
-                          </div>
+                          <p className="text-[11px] font-bold text-slate-700 uppercase tracking-tight leading-none mb-0.5">{examen.paciente_nombre}</p>
+                          <p className="text-[9px] text-slate-400 font-bold font-mono uppercase">{examen.paciente_cedula}</p>
                         </td>
-                        <td className="px-6 py-4 text-sm font-bold text-slate-600">{examen.tipo}</td>
-                        <td className="px-6 py-4 text-sm font-medium text-slate-400">
+                        <td className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">{examen.tipo}</td>
+                        <td className="px-6 py-4 text-[10px] font-medium text-slate-400 uppercase">
                           {(() => {
                             const dateObj = new Date(examen.fecha);
                             const offset = dateObj.getTimezoneOffset() * 60000;
@@ -396,8 +340,8 @@ export default function ResultadosPage() {
                           })()}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black border uppercase tracking-wider ${status.bg}`}>
-                            {status.icon} {status.label}
+                          <span className={`inline-flex items-center h-5 px-2 rounded font-bold text-[8px] uppercase tracking-wider border ${status.bg}`}>
+                            {status.label}
                           </span>
                         </td>
                       </tr>
@@ -407,39 +351,23 @@ export default function ResultadosPage() {
               </table>
             </div>
 
-            {/* Mobile List Cards */}
-            <div className="md:hidden divide-y divide-slate-100">
+            {/* Mobile Cards - Minimalista */}
+            <div className="md:hidden divide-y divide-slate-50">
               {filteredExamenes.map((examen, index) => {
-                const status = getStatusConfig(examen.estado);
                 const isSelected = selectedExamen?.id === examen.id;
+                const status = getStatusConfig(examen.estado);
                 return (
-                  <div
-                    key={examen.id}
-                    onClick={() => handleSelectExamen(examen, index)}
-                    className={`p-5 active:bg-slate-100 transition-colors ${isSelected ? "bg-blue-50 ring-2 ring-inset ring-blue-500" : ""}`}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black text-sm ${isSelected ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"}`}>
-                          {examen.paciente_nombre.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-black text-slate-900 leading-tight">{examen.paciente_nombre}</p>
-                          <p className="text-xs font-bold text-slate-400">CI: {examen.paciente_cedula}</p>
-                        </div>
+                  <div key={examen.id} onClick={() => handleSelectExamen(examen, index)} className={`p-5 transition-colors ${isSelected ? "bg-blue-50/50" : "active:bg-slate-50"}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-900 uppercase tracking-tight">{examen.paciente_nombre}</p>
+                        <p className="text-[9px] text-slate-400 font-bold font-mono uppercase">CI: {examen.paciente_cedula}</p>
                       </div>
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border uppercase tracking-tighter ${status.bg}`}>
-                        {status.label}
-                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-bold border uppercase tracking-widest ${status.bg}`}>{status.label}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1 font-bold text-blue-600">
-                        <FileText size={14} /> {examen.tipo}
-                      </div>
-                      <div className="flex items-center gap-1 font-medium text-slate-400">
-                        <Calendar size={14} />
-                        {new Date(examen.fecha + "T12:00:00").toLocaleDateString("es-ES")}
-                      </div>
+                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 uppercase">
+                      <span className="text-blue-600">{examen.tipo}</span>
+                      <span>{formatDisplayDate(examen.fecha)}</span>
                     </div>
                   </div>
                 );
@@ -491,57 +419,50 @@ export default function ResultadosPage() {
         <div id="action-panel" className="xl:col-span-4 space-y-6">
           {selectedExamen ? (
             <div className="sticky top-6 space-y-6">
-              <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl text-white">
-                <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-6">Acciones de Control</h3>
-                <div className="grid grid-cols-1 gap-3">
+              <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Acciones Disponibles</p>
+                <div className="space-y-3">
                   <button
-                    onClick={handleOpenPrint}
-                    disabled={selectedExamen.estado !== "completado"}
-                    className="w-full flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-800 disabled:text-slate-600 py-4 rounded-2xl font-black text-sm transition-all"
+                    onClick={handleOpenPrint} disabled={selectedExamen.estado !== "completado"}
+                    className="w-full flex items-center justify-between px-6 py-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-50 disabled:text-slate-200 text-white rounded-2xl transition-all group"
                   >
-                    <Printer size={20} /> GENERAR PDF OFICIAL
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Generar Reporte PDF</span>
+                    <Printer size={18} className="group-hover:scale-110 transition-transform" />
                   </button>
                   <button
                     onClick={handleEdit}
-                    className="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-4 rounded-2xl font-black text-sm transition-all border border-white/10"
+                    className="w-full flex items-center justify-between px-6 py-4 bg-white border border-slate-100 hover:border-slate-300 text-slate-600 rounded-2xl transition-all group"
                   >
-                    <Edit3 size={20} /> EDITAR RESULTADOS
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Editar Resultados</span>
+                    <Edit2 size={18} className="group-hover:scale-110 transition-transform" />
                   </button>
                   <button
                     onClick={handleOpenPortada}
-                    className="w-full flex items-center justify-center gap-3 bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white py-4 rounded-2xl font-black text-sm transition-all border border-indigo-500/20 group"
+                    className="w-full flex items-center justify-between px-6 py-4 bg-white border border-slate-100 hover:border-slate-300 text-slate-600 rounded-2xl transition-all group"
                   >
-                    <Printer size={20} className="group-hover:animate-bounce" />
-                    IMPRIMIR PORTADA
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Imprimir Portada</span>
+                    <ArrowUpRight size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </button>
                   <button
                     onClick={handleDeleteExamen}
-                    className="w-full flex items-center justify-center gap-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl font-black text-sm transition-all border border-red-500/20"
+                    className="w-full flex items-center justify-between px-6 py-4 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group"
                   >
-                    <Trash2 size={20} /> ELIMINAR REGISTRO
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Eliminar Registro</span>
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 border border-slate-200 shadow-xl">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Detalles del Estudio</h3>
-                <div className="space-y-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 flex-shrink-0">
-                      <User size={20} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Paciente</p>
-                      <p className="font-bold text-slate-800 truncate">{selectedExamen.paciente_nombre}</p>
-                    </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-8">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Expediente</p>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Paciente Asignado</p>
+                    <p className="text-[11px] font-bold text-slate-700 uppercase tracking-tight">{selectedExamen.paciente_nombre}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 overflow-hidden">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
-                      <Fingerprint size={10} /> ID Único de Validación
-                    </p>
-                    <p className="text-[10px] font-mono font-bold text-slate-700 break-all">
-                      {selectedExamen.uuid || "PENDIENTE DE ASIGNACIÓN"}
-                    </p>
+                  <div>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Código de Validación</p>
+                    <p className="font-mono text-[9px] font-bold text-slate-400 break-all">{selectedExamen.uuid || "PENDIENTE"}</p>
                   </div>
                 </div>
               </div>
@@ -608,7 +529,7 @@ export default function ResultadosPage() {
             <div className="px-8 py-6 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                  <Edit3 size={24} />
+                  <Edit2 size={20} /> EDITAR RESULTADOS
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">Editor de Resultados</h2>

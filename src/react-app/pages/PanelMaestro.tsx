@@ -2,16 +2,13 @@ import React, { useEffect, useState, useMemo } from "react";
 import {
   Search,
   Printer,
-  Save,
   X,
   Beaker,
   Activity,
-  PlusCircle,
   CheckCircle2,
   LayoutGrid,
   User,
   FlaskConical,
-  Clock,
   Trash2,
   Droplets,
   Microscope,
@@ -19,6 +16,7 @@ import {
   Stethoscope,
   BeakerIcon,
   Menu,
+  ChevronRight,
 } from "lucide-react";
 
 // --- COMPONENTES EXTERNOS ---
@@ -33,16 +31,17 @@ import MiscelaneosForm from "@/react-app/components/ExamenForms/MiscelaneosForm"
 
 import { generateQRBase64 } from "@/utils/qr";
 import ReportViewer from "@/react-app/reports/ReportViewer";
+import { getTodayDate, formatDisplayDate } from "@/utils/date";
 
 const EXAMEN_CONFIG: Record<string, { color: string; icon: any; bg: string }> = {
-  Hematología: { color: "text-red-600", bg: "bg-red-50", icon: Droplets },
-  "Química Clínica": { color: "text-blue-600", bg: "bg-blue-50", icon: FlaskConical },
+  Hematología: { color: "text-rose-500", bg: "bg-rose-50", icon: Droplets },
+  "Química Clínica": { color: "text-blue-500", bg: "bg-blue-50", icon: FlaskConical },
   Orina: { color: "text-amber-500", bg: "bg-amber-50", icon: TestTube2 },
-  Heces: { color: "text-emerald-700", bg: "bg-emerald-50", icon: Microscope },
-  Coagulación: { color: "text-rose-600", bg: "bg-rose-50", icon: Activity },
-  "Grupo Sanguíneo": { color: "text-red-800", bg: "bg-red-100", icon: BeakerIcon },
-  Bacteriología: { color: "text-purple-600", bg: "bg-purple-50", icon: Beaker },
-  Misceláneos: { color: "text-slate-600", bg: "bg-slate-50", icon: Stethoscope },
+  Heces: { color: "text-emerald-600", bg: "bg-emerald-50", icon: Microscope },
+  Coagulación: { color: "text-rose-400", bg: "bg-rose-50", icon: Activity },
+  "Grupo Sanguíneo": { color: "text-red-700", bg: "bg-red-50", icon: BeakerIcon },
+  Bacteriología: { color: "text-indigo-500", bg: "bg-indigo-50", icon: Beaker },
+  Misceláneos: { color: "text-slate-500", bg: "bg-slate-50", icon: Stethoscope },
 };
 
 const CATALOGO_EXAMENES = [
@@ -70,7 +69,7 @@ export default function PanelControlMaster() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Caracas", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const hoy = getTodayDate();
 
   useEffect(() => { loadInitialData(); }, []);
 
@@ -101,7 +100,6 @@ export default function PanelControlMaster() {
 
   const pacienteActivo = useMemo(() => pacientesHoy.find((p) => p.id === selectedPacienteId), [selectedPacienteId, pacientesHoy]);
   const examenesHoyPaciente = useMemo(() => examenes.filter((e) => e.paciente_id === selectedPacienteId && e.fecha === hoy), [selectedPacienteId, examenes, hoy]);
-  //const isPacienteListoParaImprimir = useMemo(() => pacienteActivo && examenesHoyPaciente.length > 0 && examenesHoyPaciente.every((ex) => ex.estado === "completado"), [pacienteActivo, examenesHoyPaciente]);
   const completadosCount = useMemo(() => examenesHoyPaciente.filter((ex) => ex.estado === "completado").length, [examenesHoyPaciente]);
 
   const handleCreateExamen = async (tipo: string) => {
@@ -142,7 +140,6 @@ export default function PanelControlMaster() {
   const handlePrintMasivo = async () => {
     if (!pacienteActivo) return;
     setIsSaving(true);
-    // Solo incluir exámenes con estado 'completado'
     const completados = examenesHoyPaciente.filter((ex) => ex.estado === "completado");
     const examenesConQR = await Promise.all(completados.map(async (ex) => ({ examen: ex, qr: await generateQRBase64(ex.uuid || "") })));
     setActiveExamen({ id: 0, paciente_id: selectedPacienteId!, tipo: "IMPRESION_MASIVA", fecha: hoy, estado: "completado", resultados: examenesConQR });
@@ -163,61 +160,47 @@ export default function PanelControlMaster() {
       Bacteriología: <BacteriologiaForm {...props} />,
       Misceláneos: <MiscelaneosForm {...props} />,
     };
-    return forms[activeExamen.tipo] || <div className="p-10 text-center">Formulario no definido</div>;
+    return forms[activeExamen.tipo] || <div className="p-10 text-center text-xs font-bold uppercase text-slate-400">Formulario no definido</div>;
   };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden font-sans text-slate-900">
-      {/* NOTIFICACIONES - Refinadas */}
-      {notification && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[2000] bg-slate-900 text-white px-5 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-2">
-          <CheckCircle2 className="text-emerald-400" size={16} />
-          <span className="text-[10px] font-bold uppercase tracking-wider">{notification}</span>
-        </div>
-      )}
+    <div className="flex h-screen bg-white overflow-hidden font-sans text-slate-900">
 
-      {/* SIDEBAR - Responsivo con Drawer en móvil */}
+      {/* SIDEBAR MINIMALISTA */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <div className="flex flex-col h-full">
-          <div className="p-5 border-b border-slate-50">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-100">
-                  <User className="text-white" size={16} />
-                </div>
-                <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-800">Pacientes</h2>
-              </div>
-              <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 text-slate-400"><X size={20} /></button>
-            </div>
+          <div className="p-6 border-b border-slate-50">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900 mb-6 px-1">Pacientes Hoy</h2>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
               <input
-                type="text" placeholder="Buscar..."
-                className="w-full pl-9 pr-3 py-2.5 bg-slate-100 rounded-xl text-[11px] font-bold outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
+                type="text" placeholder="BUSCAR..."
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 rounded-xl text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-slate-200 transition-all placeholder:text-slate-300"
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
             {pacientesHoy.map((p) => (
               <button
                 key={p.id}
                 onClick={() => { setSelectedPacienteId(p.id); setIsSidebarOpen(false); }}
-                className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${selectedPacienteId === p.id ? "bg-blue-600 text-white shadow-blue-200" : "hover:bg-slate-50 text-slate-600"
+                className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${selectedPacienteId === p.id ? "bg-slate-900 text-white shadow-xl shadow-slate-200" : "hover:bg-slate-50 text-slate-600"
                   }`}
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black ${selectedPacienteId === p.id ? "bg-white/20" : "bg-blue-50 text-blue-600"}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border ${selectedPacienteId === p.id ? "bg-white/10 border-white/20" : "bg-white border-slate-100"
+                  }`}>
                   {p.nombre.charAt(0)}
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <p className="font-bold truncate text-[10px] uppercase">{p.nombre}</p>
-                  <p className={`text-[9px] opacity-70 ${selectedPacienteId === p.id ? "text-white" : "text-slate-400"}`}>{p.cedula}</p>
+                  <p className="font-bold truncate text-[10px] uppercase tracking-tight">{p.nombre}</p>
+                  <p className={`text-[8px] font-bold font-mono ${selectedPacienteId === p.id ? "text-slate-400" : "text-slate-300"}`}>{p.cedula}</p>
                 </div>
-                <div className={`text-[9px] font-black ${selectedPacienteId === p.id ? "text-white" : "text-blue-600"}`}>
+                <div className={`text-[9px] font-black ${selectedPacienteId === p.id ? "text-emerald-400" : "text-slate-400"}`}>
                   {p.completados}/{p.totalEx}
                 </div>
               </button>
@@ -227,89 +210,116 @@ export default function PanelControlMaster() {
       </aside>
 
       {/* PANEL CENTRAL */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-50/30">
+
         {/* Header Móvil */}
         <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-100">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-slate-100 rounded-lg text-slate-600"><Menu size={20} /></button>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Laboratorio</span>
-          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center"><Beaker size={18} className="text-slate-400" /></div>
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600"><Menu size={20} /></button>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">PANEL MAESTRO</span>
+          <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100"><Beaker size={16} className="text-slate-400" /></div>
         </header>
 
         {pacienteActivo ? (
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Banner Paciente */}
-            <div className="p-4 lg:p-6 bg-white border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg"><User size={20} /></div>
+
+            {/* Banner Paciente Minimalista */}
+            <div className="px-8 py-6 bg-white border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg"><User size={20} /></div>
                 <div>
-                  <h1 className="text-sm lg:text-lg font-black uppercase tracking-tight leading-none mb-1 italic">{pacienteActivo.nombre}</h1>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{pacienteActivo.cedula} • {hoy}</p>
+                  <h1 className="text-sm font-black uppercase tracking-wider text-slate-900 leading-none mb-1">{pacienteActivo.nombre}</h1>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    {pacienteActivo.cedula} <span className="opacity-30">•</span> {hoy}
+                  </p>
                 </div>
               </div>
 
-              {pacienteActivo && examenesHoyPaciente.length > 0 && (
-                <div className="flex flex-col items-start gap-2">
-                  <button onClick={handlePrintMasivo} disabled={completadosCount === 0} className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 ${completadosCount === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white'} rounded-xl shadow-lg transition-all active:scale-95`}>
-                    <span className="text-[10px] font-black uppercase">Entregar Todo</span>
-                    <Printer size={16} />
-                  </button>
-                  {completadosCount === 0 ? (
-                    <p className="text-[10px] font-bold text-rose-500">No hay exámenes completados para imprimir.</p>
-                  ) : (
-                    <p className="text-[10px] text-slate-500">Se imprimirán los {completadosCount} exámenes completados.</p>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePrintMasivo}
+                  disabled={completadosCount === 0}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${completadosCount === 0
+                    ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
+                    : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-100'
+                    }`}
+                >
+                  <Printer size={16} /> ENTREGAR RESULTADOS
+                </button>
+              </div>
             </div>
 
-            {/* Contenido en 2 Columnas responsivo */}
-            <div className="flex-1 overflow-y-auto p-4 lg:p-8">
-              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Contenido Principal */}
+            <div className="flex-1 overflow-y-auto px-8 py-10 custom-scrollbar">
+              <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
+
                 {/* Listado de Exámenes */}
-                <div className="lg:col-span-8 space-y-4">
-                  <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 mb-2">
-                    <LayoutGrid size={12} /> Estudios Actuales
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                <div className="lg:col-span-8 space-y-6">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
+                      <LayoutGrid size={14} /> Estudios en curso
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     {examenesHoyPaciente.map((ex) => {
-                      const config = EXAMEN_CONFIG[ex.tipo] || { color: "text-slate-600", bg: "bg-slate-50", icon: Beaker };
+                      const config = EXAMEN_CONFIG[ex.tipo] || { color: "text-slate-400", bg: "bg-slate-50", icon: Beaker };
                       const Icon = config.icon;
                       return (
-                        <div key={ex.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className={`p-2.5 ${config.bg} ${config.color} rounded-lg shadow-inner`}><Icon size={18} /></div>
-                            <button onClick={() => handleDeleteExamen(ex)} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                        <div key={ex.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                          <div className="flex items-start justify-between mb-5">
+                            <div className={`w-10 h-10 ${config.bg} ${config.color} rounded-xl flex items-center justify-center border border-slate-100/50`}><Icon size={18} /></div>
+                            <button onClick={() => handleDeleteExamen(ex)} className="p-2 text-slate-200 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
                           </div>
-                          <h4 className="font-bold text-[11px] uppercase tracking-tight mb-1 truncate">{ex.tipo}</h4>
-                          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase mb-4 ${ex.estado === "completado" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                            <Clock size={8} /> {ex.estado.replace("_", " ")}
+                          <h4 className="font-bold text-[11px] uppercase tracking-tight text-slate-800 mb-1 truncate">{ex.tipo}</h4>
+                          <div className={`inline-flex items-center gap-1.5 mb-6 text-[8px] font-black uppercase tracking-widest ${ex.estado === "completado" ? "text-emerald-500" : "text-amber-500"
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${ex.estado === "completado" ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
+                            {ex.estado.replace("_", " ")}
                           </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => { setActiveExamen(ex); setEditResultados(ex.resultados || {}); setEditEstado(ex.estado); setIsEditing(true); }} className="flex-1 py-2 bg-slate-900 text-white text-[9px] font-bold uppercase rounded-lg hover:bg-blue-600 transition-colors">Editar</button>
-                            <button disabled={ex.estado !== "completado"} onClick={() => handleOpenPrint(ex)} className="px-3 bg-slate-100 text-slate-500 rounded-lg hover:bg-blue-100 hover:text-blue-600 disabled:opacity-20 transition-colors"><Printer size={14} /></button>
+                          <div className="flex gap-2 pt-2 border-t border-slate-50">
+                            <button
+                              onClick={() => { setActiveExamen(ex); setEditResultados(ex.resultados || {}); setEditEstado(ex.estado); setIsEditing(true); }}
+                              className="flex-1 py-3 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-slate-100"
+                            >
+                              EDITAR
+                            </button>
+                            {ex.estado === "completado" && (
+                              <button onClick={() => handleOpenPrint(ex)} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition-all"><Printer size={14} /></button>
+                            )}
                           </div>
                         </div>
                       );
                     })}
+                    {examenesHoyPaciente.length === 0 && (
+                      <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                        <Activity className="mx-auto text-slate-100 mb-4" size={40} />
+                        <p className="text-[10px] font-bold uppercase text-slate-300 tracking-widest">No hay exámenes registrados hoy</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Catálogo */}
+                {/* Catálogo Minimalista */}
                 <div className="lg:col-span-4">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 sticky top-0">
-                    <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
-                      <PlusCircle size={12} /> Catálogo
+                  <div className="bg-white rounded-3xl border border-slate-100 p-6 sticky top-8 shadow-sm">
+                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-900 mb-6 flex items-center gap-2">
+                      Añadir Estudio
                     </h3>
-                    <div className="grid grid-cols-1 gap-1.5">
+                    <div className="space-y-1.5">
                       {CATALOGO_EXAMENES.map((tipo) => {
                         const yaExiste = examenesHoyPaciente.some((e) => e.tipo === tipo);
+                        const config = EXAMEN_CONFIG[tipo];
                         return (
                           <button
                             key={tipo} disabled={yaExiste} onClick={() => handleCreateExamen(tipo)}
-                            className={`w-full p-3 rounded-xl border flex items-center justify-between text-[10px] font-bold uppercase transition-all ${yaExiste ? "bg-slate-50 border-transparent opacity-40" : "border-slate-100 hover:border-blue-500 hover:bg-blue-50"}`}
+                            className={`w-full p-4 rounded-xl border flex items-center justify-between text-[10px] font-bold uppercase tracking-tight transition-all group ${yaExiste ? "bg-slate-50 border-transparent opacity-30 cursor-not-allowed" : "border-slate-50 bg-white hover:border-slate-900 hover:bg-slate-50"
+                              }`}
                           >
-                            <span>{tipo}</span>
-                            {yaExiste ? <CheckCircle2 size={14} className="text-emerald-500" /> : <PlusCircle size={14} className="text-blue-500 opacity-0 group-hover:opacity-100" />}
+                            <div className="flex items-center gap-3">
+                              <div className={`w-1.5 h-1.5 rounded-full ${yaExiste ? "bg-emerald-500" : config.color.replace("text-", "bg-")}`} />
+                              <span>{tipo}</span>
+                            </div>
+                            {yaExiste ? <CheckCircle2 size={14} className="text-emerald-500" /> : <ChevronRight size={14} className="text-slate-200 group-hover:text-slate-900 group-hover:translate-x-1 transition-all" />}
                           </button>
                         );
                       })}
@@ -320,75 +330,65 @@ export default function PanelControlMaster() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6"><Beaker size={40} className="text-slate-100" /></div>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Seleccione un paciente</h2>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white">
+            <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-8 border border-slate-100">
+              <FlaskConical size={32} className="text-slate-200" />
+            </div>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300">Seleccione un paciente para empezar</h2>
           </div>
         )}
       </main>
 
-      {/* MODAL DE EDICIÓN - Panel Amplio y Lateral (Tipo Drawer) */}
+      {/* DRAWER DE EDICIÓN MINIMALISTA */}
       {isEditing && activeExamen && (
         <div className="fixed inset-0 z-[1000] flex items-stretch justify-end">
           <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+            className="absolute inset-0 bg-slate-900/10 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => !isSaving && setIsEditing(false)}
           />
-          <div className="relative w-full max-w-4xl bg-[#F8FAFC] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-out">
-            {/* Header del Drawer */}
-            <div className="px-6 py-5 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
+          <div className="relative w-full max-w-4xl bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-out">
+
+            {/* Header del Editor */}
+            <div className="px-8 py-6 bg-white border-b border-slate-50 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 flex items-center justify-center rounded-2xl shadow-sm ${EXAMEN_CONFIG[activeExamen.tipo]?.bg} ${EXAMEN_CONFIG[activeExamen.tipo]?.color}`}>
-                  <FlaskConical size={24} />
+                <div className={`w-12 h-12 flex items-center justify-center rounded-2xl border border-slate-100 ${EXAMEN_CONFIG[activeExamen.tipo]?.bg} ${EXAMEN_CONFIG[activeExamen.tipo]?.color}`}>
+                  <FlaskConical size={20} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none">{activeExamen.tipo}</h2>
-                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest border border-blue-100">Editor</span>
-                  </div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <User size={12} /> {pacienteActivo?.nombre}
+                  <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 mb-1">{activeExamen.tipo}</h2>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                    Paciente: {pacienteActivo?.nombre}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="p-3 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-2xl transition-all active:scale-90"
-              >
-                <X size={24} />
-              </button>
+              <button onClick={() => setIsEditing(false)} className="p-3 text-slate-300 hover:text-slate-900 transition-colors"><X size={20} /></button>
             </div>
 
             {/* Cuerpo del Formulario */}
-            <div className="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar scroll-smooth">
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 lg:p-10 mb-8">
+            <div className="flex-1 overflow-y-auto p-8 lg:p-12 custom-scrollbar bg-slate-50/20">
+              <div className="max-w-4xl mx-auto space-y-10">
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 lg:p-12">
                   {renderExamenForm()}
                 </div>
 
-                {/* Status Selector - Más visual */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-[0.2em] flex items-center gap-2 px-2">
-                    <CheckCircle2 size={14} /> Estatus del Informe Final
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3">
+                {/* Selector de Estado */}
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-sm">
+                  <h3 className="text-[9px] font-black uppercase text-slate-400 mb-8 tracking-[0.3em] text-center">Estatus Final del Informe</h3>
+                  <div className="grid grid-cols-3 gap-4">
                     {[
-                      { id: "pendiente", label: "Pendiente", color: "peer-checked:bg-amber-500 peer-checked:border-amber-500" },
-                      { id: "en_proceso", label: "En Proceso", color: "peer-checked:bg-blue-600 peer-checked:border-blue-600" },
-                      { id: "completado", label: "Completado", color: "peer-checked:bg-emerald-500 peer-checked:border-emerald-500" }
+                      { id: "pendiente", label: "Pendiente", active: "peer-checked:bg-amber-500 peer-checked:border-amber-500" },
+                      { id: "en_proceso", label: "En Proceso", active: "peer-checked:bg-blue-600 peer-checked:border-blue-600" },
+                      { id: "completado", label: "Completado", active: "peer-checked:bg-emerald-500 peer-checked:border-emerald-500" }
                     ].map((st) => (
                       <label key={st.id} className="relative cursor-pointer group">
                         <input
-                          type="radio"
-                          name="status"
-                          className="peer sr-only"
-                          checked={editEstado === st.id}
-                          onChange={() => setEditEstado(st.id as any)}
+                          type="radio" name="status" className="peer sr-only"
+                          checked={editEstado === st.id} onChange={() => setEditEstado(st.id as any)}
                         />
                         <div className={`
-                          py-4 px-3 text-center rounded-2xl border-2 border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400
-                          transition-all duration-200 group-hover:border-slate-200 group-hover:bg-white
-                          ${st.color} peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-[1.02]
+                          py-5 px-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-300
+                          transition-all duration-300 group-hover:border-slate-100
+                          ${st.active} peer-checked:text-white peer-checked:shadow-xl peer-checked:scale-105
                         `}>
                           {st.label}
                         </div>
@@ -399,40 +399,37 @@ export default function PanelControlMaster() {
               </div>
             </div>
 
-            {/* Footer de Acciones - Pegajoso */}
-            <div className="px-8 py-6 bg-white border-t border-slate-200 flex gap-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+            {/* Acciones del Editor */}
+            <div className="px-10 py-8 bg-white border-t border-slate-50 flex gap-4 shrink-0">
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-8 py-4 bg-slate-50 text-slate-500 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all border border-slate-100"
+                className="px-8 py-5 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] hover:text-slate-900 transition-colors"
               >
-                Cancelar
+                DESCARTAR
               </button>
               <button
-                onClick={handleSaveResults}
-                disabled={isSaving}
-                className="flex-1 py-4 bg-slate-900 hover:bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-900/10 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                onClick={handleSaveResults} disabled={isSaving}
+                className="flex-1 py-5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-2xl shadow-slate-200 transition-all hover:bg-slate-800 active:scale-95 disabled:opacity-50"
               >
-                {isSaving ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <><Save size={20} /> Guardar y Finalizar</>
-                )}
+                {isSaving ? "PROCESANDO..." : "GUARDAR RESULTADOS"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL IMPRESIÓN */}
+      {/* MODAL IMPRESIÓN FULLSCREEN */}
       {showPrintModal && activeExamen && (
-        <div className="fixed inset-0 bg-slate-900/90 flex items-center justify-center z-[1100] p-0 lg:p-4 backdrop-blur-md">
-          <div className="bg-white w-full h-full lg:max-w-6xl lg:h-[95vh] lg:rounded-[2rem] flex flex-col shadow-2xl overflow-hidden">
-            <div className="flex justify-between items-center p-4 lg:p-6 bg-white border-b">
-              <h2 className="text-xs lg:text-sm font-black uppercase flex items-center gap-2"><Printer size={18} className="text-blue-600" /> Vista Previa</h2>
-              <button onClick={() => setShowPrintModal(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-md flex items-center justify-center z-[1100] p-4 lg:p-10">
+          <div className="bg-white w-full h-full lg:rounded-[3rem] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-center px-10 py-6 bg-white border-b border-slate-50">
+              <h2 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-slate-900">
+                <Printer size={16} /> Vista Previa del Informe
+              </h2>
+              <button onClick={() => setShowPrintModal(false)} className="p-3 text-slate-300 hover:text-slate-900 transition-colors bg-slate-50 rounded-2xl hover:bg-slate-100"><X size={20} /></button>
             </div>
-            <div className="flex-1 bg-slate-200/50 overflow-y-auto p-2 lg:p-6 custom-scrollbar flex justify-center">
-              <div className="w-full max-w-[800px] shadow-2xl origin-top lg:scale-100">
+            <div className="flex-1 bg-slate-50/50 overflow-y-auto p-10 custom-scrollbar flex justify-center">
+              <div className="w-full max-w-[800px] shadow-2xl bg-white">
                 <ReportViewer
                   type={activeExamen.tipo}
                   data={activeExamen.resultados}
@@ -441,7 +438,7 @@ export default function PanelControlMaster() {
                     nombre: pacienteActivo?.nombre || "",
                     cedula: pacienteActivo?.cedula || "",
                     edad: pacienteActivo?.edad || "N/A",
-                    fecha: activeExamen.fecha ? new Date(new Date(activeExamen.fecha).getTime() + new Date().getTimezoneOffset() * 60000).toLocaleDateString("es-ES") : "Sin fecha"
+                    fecha: formatDisplayDate(activeExamen.fecha)
                   }}
                 />
               </div>
@@ -450,10 +447,18 @@ export default function PanelControlMaster() {
         </div>
       )}
 
+      {/* NOTIFICACIÓN FLOTANTE */}
+      {notification && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[2000] bg-slate-900 text-white px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5">
+          <CheckCircle2 className="text-emerald-400" size={20} />
+          <span className="text-[11px] font-black uppercase tracking-widest">{notification}</span>
+        </div>
+      )}
+
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
       `}</style>
     </div>
   );

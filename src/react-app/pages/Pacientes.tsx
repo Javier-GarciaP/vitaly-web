@@ -126,40 +126,32 @@ export default function PacientesPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 pb-24 pt-4 bg-slate-50/50 min-h-screen">
-      {/* HEADER PROFESIONAL */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Pacientes
-            </h1>
-            <p className="text-sm font-medium text-blue-600 mt-1">
-              {pacientes.length} Registros
-            </p>
-          </div>
-          <button
-            onClick={() => openModal()}
-            className="h-11 w-11 sm:w-auto sm:px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
-          >
-            <Plus size={20} />
-            <span className="hidden sm:inline font-semibold">Nuevo</span>
-          </button>
+      {/* TOP HEADER */}
+      <div className="flex items-end justify-between border-b border-slate-100 pb-4 mb-6">
+        <div>
+          <h1 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">Pacientes</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1">
+            {pacientes.length} registros en base de datos
+          </p>
         </div>
+        <button
+          onClick={() => openModal()}
+          className="text-[10px] font-bold uppercase text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
+        >
+          <Plus size={14} /> Registrar Nuevo
+        </button>
+      </div>
 
-        {/* BUSCADOR ESTILIZADO */}
-        <div className="relative group">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o documento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all outline-none text-sm shadow-sm"
-          />
-        </div>
+      {/* BUSCADOR MINIMALISTA */}
+      <div className="relative mb-8">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+        <input
+          type="text"
+          placeholder="BUSCAR POR NOMBRE O CÉDULA..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-xl focus:border-slate-300 outline-none text-[11px] font-bold uppercase tracking-wide transition-all placeholder:text-slate-300 shadow-sm"
+        />
       </div>
 
       {notification && (
@@ -169,77 +161,61 @@ export default function PacientesPage() {
         </div>
       )}
 
-      {/* VISTA DESKTOP (TABLA REFINADA) */}
-      <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-separate border-spacing-0">
+      <div className="hidden md:block bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+        <table className="w-full text-left">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Paciente
-              </th>
-              <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Identificación
-              </th>
-              <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Info
-              </th>
-              <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Acciones
-              </th>
+            <tr className="border-b border-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+              <th className="px-6 py-4">Paciente</th>
+              <th className="px-6 py-4">Identificación</th>
+              <th className="px-6 py-4">Info</th>
+              <th className="px-6 py-4 text-right"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-50">
             {filteredPacientes.map((paciente) => (
-              <tr
-                key={paciente.id}
-                className="hover:bg-blue-50/30 transition-colors group"
-              >
+              <tr key={paciente.id} className="hover:bg-slate-50 transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center font-bold text-xs border border-slate-100">
                       {paciente.nombre.charAt(0)}
                     </div>
-                    <span className="font-bold text-slate-700 text-sm">
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">
                       {paciente.nombre}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-500 font-medium">
+                <td className="px-6 py-4 text-[11px] text-slate-500 font-bold font-mono">
                   {paciente.cedula}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">
-                      {paciente.sexo || "-"}
+                  <div className="flex gap-1.5">
+                    <span className="px-2 py-0.5 bg-slate-50 text-slate-400 rounded text-[9px] font-bold uppercase border border-slate-100">
+                      {paciente.sexo || "N/A"}
                     </span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">
+                    <span className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded text-[9px] font-bold border border-slate-100">
                       {paciente.edad}
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => {
-                        setSelectedPaciente(paciente);
-                        setTipoExamen("");
-                        setShowGraphModal(true);
-                      }}
-                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                      onClick={() => { setSelectedPaciente(paciente); setTipoExamen(""); setShowGraphModal(true); }}
+                      className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
                     >
-                      <TrendingUp size={16} />
+                      <TrendingUp size={14} />
                     </button>
                     <button
                       onClick={() => openModal(paciente)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors"
                     >
-                      <Edit2 size={16} />
+                      <Edit2 size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(paciente.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </td>
@@ -250,148 +226,95 @@ export default function PacientesPage() {
       </div>
 
       {/* VISTA MÓVIL (TIPO LISTA ANDROID) */}
-      <div className="md:hidden space-y-2">
+      <div className="md:hidden space-y-3">
         {filteredPacientes.map((paciente) => (
-          <div
-            key={paciente.id}
-            className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group active:bg-slate-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
-                {paciente.nombre.charAt(0)}
+          <div key={paciente.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 border border-slate-100 flex items-center justify-center font-bold text-xs uppercase">
+                  {paciente.nombre.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-[11px] uppercase tracking-tight">{paciente.nombre}</p>
+                  <p className="text-[9px] text-slate-400 font-bold font-mono">CI: {paciente.cedula}</p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-slate-900 text-sm leading-tight">
-                  {paciente.nombre}
-                </span>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  CI: {paciente.cedula} • {paciente.edad}
-                </span>
+              <div className="flex gap-1">
+                <button onClick={() => { setSelectedPaciente(paciente); setShowGraphModal(true); }} className="p-2 text-slate-400 active:text-emerald-500 transition-colors"><TrendingUp size={16} /></button>
+                <button onClick={() => openModal(paciente)} className="p-2 text-slate-400 active:text-blue-500 transition-colors"><Edit2 size={16} /></button>
+                <button onClick={() => handleDelete(paciente.id)} className="p-2 text-slate-400 active:text-rose-500 transition-colors"><Trash2 size={16} /></button>
               </div>
             </div>
-
-            <div className="flex gap-1">
-              <button
-                onClick={() => {
-                  setSelectedPaciente(paciente);
-                  setShowGraphModal(true);
-                }}
-                className="p-2 text-emerald-600 bg-emerald-50 rounded-lg"
-              >
-                <TrendingUp size={18} />
-              </button>
-              <button
-                onClick={() => openModal(paciente)}
-                className="p-2 text-blue-600 bg-blue-50 rounded-lg"
-              >
-                <Edit2 size={18} />
-              </button>
-              <button
-                onClick={() => handleDelete(paciente.id)}
-                className="p-2 text-red-500 bg-red-50 rounded-lg"
-              >
-                <Trash2 size={18} />
-              </button>
+            <div className="flex gap-2">
+              <span className="px-2 py-0.5 bg-slate-50 text-[9px] font-bold text-slate-400 uppercase rounded border border-slate-100">{paciente.sexo || "N/A"}</span>
+              <span className="px-2 py-0.5 bg-slate-50 text-[9px] font-bold text-slate-500 uppercase rounded border border-slate-100">{paciente.edad}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* MODAL REGISTRO (DISEÑO REDUCIDO) */}
+      {/* MODAL REGISTRO - Minimalista */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-[150] p-0 sm:p-4">
-          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl shadow-2xl w-full max-w-md animate-in slide-in-from-bottom duration-300">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="text-lg font-black text-slate-900">
-                {editingPaciente ? "Editar Paciente" : "Nuevo Paciente"}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="p-2 hover:bg-slate-100 rounded-full text-slate-400"
-              >
-                <X size={20} />
+        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                {editingPaciente ? "Edición de Paciente" : "Nuevo Registro"}
+              </p>
+              <button onClick={closeModal} className="text-slate-300 hover:text-slate-900 transition-colors">
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                    Documento de Identidad
-                  </label>
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Identificación</label>
                   <input
-                    type="text"
-                    required
-                    value={formData.cedula}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cedula: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none text-sm transition-all font-medium"
-                    placeholder="Ej: 12.345.678"
+                    type="text" required value={formData.cedula}
+                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold uppercase tracking-tight transition-all"
+                    placeholder="Documento..."
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                    Nombre Completo
-                  </label>
+                <div>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Nombre Apellido</label>
                   <input
-                    type="text"
-                    required
-                    value={formData.nombre}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nombre: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none text-sm transition-all font-medium"
-                    placeholder="Ej. Juan Pérez"
+                    type="text" required value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold uppercase tracking-tight transition-all"
+                    placeholder="Nombre completo..."
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                      Edad
-                    </label>
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Edad</label>
                     <input
-                      type="text"
-                      value={formData.edad}
-                      onChange={(e) =>
-                        setFormData({ ...formData, edad: e.target.value })
-                      }
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none text-sm font-medium"
+                      type="text" value={formData.edad}
+                      onChange={(e) => setFormData({ ...formData, edad: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold transition-all"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                      Sexo
-                    </label>
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Sexo</label>
                     <select
+                      required
                       value={formData.sexo}
-                      onChange={(e) =>
-                        setFormData({ ...formData, sexo: e.target.value })
-                      }
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none text-sm font-medium appearance-none"
+                      onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-slate-400 outline-none text-[11px] font-bold appearance-none transition-all cursor-pointer"
                     >
-                      <option value="">N/A</option>
-                      <option value="M">Masculino</option>
-                      <option value="F">Femenino</option>
+                      <option value="">- SELECCIONAR -</option>
+                      <option value="M">MASCULINO</option>
+                      <option value="F">FEMENINO</option>
                     </select>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 pb-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 py-3 text-slate-500 font-bold text-sm"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-[2] py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-100 text-sm"
-                >
+              <div className="flex gap-4 pt-4">
+                <button type="submit" className="flex-1 py-3 bg-slate-900 text-white font-bold text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
                   Guardar Cambios
                 </button>
               </div>

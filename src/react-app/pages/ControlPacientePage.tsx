@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Search, Activity, User, ChevronLeft } from "lucide-react";
+import { Search, Activity, ChevronLeft, LayoutDashboard, Database } from "lucide-react";
 import PatientMonitor from "@/react-app/components/ControlPanel/PatientMonitor";
 import ResultComparison from "@/react-app/components/ControlPanel/ResultComparison";
+import { formatDisplayDate } from "@/utils/date";
 
 interface Paciente {
     id: number;
@@ -20,20 +21,16 @@ export default function ControlPacientePage() {
     // Efecto para búsqueda de pacientes
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
-            if (searchTerm.length > 2) {
+            if (searchTerm.length > 1) {
                 setIsSearching(true);
                 try {
-                    // Nota: Asumimos que existe un endpoint de búsqueda o filtramos de todos
-                    // Por ahora usaremos el endpoint de pacientes y filtraremos en cliente si la API no soporta busqueda directa
-                    // Idealmente: /api/pacientes?search=${searchTerm}
                     const res = await fetch("/api/pacientes");
                     const data = (await res.json()) as Paciente[];
-                    // Filtrado simple en cliente por ahora
                     const filtered = data.filter((p: Paciente) =>
                         p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         p.cedula.includes(searchTerm)
                     );
-                    setSearchResults(filtered.slice(0, 5)); // Limitamos a 5 resultados
+                    setSearchResults(filtered.slice(0, 5));
                 } catch (error) {
                     console.error("Error buscando pacientes:", error);
                 } finally {
@@ -42,7 +39,7 @@ export default function ControlPacientePage() {
             } else {
                 setSearchResults([]);
             }
-        }, 500);
+        }, 300);
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
@@ -78,7 +75,7 @@ export default function ControlPacientePage() {
         setSelectedPatient(patient);
         setSearchTerm("");
         setSearchResults([]);
-        setSelectedExam(null); // Resetear examen seleccionado
+        setSelectedExam(null);
     };
 
     const handleBackToSearch = () => {
@@ -87,148 +84,181 @@ export default function ControlPacientePage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans text-slate-700">
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* HEADER PRINCIPAL */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 ring-4 ring-white">
-                            <Activity size={30} />
+        <div className="max-w-[1500px] mx-auto p-4 md:p-8 space-y-10 animate-in fade-in duration-700">
+
+            {/* HEADER MINIMALISTA PREMIUM */}
+            <div className="flex items-center justify-between border-b border-slate-50 pb-6">
+                <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-900 shadow-sm shrink-0 transition-all">
+                        <Activity size={20} />
+                    </div>
+                    <div>
+                        <h1 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] leading-none mb-2">Monitor Profesional</h1>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Seguimiento evolutivo de bio-comparativas</p>
+                    </div>
+                </div>
+                {selectedPatient && (
+                    <button
+                        onClick={handleBackToSearch}
+                        className="px-6 py-3 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-3 border border-slate-100 shadow-sm active:scale-95"
+                    >
+                        <ChevronLeft size={14} /> Cambiar Paciente
+                    </button>
+                )}
+            </div>
+
+            <main className="relative">
+                {!selectedPatient ? (
+                    /* VISTA DE BÚSQUEDA INVERTIDA Y MINIMALISTA */
+                    <div className="max-w-xl mx-auto min-h-[60vh] flex flex-col justify-between py-12 animate-in fade-in duration-1000">
+                        {/* PARTE SUPERIOR: TEXTO DE BIENVENIDA */}
+                        <div className="text-center pt-10">
+                            <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-200 shadow-sm">
+                                <Activity size={28} />
+                            </div>
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mb-3">Monitor Clínico</h2>
+                            <p className="text-xs font-bold text-slate-900 uppercase tracking-tight">Evolución de Datos Médicos</p>
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                                Control Profesional
-                            </h1>
-                            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                Monitor de Pacientes y Análisis Clínico
+
+                        {/* PARTE INFERIOR: BUSCADOR CON AUTOCOMPLETADO HACIA ARRIBA */}
+                        <div className="relative mt-auto pt-20">
+                            {/* AUTOCOMPLETADO FLOTANTE - AHORA HACIA ARRIBA */}
+                            {searchResults.length > 0 && (
+                                <div className="absolute bottom-full left-0 right-0 mb-4 bg-white/80 backdrop-blur-xl border-t border-slate-50 rounded-t-[2rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden z-[500] animate-in slide-in-from-bottom-4 duration-300">
+                                    <div className="px-8 py-3 bg-slate-50/30">
+                                        <span className="text-[7px] font-black text-slate-300 uppercase tracking-[0.4em]">Resultados sugeridos</span>
+                                    </div>
+                                    <div className="max-h-[280px] overflow-y-auto no-scrollbar">
+                                        {searchResults.map((patient) => (
+                                            <button
+                                                key={patient.id}
+                                                onClick={() => handleSelectPatient(patient)}
+                                                className="w-full flex items-center gap-5 px-8 py-4 hover:bg-slate-50 transition-all border-b border-slate-50/50 last:border-0 group"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center font-black text-[10px] text-slate-300 group-hover:text-slate-900 transition-colors">
+                                                    {patient.nombre.charAt(0)}
+                                                </div>
+                                                <div className="text-left flex-1 min-w-0">
+                                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate group-hover:text-slate-900">{patient.nombre}</p>
+                                                    <p className="text-[8px] font-bold text-slate-300 uppercase tracking-tighter opacity-70">REF: {patient.cedula}</p>
+                                                </div>
+                                                <div className="w-1 h-1 rounded-full bg-slate-100 group-hover:bg-blue-400" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="relative group">
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-200 transition-colors group-focus-within:text-slate-900" size={18} />
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="BUSCAR EXPEDIENTE..."
+                                    className="w-full pl-16 pr-8 py-5 bg-slate-50/50 hover:bg-white border-transparent focus:bg-white border focus:border-slate-100 rounded-2xl outline-none text-[11px] font-black uppercase tracking-[0.2em] shadow-sm focus:shadow-xl focus:shadow-slate-100 transition-all placeholder:text-slate-200"
+                                    autoFocus
+                                />
+                                {isSearching && (
+                                    <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                                        <div className="w-4 h-4 border-2 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
-
-                    {selectedPatient && (
-                        <button
-                            onClick={handleBackToSearch}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all"
-                        >
-                            <ChevronLeft size={16} /> Cambiar Paciente
-                        </button>
-                    )}
-                </header>
-
-                {/* CONTENIDO PRINCIPAL */}
-                <main className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {!selectedPatient ? (
-                        // VISTA DE BÚSQUEDA DE PACIENTE
-                        <div className="max-w-xl mx-auto mt-20">
-                            <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-slate-100 text-center space-y-8">
-                                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-blue-600 mb-4">
-                                    <User size={40} />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-black text-slate-900 mb-2">Seleccionar Paciente</h2>
-                                    <p className="text-slate-500 font-medium text-sm">
-                                        Busque por nombre o número de cédula para acceder al historial clínico y herramientas de análisis.
-                                    </p>
-                                </div>
-
-                                <div className="relative">
-                                    <div className="relative">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                                        <input
-                                            type="text"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            placeholder="Escriba nombre o cédula..."
-                                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-bold text-slate-700 transition-all"
-                                            autoFocus
-                                        />
-                                        {isSearching && (
-                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                        )}
+                ) : (
+                    /* VISTA DE MONITOR ACTIVA REDISEÑADA */
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-in fade-in duration-1000">
+                        {/* IZQUIERDA: MONITOR DE EXÁMENES */}
+                        <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
+                            <div className="bg-white border border-slate-100 rounded-[3rem] p-1 shadow-sm overflow-hidden">
+                                <div className="p-8 border-b border-slate-50">
+                                    <div className="flex items-center gap-5 mb-8">
+                                        <div className="w-14 h-14 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-slate-200">
+                                            <LayoutDashboard size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-widest leading-none mb-1.5">{selectedPatient.nombre}</h3>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{selectedPatient.cedula}</p>
+                                        </div>
                                     </div>
 
-                                    {/* Resultados de búsqueda flotantes */}
-                                    {searchResults.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-20 text-left">
-                                            {searchResults.map((patient) => (
-                                                <button
-                                                    key={patient.id}
-                                                    onClick={() => handleSelectPatient(patient)}
-                                                    className="w-full flex items-center gap-4 p-4 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-0"
-                                                >
-                                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-xs">
-                                                        {patient.nombre.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-800 text-sm">{patient.nombre}</p>
-                                                        <p className="text-xs text-slate-400 font-medium">CI: {patient.cedula}</p>
-                                                    </div>
-                                                </button>
-                                            ))}
+                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100/50">
+                                        <div className="flex justify-between items-center text-[8px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">
+                                            <span>Estado del Historial</span>
+                                            <span className="text-emerald-500">Activo</span>
                                         </div>
-                                    )}
+                                        <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full bg-emerald-500 w-[100%]" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-4">
+                                    <PatientMonitor
+                                        pacienteId={selectedPatient.id}
+                                        pacienteNombre={selectedPatient.nombre}
+                                        onExamSelect={setSelectedExam}
+                                    />
                                 </div>
                             </div>
                         </div>
-                    ) : (
-                        // VISTA DE MONITOR Y ANÁLISIS
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            {/* Columna Izquierda: Monitor e Historial */}
-                            <div className="lg:col-span-4 xl:col-span-5 space-y-6">
-                                <PatientMonitor
-                                    pacienteId={selectedPatient.id}
-                                    pacienteNombre={selectedPatient.nombre}
-                                    onExamSelect={setSelectedExam}
-                                />
-                            </div>
 
-                            {/* Columna Derecha: Detalle y Comparación */}
-                            <div className="lg:col-span-8 xl:col-span-7 space-y-6">
-                                {selectedExam ? (
-                                    <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm animate-in fade-in slide-in-from-right-4 duration-500">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        {/* DERECHA: COMPARATIVA TÉCNICA */}
+                        <div className="lg:col-span-8">
+                            {selectedExam ? (
+                                <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-sm animate-in slide-in-from-right-8 duration-700 ease-out min-h-[700px]">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 border-b border-slate-50 pb-10">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 bg-slate-50 text-slate-900 rounded-[1.5rem] flex items-center justify-center border border-slate-100 shadow-inner">
+                                                <Database size={24} />
+                                            </div>
                                             <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                                    <h3 className="text-lg font-black text-slate-800">Resultados del Examen</h3>
-                                                </div>
-                                                <p className="text-sm font-bold text-slate-400">
-                                                    {selectedExam.tipo}
+                                                <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">{selectedExam.tipo}</h4>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                    <Activity size={12} /> Análisis Bioquímico Detallado
                                                 </p>
                                             </div>
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-sm font-bold text-slate-700">
-                                                    {new Date(selectedExam.fecha + "T12:00:00").toLocaleDateString("es-ES", {
-                                                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                                                    })}
-                                                </span>
-                                                <span className="text-xs font-black text-blue-500 uppercase tracking-widest mt-1">
-                                                    ID REF: {selectedExam.id}
-                                                </span>
-                                            </div>
                                         </div>
+                                        <div className="text-right">
+                                            <div className="inline-block px-4 py-1.5 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest mb-2">
+                                                {formatDisplayDate(selectedExam.fecha)}
+                                            </div>
+                                            <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Protocolo ID: VTL-{selectedExam.id}</p>
+                                        </div>
+                                    </div>
 
+                                    <div className="px-2">
                                         <ResultComparison
                                             examType={selectedExam.tipo}
                                             results={selectedExam.resultados}
                                             references={referencias}
                                         />
                                     </div>
-                                ) : (
-                                    <div className="h-full min-h-[400px] flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2.5rem] p-10 text-center">
-                                        <Activity className="text-slate-300 mb-6" size={64} />
-                                        <h3 className="text-xl font-bold text-slate-800 mb-2">Seleccione un examen</h3>
-                                        <p className="text-slate-500 font-medium max-w-sm">
-                                            Haga clic en cualquier examen del historial (columna izquierda) para ver el análisis detallado y la comparación con valores de referencia.
-                                        </p>
+                                </div>
+                            ) : (
+                                <div className="h-[700px] flex flex-col items-center justify-center bg-white border border-slate-100 rounded-[3rem] p-12 text-center shadow-sm border-dashed">
+                                    <div className="w-24 h-24 bg-slate-50 text-slate-100 rounded-full flex items-center justify-center mb-8 border border-slate-50 ring-8 ring-slate-50/50">
+                                        <Activity size={40} className="animate-pulse" />
                                     </div>
-                                )}
-                            </div>
+                                    <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] mb-4">Esperando selección</h3>
+                                    <p className="text-[11px] text-slate-200 font-bold uppercase tracking-widest max-w-xs leading-relaxed">
+                                        Seleccione un informe del monitor lateral para desglosar la visualización técnica
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </main>
-            </div>
+                    </div>
+                )}
+            </main>
+
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 20px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #e2e8f0; }
+            `}</style>
         </div>
     );
 }

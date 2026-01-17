@@ -6,19 +6,14 @@ import {
   Search,
   Edit2,
   Check,
-  UserPlus,
   Receipt,
-  User,
-  Calendar,
-  Layers,
-  FileText,
-  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 
 import { useAppSounds } from "@/utils/sounds";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput, numberToWords } from "@/utils/currency";
+import { getTodayDate } from "@/utils/date";
 
-// --- Interfaces Actualizadas ---
 interface Paciente {
   id: number;
   cedula: string;
@@ -37,7 +32,7 @@ interface ExamenPredefinido {
 interface ExamenFactura {
   nombre: string;
   precio: number;
-  categoria: string; // Campo crucial para la lógica que pides
+  categoria: string;
 }
 
 interface Factura {
@@ -53,116 +48,25 @@ interface Factura {
 export default function FacturasPage() {
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [examenesPredefinidos, setExamenesPredefinidos] = useState<
-    ExamenPredefinido[]
-  >([]);
+  const [examenesPredefinidos, setExamenesPredefinidos] = useState<ExamenPredefinido[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState("");
-
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  // POS State
   const [pacienteInput, setPacienteInput] = useState("");
   const [showSugerencias, setShowSugerencias] = useState(false);
-
-  const [busquedaExamen, setBusquedaExamen] = useState("");
-  const [showExamenesSug, setShowExamenesSug] = useState(false);
-
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [openCategories, setOpenCategories] = useState<string[]>([]); // Para controlar qué listas están abiertas
-
   const [isNuevoPaciente, setIsNuevoPaciente] = useState(false);
-  const [nuevoPacienteData, setNuevoPacienteData] = useState({
-    nombre: "",
-    cedula: "",
-    edad: "",
-    sexo: "",
-  });
+  const [nuevoPaciente, setNuevoPaciente] = useState({ nombre: "", cedula: "", edad: "", sexo: "" });
+  const [carrito, setCarrito] = useState<ExamenFactura[]>([]);
+  const [fecha, setFecha] = useState(getTodayDate());
+  const [isSaving, setIsSaving] = useState(false);
+  const [busquedaExamen, setBusquedaExamen] = useState("");
+  const [selectedExamenIndex, setSelectedExamenIndex] = useState(0);
+  const [customExamen, setCustomExamen] = useState({ nombre: "", precio: "" });
 
-  // Función para abrir el registro y autocompletar cédula
-  const handleAbrirRegistro = () => {
-    // Si lo ingresado en el buscador son números, lo tomamos como cédula
-    const esNumero = /^\d+$/.test(pacienteInput);
-
-    setNuevoPacienteData({
-      nombre: esNumero ? "" : pacienteInput,
-      cedula: esNumero ? pacienteInput : "",
-      edad: "",
-      sexo: "",
-    });
-    setIsNuevoPaciente(true);
-  };
-
-  // Función para guardar y seleccionar automáticamente
-  const handleCrearYSeleccionarPaciente = async () => {
-    // 1. Validación de campos obligatorios
-    if (
-      !nuevoPacienteData.nombre ||
-      !nuevoPacienteData.cedula ||
-      !nuevoPacienteData.edad ||
-      !nuevoPacienteData.sexo
-    ) {
-      showNotification("Por favor completa todos los campos del paciente");
-      return;
-    }
-
-    const payload = {
-      cedula: nuevoPacienteData.cedula,
-      nombre: nuevoPacienteData.nombre,
-      edad: nuevoPacienteData.edad,
-      sexo: nuevoPacienteData.sexo || undefined,
-    };
-
-    try {
-      // 2. Petición a tu API local
-      const res = await fetch("/api/pacientes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = (await res.json()) as Paciente;
-
-      if (res.ok) {
-        // 3. Notificación y recarga de la lista general (si es necesario)
-        showNotification("Paciente registrado exitosamente");
-        if (typeof loadPacientes === "function") loadPacientes();
-
-        /** * 4. LA CLAVE:
-         * Usamos el objeto que devuelve la API (que ya tiene el ID de la DB)
-         * para seleccionarlo en la factura actual.
-         */
-        seleccionarPaciente(data);
-
-        // 5. Limpiar y cerrar modo registro
-        setIsNuevoPaciente(false);
-        setPacienteInput(data.nombre);
-        setNuevoPacienteData({ nombre: "", cedula: "", edad: "", sexo: "" });
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      showNotification("Error de conexión con el servidor");
-    }
-  };
-
-  const getLocalDate = () => {
-    const date = new Date();
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60 * 1000);
-    return localDate.toISOString().split("T")[0];
-  };
-
-  const [formData, setFormData] = useState({
-    paciente_id: "",
-    fecha: getLocalDate(),
-  });
-
-  const [examenesSeleccionados, setExamenesSeleccionados] = useState<
-    ExamenFactura[]
-  >([]);
-  const [examenPersonalizado, setExamenPersonalizado] = useState({
-    nombre: "",
-    precio: "",
-  });
+  const { playSuccess, playDelete } = useAppSounds();
 
   useEffect(() => {
     loadFacturas();
@@ -175,9 +79,7 @@ export default function FacturasPage() {
       const res = await fetch("/api/facturas");
       const data = await res.json();
       setFacturas(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const loadPacientes = async () => {
@@ -185,9 +87,7 @@ export default function FacturasPage() {
       const res = await fetch("/api/pacientes");
       const data = await res.json();
       setPacientes(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const loadExamenesPredefinidos = async () => {
@@ -195,822 +95,442 @@ export default function FacturasPage() {
       const res = await fetch("/api/examenes-predefinidos");
       const data = await res.json();
       setExamenesPredefinidos(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const facturasFiltradas = useMemo(() => {
-    return facturas.filter(
-      (f) =>
-        (f.paciente_nombre?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        ) || (f.paciente_cedula || "").includes(searchTerm)
+    return facturas.filter(f =>
+      (f.paciente_nombre?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (f.paciente_cedula || "").includes(searchTerm)
     );
   }, [searchTerm, facturas]);
 
   const sugerenciasPacientes = useMemo(() => {
     if (pacienteInput.length < 2) return [];
-    return pacientes
-      .filter(
-        (p) =>
-          p.nombre.toLowerCase().includes(pacienteInput.toLowerCase()) ||
-          p.cedula.includes(pacienteInput)
-      )
-      .slice(0, 5);
+    return pacientes.filter(p =>
+      p.nombre.toLowerCase().includes(pacienteInput.toLowerCase()) ||
+      p.cedula.includes(pacienteInput)
+    ).slice(0, 5);
   }, [pacienteInput, pacientes]);
 
   const sugerenciasExamenes = useMemo(() => {
     if (!busquedaExamen) return [];
-    return examenesPredefinidos
-      .filter((e) =>
-        e.nombre.toLowerCase().includes(busquedaExamen.toLowerCase())
-      )
-      .slice(0, 8);
+    return examenesPredefinidos.filter(e =>
+      e.nombre.toLowerCase().includes(busquedaExamen.toLowerCase())
+    ).slice(0, 5);
   }, [busquedaExamen, examenesPredefinidos]);
-
-  // --- Lógica de categorías para el Backend ---
-  const categoriasPresentes = useMemo(() => {
-    const cats = examenesSeleccionados
-      .map((ex) => ex.categoria)
-      .filter((c) => c !== "Otros"); // Opcional: filtrar si no quieres crear exámenes para "Varios"
-    return [...new Set(cats)];
-  }, [examenesSeleccionados]);
-
-  const seleccionarPaciente = (p: Paciente) => {
-    setFormData({ ...formData, paciente_id: p.id.toString() });
-    setPacienteInput(`${p.nombre} (${p.cedula})`);
-    setShowSugerencias(false);
-  };
-
-  const agregarExamen = (nombre: string, precio: number, categoria: string) => {
-    setExamenesSeleccionados((prev) => [
-      ...prev,
-      { nombre, precio, categoria },
-    ]);
-    setBusquedaExamen("");
-    setShowExamenesSug(false);
-  };
-
-  const eliminarExamen = (index: number) => {
-    setExamenesSeleccionados(
-      examenesSeleccionados.filter((_, i) => i !== index)
-    );
-  };
-
-  const { playSuccess, playDelete } = useAppSounds();
-
-  const calcularTotal = () =>
-    examenesSeleccionados.reduce((sum, ex) => sum + ex.precio, 0);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (examenesSeleccionados.length === 0 || !formData.paciente_id) return;
-
-    const payload = {
-      paciente_id: parseInt(formData.paciente_id),
-      examenes: examenesSeleccionados,
-      categorias: categoriasPresentes, // Esta lista le dice al backend qué exámenes de laboratorio crear
-      total: calcularTotal(),
-      fecha: formData.fecha,
-    };
-
-    try {
-      const url = editingId ? `/api/facturas/${editingId}` : "/api/facturas";
-      const res = await fetch(url, {
-        method: editingId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        showNotification(
-          editingId
-            ? "Factura actualizada correctamente"
-            : "Factura y órdenes generadas"
-        );
-        loadFacturas();
-        closeModal();
-        playSuccess();
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const openModal = () => {
     setEditingId(null);
-    setFormData({ paciente_id: "", fecha: getLocalDate() });
     setPacienteInput("");
-    setExamenesSeleccionados([]);
+    setCarrito([]);
+    setIsNuevoPaciente(false);
+    setFecha(getTodayDate());
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setBusquedaExamen("");
   };
 
-  const showNotification = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 3000);
+  const seleccionarPaciente = (p: Paciente) => {
+    setPacienteInput(p.nombre);
+    setNuevoPaciente({ nombre: p.nombre, cedula: p.cedula, edad: p.edad || "", sexo: p.sexo || "" });
+    // Guardamos el ID en un ref oculto o manejamos el estado
+    (window as any)._selected_patient_id = p.id;
+    setShowSugerencias(false);
+    setIsNuevoPaciente(false);
+  };
+
+  const toggleNuevoPaciente = () => {
+    if (!isNuevoPaciente) {
+      // Auto-completar según lo buscado
+      const input = pacienteInput.trim();
+      const esCedula = /^\d+$/.test(input);
+      setNuevoPaciente({
+        nombre: esCedula ? "" : input,
+        cedula: esCedula ? input : "",
+        edad: "",
+        sexo: ""
+      });
+    }
+    setIsNuevoPaciente(!isNuevoPaciente);
+  };
+
+  const handleRegistrarPaciente = async () => {
+    if (!nuevoPaciente.nombre || !nuevoPaciente.cedula || !nuevoPaciente.sexo) {
+      alert("Nombre, Cédula y Sexo son requeridos");
+      return;
+    }
+    try {
+      const res = await fetch("/api/pacientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoPaciente)
+      });
+      if (!res.ok) throw new Error("Error al guardar paciente");
+      const newP = (await res.json()) as Paciente;
+
+      // Seleccionar automáticamente
+      (window as any)._selected_patient_id = newP.id;
+      setPacienteInput(newP.nombre);
+      setIsNuevoPaciente(false);
+      loadPacientes(); // Recargar lista para que aparezca en el estado local si es necesario
+      setNotification("Paciente registrado y seleccionado");
+      setTimeout(() => setNotification(""), 3000);
+      playSuccess();
+    } catch (e) {
+      console.error(e);
+      alert("Error al registrar paciente");
+    }
+  };
+
+  const addToCarrito = (nombre: string, precio: number, categoria: string) => {
+    setCarrito([...carrito, { nombre, precio, categoria }]);
+    setBusquedaExamen("");
+    setSelectedExamenIndex(0);
+  };
+
+  const removeFromCarrito = (index: number) => {
+    setCarrito(carrito.filter((_, i) => i !== index));
+  };
+
+  const total = carrito.reduce((sum, item) => sum + item.precio, 0);
+
+  const handleGuardarFactura = async () => {
+    if (carrito.length === 0) return;
+
+    let patientId = (window as any)._selected_patient_id;
+
+    setIsSaving(true);
+    try {
+      // Si llegamos aquí con el formulario de nuevo paciente abierto y no ha sido registrado
+      if (isNuevoPaciente && !patientId) {
+        if (!nuevoPaciente.nombre || !nuevoPaciente.cedula) {
+          alert("Nombre y Cédula son requeridos");
+          setIsSaving(false);
+          return;
+        }
+        const resP = await fetch("/api/pacientes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nuevoPaciente)
+        });
+        if (!resP.ok) throw new Error("Error al guardar paciente");
+        const newP = (await resP.json()) as Paciente;
+        patientId = newP.id;
+        (window as any)._selected_patient_id = patientId;
+      }
+
+      if (!patientId) {
+        alert("Seleccione o registre un paciente");
+        setIsSaving(false);
+        return;
+      }
+
+      const payload = {
+        paciente_id: patientId,
+        examenes: carrito,
+        total,
+        fecha,
+        categorias: [...new Set(carrito.map(c => c.categoria))]
+      };
+
+      const url = editingId ? `/api/facturas/${editingId}` : "/api/facturas";
+      const res = await fetch(url, {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setNotification(editingId ? "Actualizado correctamente" : "Venta completada");
+        setTimeout(() => setNotification(""), 3000);
+        loadFacturas();
+        closeModal();
+        playSuccess();
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error en el proceso de facturación");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEliminarFactura = async (id: number) => {
-    if (
-      !confirm(
-        "¿Estás seguro de que deseas eliminar esta factura? Esto podría afectar los exámenes vinculados."
-      )
-    )
-      return;
+    if (!confirm("¿Eliminar registro?")) return;
     try {
       const res = await fetch(`/api/facturas/${id}`, { method: "DELETE" });
       if (res.ok) {
-        showNotification("Factura eliminada");
         loadFacturas();
         playDelete();
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  const handleEditarFactura = (factura: Factura) => {
-    setEditingId(factura.id);
-    setFormData({
-      paciente_id: factura.paciente_id.toString(),
-      fecha: factura.fecha,
-    });
-    setPacienteInput(`${factura.paciente_nombre} (${factura.paciente_cedula})`);
-    setExamenesSeleccionados(factura.examenes);
+  const handleEditarFactura = (f: Factura) => {
+    setEditingId(f.id);
+    setPacienteInput(f.paciente_nombre);
+    (window as any)._selected_patient_id = f.paciente_id;
+    setCarrito(f.examenes);
+    setFecha(f.fecha);
     setShowModal(true);
   };
 
-  const listaCategorias = [
-    ...new Set(examenesPredefinidos.map((e) => e.categoria)),
-  ];
-
-  // Función para alternar categorías
-  const toggleCategory = (cat: string) => {
-    setOpenCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
-
-  // 2. Manejador de teclado actualizado
-  const handleKeyDownExamen = (e: React.KeyboardEvent) => {
-    if (sugerenciasExamenes.length > 0) {
-      if (e.key === "ArrowDown") {
-        setSelectedIndex((prev) =>
-          prev < sugerenciasExamenes.length - 1 ? prev + 1 : prev
-        );
-      } else if (e.key === "ArrowUp") {
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
-      } else if (e.key === "Enter" && selectedIndex >= 0) {
-        const ex = sugerenciasExamenes[selectedIndex];
-        agregarExamen(ex.nombre, ex.precio, ex.categoria);
-        setBusquedaExamen("");
-        setSelectedIndex(-1);
-      }
-    }
-  };
-
   return (
-    <div className="max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 space-y-4 md:space-y-8 animate-in fade-in duration-700">
-      {/* HEADER DE PÁGINA - Más compacto */}
-      <div className="bg-white p-5 md:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col lg:flex-row justify-between items-center gap-4">
-        <div className="text-center lg:text-left">
-          <div className="flex items-center justify-center lg:justify-start gap-2 mb-1">
-            <Receipt size={16} className="text-blue-500" />
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
-              Administración Financiera
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-            Facturación
-          </h1>
+    <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+      {/* HEADER */}
+      <div className="flex items-end justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h1 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">Facturación</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1">Caja y control de ingresos</p>
         </div>
-
-        <div className="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto">
-          <div className="relative w-full md:w-80">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Buscar paciente..."
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent border-2 focus:border-blue-500 focus:bg-white rounded-xl outline-none font-bold text-sm text-slate-700 transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <button
-            onClick={openModal}
-            className="w-full md:w-auto bg-slate-900 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-all shadow-lg font-bold active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap text-sm"
-          >
-            <Plus size={18} /> Nueva Factura
-          </button>
-        </div>
+        <button onClick={openModal} className="text-[10px] font-bold uppercase text-blue-600 flex items-center gap-2">
+          <Plus size={14} /> Nueva Entrada
+        </button>
       </div>
 
-      {notification && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl z-[110] animate-in slide-in-from-bottom-10 flex items-center gap-3">
-          <Check size={18} className="text-emerald-400" />
-          <span className="font-bold text-sm">{notification}</span>
-        </div>
-      )}
+      {/* SEARCH */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+        <input
+          type="text" placeholder="BUSCAR PACIENTE..." value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase placeholder:text-slate-300 shadow-sm"
+        />
+      </div>
 
-      {/* LISTADO DE FACTURAS - Tabla en PC, Cards en Móvil */}
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        {/* Vista Desktop */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 text-slate-400 text-[9px] font-black uppercase tracking-widest">
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Paciente</th>
-                <th className="px-6 py-4">Fecha</th>
-                <th className="px-6 py-4">Exámenes</th>
-                <th className="px-6 py-4 text-right">Total</th>
-                <th className="px-6 py-4 text-center">Acciones</th>
+      {/* TABLE */}
+      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+              <th className="px-6 py-4">ID</th>
+              <th className="px-6 py-4">Paciente</th>
+              <th className="px-6 py-4">Fecha</th>
+              <th className="px-6 py-4 text-right">Total</th>
+              <th className="px-6 py-4 text-right"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {facturasFiltradas.map((f) => (
+              <tr key={f.id} className="group hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-mono text-[10px] text-slate-400">#F-{f.id}</td>
+                <td className="px-6 py-4">
+                  <p className="text-[11px] font-bold text-slate-700 uppercase leading-none mb-1">{f.paciente_nombre}</p>
+                  <p className="text-[9px] text-slate-400 font-bold font-mono">{f.paciente_cedula}</p>
+                </td>
+                <td className="px-6 py-4 text-[11px] font-bold text-slate-500">{f.fecha.split("-").reverse().join("/")}</td>
+                <td className="px-6 py-4 text-right font-black text-slate-900 text-xs">${formatCurrency(f.total)}</td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleEditarFactura(f)} className="p-1.5 text-slate-300 hover:text-blue-600"><Edit2 size={13} /></button>
+                    <button onClick={() => handleEliminarFactura(f.id)} className="p-1.5 text-slate-300 hover:text-rose-600"><Trash2 size={13} /></button>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {facturasFiltradas.map((f) => (
-                <tr
-                  key={f.id}
-                  className="group hover:bg-blue-50/30 transition-colors"
-                >
-                  <td className="px-6 py-4 font-mono text-[10px] text-slate-400">
-                    #F-{f.id}
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-black text-slate-800 text-sm leading-tight">
-                      {f.paciente_nombre}
-                    </p>
-                    <p className="text-[9px] text-slate-400 font-bold">
-                      {f.paciente_cedula}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs font-bold text-slate-600 flex items-center gap-2">
-                      <Calendar size={12} className="text-slate-300" />
-                      {f.fecha.split("-").reverse().join("/")}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex -space-x-1">
-                      {f.examenes?.slice(0, 2).map((ex, i) => (
-                        <div
-                          key={i}
-                          className="px-2 py-1 bg-white border border-slate-100 rounded-md text-[8px] font-black text-blue-600 uppercase"
-                        >
-                          {ex.nombre}
-                        </div>
-                      ))}
-                      {f.examenes?.length > 2 && (
-                        <div className="h-5 w-5 bg-slate-100 rounded-md flex items-center justify-center text-[8px] font-black text-slate-400">
-                          +{f.examenes.length - 2}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right font-black text-slate-900 text-base">
-                    <span className="text-blue-500 text-xs mr-0.5">$</span>
-                    {formatCurrency(f.total)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEditarFactura(f)}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleEliminarFactura(f.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-white rounded-lg transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Vista Móvil (Cards) */}
-        <div className="md:hidden divide-y divide-slate-50">
-          {facturasFiltradas.map((f) => (
-            <div key={f.id} className="p-4 space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-black text-slate-800 text-sm leading-tight">
-                    {f.paciente_nombre}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-bold">
-                    {f.paciente_cedula}
-                  </p>
-                </div>
-                <span className="font-black text-slate-900 text-sm">
-                  ${formatCurrency(f.total)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                  <Calendar size={10} />{" "}
-                  {f.fecha.split("-").reverse().join("/")}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditarFactura(f)}
-                    className="p-2 bg-slate-50 text-slate-600 rounded-lg"
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleEliminarFactura(f.id)}
-                    className="p-2 bg-red-50 text-red-600 rounded-lg"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* MODAL POS - MEJORADO RESPONSIVE */}
+      {/* POS MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end md:items-center justify-center z-[100] p-0 md:p-4">
-          <div className="bg-white rounded-t-[2rem] md:rounded-[2rem] shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col h-[95vh] md:h-[90vh] animate-in slide-in-from-bottom md:zoom-in-95 duration-300">
-            {/* HEADER */}
-            <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                  <Receipt size={20} />
-                </div>
-                <div>
-                  <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">
-                    {editingId ? "Editar Factura" : "Nueva Factura"}
-                  </h2>
-                  <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">
-                    Terminal Activa
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={closeModal}
-                className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 transition-all"
-              >
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-50 flex justify-between items-center shrink-0">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Punto de Venta / Facturación</p>
+              <button onClick={closeModal} className="text-slate-300 hover:text-slate-900 transition-colors"><X size={20} /></button>
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-              {/* LADO IZQUIERDO: SELECCIÓN */}
-              <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
-                {/* SECCIÓN PACIENTE */}
-                <div className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-100">
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                      Paciente
-                    </label>
-                    {!isNuevoPaciente ? (
-                      <button
-                        onClick={handleAbrirRegistro}
-                        className="text-[10px] font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all active:scale-95"
-                      >
-                        <UserPlus size={14} /> Registrar Paciente
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setIsNuevoPaciente(false)}
-                        className="text-[9px] font-black text-slate-400 uppercase hover:text-red-500 transition-colors"
-                      >
-                        Cancelar registro
-                      </button>
-                    )}
+              {/* LEFT: SELECTION */}
+              <div className="flex-1 p-8 overflow-y-auto space-y-8 bg-slate-50/20">
+                {/* PATIENT */}
+                <div>
+                  <div className="flex justify-between items-center mb-4 px-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Paciente</label>
+                    <button onClick={toggleNuevoPaciente} className="text-[9px] font-bold text-blue-600 hover:underline uppercase">
+                      {isNuevoPaciente ? "Volver a búsqueda" : "+ Nuevo Paciente"}
+                    </button>
                   </div>
 
                   {!isNuevoPaciente ? (
                     <div className="relative">
-                      <div className="relative">
-                        <User
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"
-                          size={16}
-                        />
-                        <input
-                          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none font-bold text-xs transition-all"
-                          placeholder="Buscar por nombre o cédula..."
-                          value={pacienteInput}
-                          onChange={(e) => {
-                            setPacienteInput(e.target.value);
-                            setShowSugerencias(true);
-                          }}
-                        />
-                      </div>
-
-                      {/* Sugerencias */}
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                      <input
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase focus:border-slate-300 shadow-sm"
+                        placeholder="BUSCAR NOMBRE O CÉDULA..."
+                        value={pacienteInput}
+                        onChange={(e) => { setPacienteInput(e.target.value); setShowSugerencias(true); }}
+                      />
                       {showSugerencias && sugerenciasPacientes.length > 0 && (
-                        <div className="absolute z-[120] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                          {sugerenciasPacientes.map((p) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => seleccionarPaciente(p)}
-                              className="w-full px-4 py-2 text-left hover:bg-blue-600 hover:text-white flex justify-between items-center border-b border-slate-50 last:border-0 transition-colors group"
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-bold text-xs group-hover:text-white">
-                                  {p.nombre}
-                                </span>
-                                <span className="text-[8px] font-black text-slate-400 group-hover:text-blue-200 uppercase">
-                                  {p.cedula}
-                                </span>
-                              </div>
-                              <Check
-                                size={12}
-                                className="text-emerald-500 group-hover:text-white"
-                              />
+                        <div className="absolute z-[160] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl">
+                          {sugerenciasPacientes.map(p => (
+                            <button key={p.id} onClick={() => seleccionarPaciente(p)} className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-50 last:border-0 flex justify-between items-center">
+                              <span className="font-bold text-[10px] text-slate-700 uppercase">{p.nombre}</span>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase font-mono">{p.cedula}</span>
                             </button>
                           ))}
                         </div>
                       )}
-
-                      {/* No resultados -> Botón rápido */}
-                      {showSugerencias &&
-                        pacienteInput.length > 2 &&
-                        sugerenciasPacientes.length === 0 && (
-                          <div className="absolute z-[120] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl p-3 text-center">
-                            <p className="text-[10px] text-slate-500 font-bold mb-2">
-                              No se encontró "{pacienteInput}"
-                            </p>
-                            <button
-                              onClick={handleAbrirRegistro}
-                              className="text-[9px] bg-blue-600 text-white px-4 py-2 rounded-lg font-black uppercase w-full shadow-lg shadow-blue-100"
-                            >
-                              Registrar ahora
-                            </button>
-                          </div>
-                        )}
                     </div>
                   ) : (
-                    /* FORMULARIO DE REGISTRO RÁPIDO */
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in slide-in-from-top-4 duration-300">
-                      <div className="col-span-2 md:col-span-2">
-                        <label className="text-[8px] font-black text-slate-400 uppercase ml-1">
-                          Nombre
-                        </label>
-                        <input
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none font-bold text-xs focus:border-blue-500 focus:bg-white transition-all"
-                          value={nuevoPacienteData.nombre}
-                          onChange={(e) =>
-                            setNuevoPacienteData({
-                              ...nuevoPacienteData,
-                              nombre: e.target.value,
-                            })
-                          }
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-top-2">
+                      <div className="md:col-span-2">
+                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Nombre</label>
+                        <input className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-blue-100" value={nuevoPaciente.nombre} onChange={e => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })} />
                       </div>
-                      <div className="col-span-2 md:col-span-1">
-                        <label className="text-[8px] font-black text-slate-400 uppercase ml-1">
-                          Cédula
-                        </label>
-                        <input
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none font-bold text-xs focus:border-blue-500 focus:bg-white transition-all"
-                          value={nuevoPacienteData.cedula}
-                          onChange={(e) =>
-                            setNuevoPacienteData({
-                              ...nuevoPacienteData,
-                              cedula: e.target.value,
-                            })
-                          }
-                        />
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Cédula</label>
+                        <input className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-100" value={nuevoPaciente.cedula} onChange={e => setNuevoPaciente({ ...nuevoPaciente, cedula: e.target.value })} />
                       </div>
-                      <div className="col-span-1">
-                        <label className="text-[8px] font-black text-slate-400 uppercase ml-1">
-                          Edad
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none font-bold text-xs focus:border-blue-500 focus:bg-white"
-                          value={nuevoPacienteData.edad}
-                          onChange={(e) =>
-                            setNuevoPacienteData({
-                              ...nuevoPacienteData,
-                              edad: e.target.value,
-                            })
-                          }
-                        />
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Edad</label>
+                        <input className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-100" value={nuevoPaciente.edad} onChange={e => setNuevoPaciente({ ...nuevoPaciente, edad: e.target.value })} />
                       </div>
-                      <div className="col-span-1">
-                        <label className="text-[8px] font-black text-slate-400 uppercase ml-1">
-                          Sexo
-                        </label>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Sexo</label>
                         <select
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none font-bold text-xs focus:border-blue-500 focus:bg-white cursor-pointer"
-                          value={nuevoPacienteData.sexo}
-                          onChange={(e) =>
-                            setNuevoPacienteData({
-                              ...nuevoPacienteData,
-                              sexo: e.target.value,
-                            })
-                          }
+                          required
+                          className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-100 appearance-none cursor-pointer"
+                          value={nuevoPaciente.sexo}
+                          onChange={e => setNuevoPaciente({ ...nuevoPaciente, sexo: e.target.value })}
                         >
-                          <option value="Otro">-</option>
-                          <option value="M">Masculino</option>
-                          <option value="F">Femenino</option>
+                          <option value="">-</option>
+                          <option value="M">M</option>
+                          <option value="F">F</option>
                         </select>
                       </div>
-                      <div className="col-span-2 md:col-span-4 pt-1">
+                      <div className="md:col-span-4 mt-2">
                         <button
-                          onClick={handleCrearYSeleccionarPaciente}
-                          className="w-full bg-blue-600 text-white py-2 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all"
+                          onClick={handleRegistrarPaciente}
+                          className="w-full py-2.5 bg-blue-600 text-white text-[10px] font-bold uppercase rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
                         >
                           Guardar y Seleccionar Paciente
                         </button>
                       </div>
                     </div>
                   )}
-
-                  <div className="mt-4 pt-4 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[9px] font-black text-slate-400 uppercase mb-1 block ml-1 tracking-widest">
-                        Fecha Contable
-                      </label>
-                      <div className="relative">
-                        <Calendar
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"
-                          size={16}
-                        />
-                        <input
-                          type="date"
-                          value={formData.fecha}
-                          onChange={(e) =>
-                            setFormData({ ...formData, fecha: e.target.value })
-                          }
-                          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl outline-none font-bold text-xs transition-all"
-                        />
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
-                {/* BUSCADOR DE ESTUDIOS */}
-                <div className="relative">
-                  <Search
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400"
-                    size={18}
-                  />
-                  <input
-                    className="w-full pl-12 pr-6 py-4 bg-white border-2 border-dashed border-blue-100 rounded-2xl focus:border-blue-500 focus:border-solid outline-none font-bold text-sm text-slate-700 transition-all shadow-sm"
-                    placeholder="Buscar análisis (Ej: Glicemia...)"
-                    value={busquedaExamen}
-                    onChange={(e) => {
-                      setBusquedaExamen(e.target.value);
-                      setShowExamenesSug(true);
-                      setSelectedIndex(0);
-                    }}
-                    onKeyDown={handleKeyDownExamen}
-                  />
-                  {showExamenesSug && sugerenciasExamenes.length > 0 && (
-                    <div className="absolute z-[110] w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden">
-                      {sugerenciasExamenes.map((ex, index) => (
-                        <button
-                          key={ex.id}
-                          type="button"
-                          onClick={() =>
-                            agregarExamen(ex.nombre, ex.precio, ex.categoria)
-                          }
-                          className={`w-full px-6 py-3 text-left flex justify-between items-center transition-colors ${selectedIndex === index
-                              ? "bg-blue-600 text-white"
-                              : "hover:bg-blue-50"
-                            }`}
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm">
-                              {ex.nombre}
-                            </span>
-                            <span
-                              className={`text-[8px] uppercase font-black ${selectedIndex === index
-                                  ? "text-blue-100"
-                                  : "text-slate-400"
-                                }`}
-                            >
-                              {ex.categoria}
-                            </span>
-                          </div>
-                          <span
-                            className={`font-black text-sm ${selectedIndex === index
-                                ? "text-white"
-                                : "text-blue-600"
-                              }`}
-                          >
-                            ${formatCurrency(ex.precio)}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* CATÁLOGO ACORDEÓN */}
-                <div className="space-y-2">
-                  <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2">
-                    Catálogo
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {listaCategorias.map((cat) => (
-                      <div
-                        key={cat}
-                        className="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => toggleCategory(cat)}
-                          className="w-full px-4 py-3 flex justify-between items-center hover:bg-slate-50 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Layers size={14} className="text-blue-500" />
-                            <span className="font-black text-slate-700 text-[10px] uppercase tracking-tight">
-                              {cat}
-                            </span>
-                          </div>
-                          <ChevronDown
-                            size={16}
-                            className={`text-slate-300 transition-transform ${openCategories.includes(cat) ? "rotate-180" : ""
-                              }`}
-                          />
-                        </button>
-                        {openCategories.includes(cat) && (
-                          <div className="border-t border-slate-50 bg-slate-50/30 divide-y divide-slate-50">
-                            {examenesPredefinidos
-                              .filter((e) => e.categoria === cat)
-                              .map((ex) => (
-                                <button
-                                  key={ex.id}
-                                  type="button"
-                                  onClick={() =>
-                                    agregarExamen(
-                                      ex.nombre,
-                                      ex.precio,
-                                      ex.categoria
-                                    )
-                                  }
-                                  className="w-full px-6 py-2 flex justify-between items-center hover:bg-white group transition-all"
-                                >
-                                  <span className="text-[11px] font-bold text-slate-600 group-hover:text-blue-700">
-                                    {ex.nombre}
-                                  </span>
-                                  <span className="text-[10px] font-black text-slate-400 group-hover:text-blue-500">
-                                    ${formatCurrency(ex.precio)}
-                                  </span>
-                                </button>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ITEM PERSONALIZADO */}
-                <div className="p-4 bg-slate-900 rounded-2xl text-white shadow-lg">
-                  <p className="text-[8px] font-black text-slate-500 uppercase mb-3 tracking-widest flex items-center gap-2">
-                    <FileText size={10} /> Servicio Especial
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-2">
+                {/* EXAMS */}
+                <div>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-4 block px-1">Añadir Estudios</label>
+                  <div className="relative mb-6">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                     <input
-                      placeholder="Descripción..."
-                      value={examenPersonalizado.nombre}
-                      onChange={(e) =>
-                        setExamenPersonalizado({
-                          ...examenPersonalizado,
-                          nombre: e.target.value,
-                        })
-                      }
-                      className="flex-[3] bg-white/5 border-white/10 border rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 transition-all"
-                    />
-                    <input
-                      placeholder="$ 0"
-                      type="text"
-                      value={examenPersonalizado.precio}
-                      onChange={(e) =>
-                        setExamenPersonalizado({
-                          ...examenPersonalizado,
-                          precio: formatCurrencyInput(e.target.value),
-                        })
-                      }
-                      className="flex-[1] bg-white/5 border-white/10 border rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 transition-all font-bold"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (
-                          examenPersonalizado.nombre &&
-                          examenPersonalizado.precio
-                        ) {
-                          agregarExamen(
-                            examenPersonalizado.nombre,
-                            parseInt(cleanCurrencyInput(examenPersonalizado.precio)),
-                            "Otros"
-                          );
-                          setExamenPersonalizado({ nombre: "", precio: "" });
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase focus:border-slate-300 shadow-sm"
+                      placeholder="BUSCAR EXAMEN (GLICEMIA, HEMATOLOGIA...)"
+                      value={busquedaExamen}
+                      onChange={(e) => { setBusquedaExamen(e.target.value); setSelectedExamenIndex(0); }}
+                      onKeyDown={(e) => {
+                        if (sugerenciasExamenes.length > 0) {
+                          if (e.key === "ArrowDown") {
+                            setSelectedExamenIndex((prev) => (prev < sugerenciasExamenes.length - 1 ? prev + 1 : 0));
+                            e.preventDefault();
+                          } else if (e.key === "ArrowUp") {
+                            setSelectedExamenIndex((prev) => (prev > 0 ? prev - 1 : sugerenciasExamenes.length - 1));
+                            e.preventDefault();
+                          } else if (e.key === "Enter") {
+                            const ex = sugerenciasExamenes[selectedExamenIndex];
+                            addToCarrito(ex.nombre, ex.precio, ex.categoria);
+                            e.preventDefault();
+                          }
                         }
                       }}
-                      className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500 font-black text-xs"
-                    >
-                      <Plus size={16} className="mx-auto" />
-                    </button>
+                    />
+                    {busquedaExamen && sugerenciasExamenes.length > 0 && (
+                      <div className="absolute z-[160] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden">
+                        {sugerenciasExamenes.map((ex, idx) => (
+                          <button
+                            key={ex.id}
+                            onMouseEnter={() => setSelectedExamenIndex(idx)}
+                            onClick={() => addToCarrito(ex.nombre, ex.precio, ex.categoria)}
+                            className={`w-full px-4 py-3 text-left border-b border-slate-50 last:border-0 flex justify-between items-center transition-colors ${selectedExamenIndex === idx ? "bg-slate-50 border-l-4 border-l-blue-500" : "bg-white"}`}
+                          >
+                            <div>
+                              <p className="font-bold text-[10px] text-slate-700 uppercase">{ex.nombre}</p>
+                              <p className="text-[8px] font-bold text-slate-400 uppercase">{ex.categoria}</p>
+                            </div>
+                            <span className="font-bold text-[10px] text-blue-600">${formatCurrency(ex.precio)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl">
+                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-4">Servicio Personalizado</p>
+                    <div className="flex gap-2">
+                      <input placeholder="DESCRIPCIÓN" className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-bold outline-none focus:border-blue-500" value={customExamen.nombre} onChange={e => setCustomExamen({ ...customExamen, nombre: e.target.value })} />
+                      <input placeholder="$0" className="w-20 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-bold outline-none focus:border-blue-500" value={customExamen.precio} onChange={e => setCustomExamen({ ...customExamen, precio: formatCurrencyInput(e.target.value) })} />
+                      <button onClick={() => { if (customExamen.nombre && customExamen.precio) { addToCarrito(customExamen.nombre, parseInt(cleanCurrencyInput(customExamen.precio)), "Otros"); setCustomExamen({ nombre: "", precio: "" }); } }} className="bg-blue-600 hover:bg-blue-500 p-2 rounded-lg transition-colors"><Plus size={16} /></button>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* LADO DERECHO: TICKET */}
-              <div className="w-full lg:w-[380px] bg-white flex flex-col border-t lg:border-t-0 lg:border-l border-slate-100 max-h-[40vh] lg:max-h-full">
-                <div className="p-4 pb-2 shrink-0 text-center border-b lg:border-b-0 border-slate-50">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                    Resumen
-                  </h3>
-                  <div className="h-0.5 w-8 bg-blue-600 mx-auto rounded-full" />
+              {/* RIGHT: TICKET */}
+              <div className="w-full lg:w-[380px] border-t lg:border-t-0 lg:border-l border-slate-50 bg-white flex flex-col">
+                <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Receipt size={18} className="text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Resumen</span>
+                  </div>
+                  <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} className="text-[10px] font-bold text-slate-400 border-none outline-none focus:ring-0 bg-transparent" />
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 custom-scrollbar">
-                  {examenesSeleccionados.map((ex, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center p-3 bg-slate-50 rounded-xl group animate-in slide-in-from-right-2 duration-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => eliminarExamen(i)}
-                          className="p-1.5 bg-white text-slate-300 hover:text-red-500 rounded-md transition-all"
-                        >
-                          <Trash2 size={12} />
-                        </button>
+                <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                  {carrito.map((item, i) => (
+                    <div key={i} className="flex justify-between items-center group animate-in slide-in-from-right-2">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => removeFromCarrito(i)} className="p-1 hover:bg-rose-50 text-rose-300 hover:text-rose-500 rounded-md transition-all"><Trash2 size={12} /></button>
                         <div>
-                          <p className="text-[11px] font-black text-slate-800 leading-tight">
-                            {ex.nombre}
-                          </p>
-                          <span className="text-[8px] font-bold text-blue-500 uppercase">
-                            {ex.categoria}
-                          </span>
+                          <p className="text-[10px] font-bold text-slate-700 uppercase leading-none">{item.nombre}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase mt-1">{item.categoria}</p>
                         </div>
                       </div>
-                      <p className="font-black text-xs text-slate-700">
-                        ${formatCurrency(ex.precio)}
-                      </p>
+                      <span className="text-[10px] font-bold text-slate-900">${formatCurrency(item.precio)}</span>
                     </div>
                   ))}
-                  {examenesSeleccionados.length === 0 && (
-                    <div className="text-center py-10 opacity-20">
-                      <Receipt size={32} className="mx-auto mb-2" />
-                      <p className="text-[8px] font-black uppercase tracking-widest">
-                        Vacío
-                      </p>
+                  {carrito.length === 0 && (
+                    <div className="h-full flex flex-col items-center justify-center opacity-20">
+                      <Receipt size={32} />
+                      <p className="text-[10px] font-bold uppercase mt-2">Ticket Vacío</p>
                     </div>
                   )}
                 </div>
 
-                <div className="p-4 md:p-6 bg-white border-t border-slate-50 shrink-0 space-y-3">
-                  <div className="space-y-1 mb-2">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-black text-slate-400 uppercase">
-                        Total a Pagar
-                      </span>
-                      <span className="text-2xl font-black text-slate-900 tracking-tighter">
-                        <span className="text-blue-500 text-sm mr-1">$</span>
-                        {formatCurrency(calcularTotal())}
-                      </span>
+                <div className="p-8 border-t border-slate-50 space-y-6">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Monto Total</span>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-slate-900 tracking-tighter">${formatCurrency(total)}</p>
+                      {total > 0 && <p className="text-[8px] font-bold text-slate-300 italic uppercase mt-1">Son: {numberToWords(total)}</p>}
                     </div>
-                    {calcularTotal() > 0 && (
-                      <p className="text-[9px] font-bold text-slate-400 italic text-right">
-                        SON: {numberToWords(calcularTotal())}
-                      </p>
-                    )}
                   </div>
 
                   <button
-                    disabled={
-                      examenesSeleccionados.length === 0 ||
-                      !formData.paciente_id
-                    }
-                    onClick={handleSubmit}
-                    className="w-full bg-blue-600 disabled:bg-slate-100 disabled:text-slate-400 text-white py-4 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    disabled={carrito.length === 0 || isSaving}
+                    onClick={handleGuardarFactura}
+                    className={`w-full py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-[11px] transition-all shadow-xl shadow-slate-100 flex items-center justify-center gap-2 ${carrito.length > 0 ? "bg-slate-900 text-white hover:bg-slate-800" : "bg-slate-50 text-slate-300 cursor-not-allowed shadow-none"}`}
                   >
-                    <Check size={18} />
-                    {editingId ? "Actualizar Factura" : "Finalizar y Cobrar"}
+                    {isSaving ? <span className="animate-pulse">Procesando...</span> : <>{editingId ? "Actualizar" : "Completar Venta"} <ChevronRight size={16} /></>}
                   </button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {notification && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl z-[200] animate-in slide-in-from-bottom-10 flex items-center gap-3">
+          <Check size={18} className="text-emerald-400" />
+          <span className="font-bold text-sm tracking-tight">{notification}</span>
         </div>
       )}
     </div>

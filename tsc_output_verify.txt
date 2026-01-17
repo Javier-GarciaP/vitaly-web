@@ -1,0 +1,4 @@
+src/react-app/pages/PublicVerify.tsx(4,3): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/react-app/pages/PublicVerify.tsx(5,3): error TS6133: 'FileText' is declared but its value is never read.
+src/react-app/pages/PublicVerify.tsx(6,3): error TS6133: 'User' is declared but its value is never read.
+src/react-app/pages/PublicVerify.tsx(13,3): error TS6133: 'ChevronRight' is declared but its value is never read.

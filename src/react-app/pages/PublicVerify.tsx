@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import {
-  CheckCircle2,
-  FileText,
-  User,
   AlertOctagon,
   Calendar,
   ShieldCheck,
   Dna,
   Lock,
   Printer,
-  ChevronRight,
-  Hash
+  Hash,
+  ArrowDownToLine,
+  ChevronRight
 } from "lucide-react";
+import { formatDisplayDate } from "@/utils/date";
 
 export default function PublicVerify() {
   const { uuid } = useParams();
@@ -28,13 +27,13 @@ export default function PublicVerify() {
 
   if (loading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-50">
+      <div className="h-screen flex flex-col items-center justify-center bg-white">
         <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-emerald-600"></div>
-          <Dna className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-600 animate-pulse" size={24} />
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-slate-100 border-t-slate-900"></div>
+          <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-200 animate-pulse" size={16} />
         </div>
-        <p className="mt-6 text-slate-500 font-bold tracking-widest text-xs uppercase animate-pulse">
-          Validando Certificado Digital...
+        <p className="mt-8 text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] animate-pulse">
+          Validando Certificado
         </p>
       </div>
     );
@@ -42,25 +41,20 @@ export default function PublicVerify() {
 
   if (!examen || examen.error) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white shadow-2xl rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-red-100 animate-in zoom-in duration-300">
-          <div className="bg-red-500 p-6 md:p-10 text-white text-center">
-            <div className="bg-white/20 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 backdrop-blur-sm">
-              <AlertOctagon size={32} />
-            </div>
-            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">Fallo de Verificación</h1>
+      <div className="min-h-screen bg-white flex items-center justify-center p-8">
+        <div className="max-w-md w-full animate-in zoom-in-95 duration-500">
+          <div className="w-20 h-20 bg-rose-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-sm border border-rose-100">
+            <AlertOctagon size={32} className="text-rose-500" />
           </div>
-          <div className="p-6 md:p-10 text-center">
-            <p className="text-slate-600 text-sm md:text-base font-medium leading-relaxed mb-6 md:mb-8">
-              El código consultado no corresponde a ningún documento emitido o validado por nuestra institución.
+          <div className="text-center space-y-4">
+            <h1 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-900">Validación Fallida</h1>
+            <p className="text-[11px] text-slate-400 font-bold leading-relaxed uppercase tracking-wider">
+              El documento consultado no figura en nuestros registros maestros.
             </p>
-            <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl mb-6 md:mb-8">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest text-left px-1">ID de consulta</p>
-              <p className="text-[10px] md:text-xs font-mono text-red-500 break-all bg-white p-3 rounded-lg border border-red-50 shadow-sm">{uuid}</p>
-            </div>
-            <p className="text-[10px] md:text-xs text-slate-400 font-medium">
-              Si posee un documento físico con este código, podría tratarse de una copia no autorizada.
-            </p>
+          </div>
+          <div className="mt-12 p-6 bg-slate-50 rounded-2xl border border-slate-100/50">
+            <p className="text-[8px] font-black text-slate-300 uppercase mb-3 tracking-widest text-center">ID de Rastreo</p>
+            <p className="text-[9px] font-mono text-slate-500 break-all text-center">{uuid}</p>
           </div>
         </div>
       </div>
@@ -68,105 +62,96 @@ export default function PublicVerify() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-12 font-sans flex flex-col items-center">
-      <div className="max-w-3xl w-full bg-white shadow-lg rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200 relative">
+    <div className="min-h-screen bg-white p-6 md:p-20 font-sans flex flex-col items-center selection:bg-slate-900 selection:text-white">
+      <div className="max-w-4xl w-full relative animate-in fade-in duration-1000">
 
-        {/* Marca de Agua de Seguridad - Más sutil */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.01] rotate-12">
-          <Dna size={250} className="md:w-[300px]" />
-        </div>
-
-        {/* Header de Certificación */}
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 md:p-10 text-white relative">
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 bg-emerald-500 text-white w-fit px-3 py-1.5 rounded-lg">
-                <ShieldCheck size={16} />
-                <span className="text-xs font-bold uppercase tracking-wide">Documento Verificado</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">LABORATORIO <span className="text-emerald-400">VITALY</span></h1>
-            </div>
-
-            <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20">
-              <div className="bg-emerald-500 p-2.5 rounded-lg shadow-md">
-                <CheckCircle2 size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-emerald-400 uppercase">Estatus</p>
-                <p className="text-sm font-bold">Autenticidad Confirmada</p>
-              </div>
-            </div>
+        {/* LOGO SIMPLIFICADO */}
+        <div className="flex flex-col items-center mb-16">
+          <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-2xl mb-6">
+            <Dna size={24} />
+          </div>
+          <h1 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.5em] leading-none mb-2">Laboratorio Vitaly</h1>
+          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100/50">
+            <ShieldCheck size={10} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Digitalmente Verificado</span>
           </div>
         </div>
 
-        <div className="p-5 md:p-12 space-y-8 md:space-y-10 relative z-10">
+        {/* CONTENIDO DEL CERTIFICADO */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
-          {/* Grid de Información del Paciente */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-slate-100 rounded-xl md:rounded-2xl flex items-center justify-center text-slate-500 shrink-0">
-                <User size={20} />
+          {/* INFO PACIENTE Y METADATOS */}
+          <div className="lg:col-span-4 space-y-12">
+            <section>
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4">Información del Titular</p>
+              <div className="space-y-1">
+                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">{examen.paciente_nombre}</h2>
+                <p className="text-[10px] font-bold text-slate-400 tabular-nums">DNI {examen.paciente_cedula}</p>
               </div>
-              <div>
-                <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Paciente Titular</p>
-                <p className="text-lg md:text-xl font-black text-slate-800 leading-tight">{examen.paciente_nombre}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Hash size={12} className="text-emerald-600" />
-                  <p className="text-xs md:text-sm font-bold text-slate-500">{examen.paciente_cedula}</p>
-                </div>
-              </div>
-            </div>
+            </section>
 
-            <div className="bg-slate-50 rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-slate-100 flex items-center">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-slate-100">
-                  <Calendar size={18} />
+            <section>
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4">Detalles de Emisión</p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100">
+                    <Calendar size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-slate-300 uppercase">Fecha de Validación</p>
+                    <p className="text-[11px] font-bold text-slate-900 uppercase">{formatDisplayDate(examen.fecha)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Fecha de Emisión</p>
-                  <p className="text-xs md:text-sm font-black text-slate-700">{examen.fecha}</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100">
+                    <Hash size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-slate-300 uppercase">Folio Electrónico</p>
+                    <p className="text-[11px] font-bold font-mono text-slate-900">VTL-{uuid?.split('-')[0].toUpperCase()}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
+
+            <section className="pt-8 border-t border-slate-50">
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4">Canal de Integridad</p>
+              <div className="flex items-start gap-3">
+                <Lock size={12} className="text-slate-400 mt-0.5" />
+                <p className="text-[9px] text-slate-400 font-bold leading-relaxed uppercase tracking-wider">
+                  Los datos mostrados están encriptados y vinculados al protocolo de seguridad de la institución.
+                </p>
+              </div>
+            </section>
           </div>
 
-          {/* Sección de Resultados Adaptativa */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 px-1">
-              <div className="w-1.5 h-6 md:w-2 md:h-8 bg-emerald-500 rounded-full"></div>
-              <h3 className="text-sm md:text-lg font-black text-slate-800 uppercase tracking-tight">Análisis: {examen.tipo}</h3>
+          {/* TABLA DE RESULTADOS ULTRA LIMPIA */}
+          <div className="lg:col-span-8">
+            <div className="mb-8">
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4">Contenido del Informe</p>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
+                {examen.tipo}
+              </h3>
             </div>
 
-            {/* VISTA MÓVIL (Cards) - Oculta en MD+ */}
-            <div className="grid grid-cols-1 gap-3 md:hidden">
-              {examen.resultados && Object.entries(examen.resultados).map(([key, value]) => (
-                <div key={key} className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{key.replace(/_/g, ' ')}</p>
-                  <p className="text-base font-black text-slate-900">{String(value)}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* VISTA DESKTOP (Tabla) - Oculta en < MD */}
-            <div className="hidden md:block bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-xl shadow-slate-200/20">
+            <div className="bg-white overflow-hidden">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-100">
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Parámetro</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Valor</th>
+                  <tr className="border-b border-slate-50">
+                    <th className="py-4 text-[9px] font-black text-slate-300 uppercase tracking-widest px-2">Análisis</th>
+                    <th className="py-4 text-[9px] font-black text-slate-300 uppercase tracking-widest text-right px-2">Magnitud</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-slate-50/50">
                   {examen.resultados && Object.entries(examen.resultados).map(([key, value]) => (
-                    <tr key={key} className="group hover:bg-emerald-50/30 transition-colors">
-                      <td className="px-8 py-4">
-                        <div className="flex items-center gap-3 text-slate-600 group-hover:text-emerald-700">
-                          <ChevronRight size={14} className="text-emerald-500 opacity-0 group-hover:opacity-100 -ml-4 transition-all" />
-                          <span className="font-bold text-sm capitalize">{key.replace(/_/g, ' ')}</span>
+                    <tr key={key} className="group">
+                      <td className="py-5 px-2">
+                        <div className="flex items-center gap-3">
+                          <ChevronRight size={10} className="text-slate-200 group-hover:text-slate-900 transition-colors" />
+                          <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight group-hover:text-slate-900 transition-colors">{key.replace(/_/g, ' ')}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-4 text-right font-black text-slate-900 text-base tabular-nums">
+                      <td className="py-5 text-right font-black text-slate-900 text-[12px] tabular-nums px-2">
                         {String(value)}
                       </td>
                     </tr>
@@ -174,50 +159,47 @@ export default function PublicVerify() {
                 </tbody>
               </table>
             </div>
-          </div>
 
-          {/* Sello de Garantía y Firmas */}
-          <div className="pt-6 md:pt-10 border-t border-dashed border-slate-200">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
-              <div className="text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                  <Lock size={12} className="text-emerald-600" />
-                  <p className="text-[9px] md:text-[10px] font-black text-slate-800 uppercase tracking-widest">Protocolo de Integridad</p>
-                </div>
-                <p className="text-[10px] md:text-[11px] text-slate-400 leading-relaxed font-medium max-w-sm">
-                  Este certificado digital vincula permanentemente los resultados con el registro maestro del Laboratorio Vitaly.
-                </p>
-              </div>
-
-              <div className="w-full md:w-auto">
-                <div className="bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 text-center">
-                  <p className="text-[8px] font-mono text-slate-400 mb-1 uppercase tracking-tighter">Identificador Único (UUID)</p>
-                  <p className="text-[9px] md:text-[10px] font-mono font-bold text-slate-600 break-all">{uuid}</p>
-                </div>
-              </div>
+            {/* BOTONES DE ACCIÓN DISCRETOS */}
+            <div className="flex gap-4 mt-20 border-t border-slate-100 pt-10">
+              <button
+                onClick={() => window.print()}
+                className="flex-1 px-8 py-4 bg-slate-50 text-slate-400 hover:text-slate-900 rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 border border-slate-100 hover:shadow-xl hover:shadow-slate-100"
+              >
+                <Printer size={16} /> Imprimir Certificado
+              </button>
+              <button
+                className="flex-1 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-200 hover:bg-slate-800"
+              >
+                <ArrowDownToLine size={16} /> Descargar PDF
+              </button>
             </div>
           </div>
         </div>
+
+        {/* FOOTER */}
+        <footer className="mt-32 text-center space-y-2">
+          <p className="text-[9px] font-black text-slate-200 uppercase tracking-[0.6em]">Digital Identity Verified</p>
+          <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">Vitaly Pro Clinical Management System — 2025</p>
+        </footer>
       </div>
 
-      {/* Botones de Acción Posteriores */}
-      <div className="flex flex-col sm:flex-row gap-3 mt-8 w-full max-w-3xl px-2">
-        <button
-          onClick={() => window.print()}
-          className="flex-1 bg-white text-slate-600 hover:text-emerald-600 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-3"
-        >
-          <Printer size={18} /> Imprimir
-        </button>
-        <button
-          className="flex-1 bg-slate-900 text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/10 transition-all flex items-center justify-center gap-3"
-        >
-          <FileText size={18} /> Descargar PDF
-        </button>
-      </div>
-
-      <p className="mt-8 mb-4 text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] text-center">
-        © 2025 Laboratorio Vitaly
-      </p>
+      <style>{`
+        @media print {
+            .bg-white { background-color: white !important; }
+            button { display: none !important; }
+            .shadow-2xl { shadow: none !important; }
+        }
+      `}</style>
     </div>
   );
+}
+
+// Subcomponente local para evitar el error de importación si no está en el ámbito
+function Activity({ size, className }: { size: number, className: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  )
 }

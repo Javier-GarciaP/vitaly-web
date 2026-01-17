@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router";
 import {
   Users,
   TestTube,
   Clock,
   FileText,
-  Activity,
-  PieChart as PieIcon,
   ArrowUpRight,
-  Calendar,
   Wifi,
   WifiOff,
+  Zap,
 } from "lucide-react";
 import {
   PieChart,
@@ -19,6 +18,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { getDayName, formatDisplayDate, getTodayDate } from "@/utils/date";
 
 interface Estadisticas {
   totalPacientes: number;
@@ -44,23 +44,17 @@ const ConnectionStatus = () => {
   }, []);
 
   return (
-    <div className={`flex items-center gap-2.5 bg-white px-3 py-2 rounded-lg shadow-sm border transition-all ${isOnline ? "border-emerald-200" : "border-red-200"
-      }`}>
-      <div className={`flex h-7 w-7 items-center justify-center rounded-md ${isOnline ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
-        }`}>
-        {isOnline ? <Wifi size={14} /> : <WifiOff size={14} className="animate-pulse-subtle" />}
-      </div>
-      <div className="hidden sm:block">
-        <p className="text-xs font-medium text-slate-500 leading-none">Estado</p>
-        <p className={`text-sm font-semibold leading-tight ${isOnline ? "text-emerald-700" : "text-red-700"}`}>
-          {isOnline ? "Online" : "Offline"}
-        </p>
-      </div>
+    <div className={`flex items-center gap-2 bg-white px-2 py-1.5 transition-all text-slate-400`}>
+      {isOnline ? <Wifi size={12} className="text-emerald-500" /> : <WifiOff size={12} className="text-rose-500" />}
+      <span className="text-[10px] font-bold uppercase tracking-widest">
+        {isOnline ? "En Línea" : "Sin Conexión"}
+      </span>
     </div>
   );
 };
 
 export default function DashboardPage() {
+  const { isFastMode } = useOutletContext<{ isFastMode: boolean }>();
   const [stats, setStats] = useState<Estadisticas | null>(null);
 
   useEffect(() => {
@@ -73,72 +67,80 @@ export default function DashboardPage() {
   const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"];
 
   const cards = [
-    { title: "Pacientes", value: stats?.totalPacientes || 0, icon: Users, bgColor: "bg-blue-50", iconColor: "text-blue-600" },
-    { title: "Exámenes", value: stats?.totalExamenes || 0, icon: TestTube, bgColor: "bg-emerald-50", iconColor: "text-emerald-600" },
-    { title: "Pendientes", value: stats?.examenesPendientes || 0, icon: Clock, bgColor: "bg-orange-50", iconColor: "text-orange-600", pulse: (stats?.examenesPendientes || 0) > 0 },
-    { title: "Facturas Hoy", value: stats?.facturasHoy || 0, icon: FileText, bgColor: "bg-violet-50", iconColor: "text-violet-600" },
+    { title: "Pacientes", value: stats?.totalPacientes || 0, icon: Users },
+    { title: "Exámenes", value: stats?.totalExamenes || 0, icon: TestTube },
+    { title: "Pendientes", value: stats?.examenesPendientes || 0, icon: Clock },
+    { title: "Facturas Hoy", value: stats?.facturasHoy || 0, icon: FileText },
   ];
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-5 md:space-y-6 animate-fade-in pb-6">
 
-      {/* HEADER PROFESIONAL */}
-      <div className="flex items-center justify-between gap-4 pb-5 border-b border-slate-200">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-            Panel de Control
-          </h1>
-          <div className="flex items-center gap-2 mt-1.5 text-slate-500">
-            <Calendar size={14} />
-            <p className="text-xs font-medium">
-              {new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}
+      {/* FAST MODE BANNER */}
+      {isFastMode && (
+        <div className="bg-blue-600 text-white px-8 py-5 rounded-[2rem] shadow-2xl shadow-blue-100 flex items-center justify-between group overflow-hidden relative">
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-1">
+              <Zap size={16} className="fill-white" />
+              <h2 className="text-[11px] font-black uppercase tracking-[0.3em]">Modo Fast Clínico Activo</h2>
+            </div>
+            <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest opacity-80">
+              Operaciones optimizadas para Facturación y Procesamiento Maestro
             </p>
           </div>
+          <div className="relative z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
+            <p className="text-[9px] font-black uppercase tracking-widest text-white">Presione <span className="bg-white text-blue-600 px-1.5 py-0.5 rounded ml-1">Shift + X</span> para modo normal</p>
+          </div>
+          {/* Decorative effect */}
+          <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000" />
+        </div>
+      )}
+
+      {/* TOP HEADER */}
+      <div className="flex items-end justify-between border-b border-slate-100 pb-4">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">Dashboard</h1>
+            {isFastMode && (
+              <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-widest rounded-full border border-blue-100">Fast Mode</span>
+            )}
+          </div>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1">
+            {getDayName()}, {formatDisplayDate(getTodayDate())}
+          </p>
         </div>
         <ConnectionStatus />
       </div>
 
-      {/* CARDS DE ESTADÍSTICAS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      {/* CARDS - Minimalistas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <div
-              key={card.title}
-              className={`bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all group ${card.pulse ? "ring-2 ring-orange-400/30" : ""
-                }`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className={`p-2.5 rounded-lg ${card.bgColor}`}>
-                  <Icon size={20} className={card.iconColor} />
-                </div>
-                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
-                  {card.value}
-                </p>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            <div key={card.title} className="bg-white p-6 border border-slate-100 rounded-2xl hover:border-slate-300 transition-all group">
+              <div className="flex items-center gap-3 mb-4">
+                <Icon size={16} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   {card.title}
                 </p>
               </div>
+              <p className="text-2xl font-black text-slate-900 tracking-tight">
+                {card.value}
+              </p>
             </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-        {/* GRÁFICO DE DISTRIBUCIÓN */}
-        <div className="lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* GRÁFICO - Limpio */}
+        <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-8 transition-all hover:border-slate-200">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-base font-bold text-slate-800">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">
                 Distribución de Análisis
               </h2>
-              <p className="text-xs text-slate-500 mt-1">Volumen por categoría de estudio</p>
-            </div>
-            <div className="p-2.5 bg-slate-50 rounded-lg text-slate-400">
-              <PieIcon size={18} />
+              <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tighter">Estadísticas por categoría</p>
             </div>
           </div>
 
@@ -185,44 +187,26 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* PANEL DE ACCESOS RÁPIDOS */}
-        <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Acceso Rápido</h2>
-          <p className="text-xs text-slate-500 mb-5">Atajos de operación</p>
+        {/* ACCESOS RÁPIDOS - Minimalista */}
+        <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-8 hover:border-slate-200 transition-all">
+          <h2 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest mb-6">Operaciones Rápidas</h2>
 
-          <div className="space-y-2 flex-1">
+          <div className="space-y-1">
             {[
-              { label: "Nuevo Paciente", sub: "Registro", icon: Users, color: "bg-blue-600", href: "/pacientes" },
-              { label: "Emitir Factura", sub: "Cobro", icon: FileText, color: "bg-emerald-600", href: "/facturas" },
-              { label: "Cargar Resultados", sub: "Laboratorio", icon: TestTube, color: "bg-violet-600", href: "/examenes" },
+              { label: "Pacientes", href: "/pacientes" },
+              { label: "Facturas", href: "/facturas" },
+              { label: "Resultados", href: "/examenes" },
+              { label: "Configuración", href: "/configuracion" },
             ].map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 hover:border-slate-200 transition-all group"
+                className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0 hover:px-2 transition-all group"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 ${link.color} rounded-lg text-white shadow-sm`}>
-                    <link.icon size={18} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 text-sm">{link.label}</h3>
-                    <p className="text-xs text-slate-500">{link.sub}</p>
-                  </div>
-                </div>
-                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
+                <span className="text-xs font-bold text-slate-500 group-hover:text-slate-900 uppercase tracking-tight">{link.label}</span>
+                <ArrowUpRight size={14} className="text-slate-200 group-hover:text-slate-900 transition-colors" />
               </a>
             ))}
-          </div>
-
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Activity size={16} className="text-blue-600" />
-                <p className="text-blue-900 font-semibold text-sm">Soporte Vitaly</p>
-              </div>
-              <p className="text-blue-700 text-xs leading-relaxed">Manuales y tutoriales disponibles en el panel de ayuda.</p>
-            </div>
           </div>
         </div>
       </div>
