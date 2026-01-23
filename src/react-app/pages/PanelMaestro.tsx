@@ -29,6 +29,8 @@ import CoagulacionForm from "@/react-app/components/ExamenForms/CoagulacionForm"
 import GrupoSanguineoForm from "@/react-app/components/ExamenForms/GrupoSanguineoForm";
 import BacteriologiaForm from "@/react-app/components/ExamenForms/BacteriologiaForm";
 import MiscelaneosForm from "@/react-app/components/ExamenForms/MiscelaneosForm";
+import PSAForm from "@/react-app/components/ExamenForms/PSAForm";
+
 
 import { generateQRBase64 } from "@/utils/qr";
 import ReportViewer from "@/react-app/reports/ReportViewer";
@@ -43,12 +45,15 @@ const EXAMEN_CONFIG: Record<string, { color: string; icon: any; bg: string }> = 
   "Grupo Sanguíneo": { color: "text-red-700", bg: "bg-red-50", icon: BeakerIcon },
   Bacteriología: { color: "text-indigo-500", bg: "bg-indigo-50", icon: Beaker },
   Misceláneos: { color: "text-slate-500", bg: "bg-slate-50", icon: Stethoscope },
+  PSA: { color: "text-cyan-600", bg: "bg-cyan-50", icon: Activity },
 };
+
 
 const CATALOGO_EXAMENES = [
   "Hematología", "Química Clínica", "Orina", "Heces",
-  "Coagulación", "Grupo Sanguíneo", "Bacteriología", "Misceláneos",
+  "Coagulación", "Grupo Sanguíneo", "Bacteriología", "Misceláneos", "PSA"
 ];
+
 
 interface Paciente { id: number; nombre: string; cedula: string; totalEx?: number; completados?: number; edad?: number; }
 interface Examen { id: number; paciente_id: number; tipo: string; fecha: string; estado: "pendiente" | "en_proceso" | "completado"; resultados: any; uuid?: string; }
@@ -172,7 +177,9 @@ export default function PanelControlMaster() {
       "Grupo Sanguíneo": <GrupoSanguineoForm {...props} />,
       Bacteriología: <BacteriologiaForm {...props} />,
       Misceláneos: <MiscelaneosForm {...props} />,
+      PSA: <PSAForm {...props} />,
     };
+
     return forms[activeExamen.tipo] || <div className="p-10 text-center text-xs font-bold uppercase text-slate-400">Formulario no definido</div>;
   };
 

@@ -73,7 +73,13 @@ export const FORM_FIELDS: Record<string, { id: string; label: string }[]> = {
     { id: "helmintos", label: "Helmintos" }
   ],
   "Grupo Sanguíneo": [
-      { id: "grupo", label: "Grupo" },
-      { id: "factor", label: "Factor Rh" }
+    { id: "grupo", label: "Grupo" },
+    { id: "factor", label: "Factor Rh" }
+  ],
+  "PSA": [
+    { id: "psa_total", label: "PSA Total" },
+    { id: "psa_libre", label: "PSA Libre" },
+    { id: "indice_psa", label: "Indice PSA" }
   ]
 };
+

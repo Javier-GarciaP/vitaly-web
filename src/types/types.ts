@@ -154,6 +154,14 @@ export interface MiscelaneosData {
   resultado_texto?: string;
 }
 
+export interface PSAData {
+  psa_total?: string;
+  psa_libre?: string;
+  indice_psa?: string;
+  metodo?: string;
+  observacion?: string;
+}
+
 // Interfaz genérica para el objeto Examen que viene de la API
 export interface Examen {
   id: number;

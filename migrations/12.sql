@@ -1,1 +1,2 @@
-ALTER TABLE examenes_predefinidos ADD COLUMN parametros TEXT;
+-- Migración omitida: La columna 'parametros' ya existe en la base de datos local.
+-- Original: ALTER TABLE examenes_predefinidos ADD COLUMN parametros TEXT;

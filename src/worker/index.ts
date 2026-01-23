@@ -867,7 +867,11 @@ app.get("/api/valores-referencia", async (c) => {
     case "coagulacion":
       tableName = "coagulacion_valores_referencia";
       break;
+    case "psa":
+      tableName = "psa_valores_referencia";
+      break;
     default:
+
       return c.json({ error: "Tabla de referencia no válida" }, 400);
   }
 
@@ -904,7 +908,11 @@ app.put(
       case "coagulacion":
         tableName = "coagulacion_valores_referencia";
         break;
+      case "psa":
+        tableName = "psa_valores_referencia";
+        break;
       default:
+
         return c.json({ error: "Tabla no válida" }, 400);
     }
 

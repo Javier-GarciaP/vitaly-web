@@ -49,7 +49,8 @@ export default function ConfiguracionPage() {
   });
 
   // --- ESTADOS DE VALORES DE REFERENCIA ---
-  const [seccionActiva, setSeccionActiva] = useState<"quimica" | "hematologia" | "coagulacion">("quimica");
+  const [seccionActiva, setSeccionActiva] = useState<"quimica" | "hematologia" | "coagulacion" | "psa">("quimica");
+
   const [valoresRef, setValoresRef] = useState<ValorReferencia[]>([]);
   const [savingRef, setSavingRef] = useState(false);
 
@@ -306,7 +307,7 @@ export default function ConfiguracionPage() {
               <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
                 <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 px-1">Secciones Clínicas</h3>
                 <div className="space-y-1">
-                  {(["quimica", "hematologia", "coagulacion"] as const).map((tab) => (
+                  {(["quimica", "hematologia", "coagulacion", "psa"] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setSeccionActiva(tab)}
@@ -318,6 +319,7 @@ export default function ConfiguracionPage() {
                     </button>
                   ))}
                 </div>
+
               </div>
               <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
@@ -435,10 +437,11 @@ export default function ConfiguracionPage() {
                     onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                     className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-[10px] font-bold uppercase outline-none cursor-pointer appearance-none"
                   >
-                    {["Hematología", "Química Clínica", "Heces", "Orina", "Coagulación", "Bacteriología", "Misceláneos", "Materiales", "Grupo Sanguíneo"].map((c) => (
+                    {["Hematología", "Química Clínica", "Heces", "Orina", "Coagulación", "Bacteriología", "Misceláneos", "Materiales", "Grupo Sanguíneo", "PSA"].map((c) => (
                       <option key={c}>{c}</option>
                     ))}
                   </select>
+
                 </div>
                 <div>
                   <label className="text-[9px] font-bold text-slate-400 uppercase mb-1.5 block tracking-widest">Precio ($)</label>

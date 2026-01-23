@@ -12,6 +12,8 @@ import HematologiaReport from "./templates/HematologiaReport";
 import GrupoSanguineo from "./templates/GrupoSanguineo";
 import BacteriologiaCompletoReport from "./templates/BacteriologiaCompletoReport";
 import BulkReport from "./BulkReport";
+import PSAReport from "./templates/PSAReport";
+
 import PageComponent from "./components/Page";
 
 
@@ -54,6 +56,8 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
       else if (t === "Química Clínica" || t === "Química Sanguínea")
         tabla = "quimica";
       else if (t === "Coagulación") tabla = "coagulacion";
+      else if (t === "PSA") tabla = "psa";
+
 
       if (!tabla) {
         setReferences([]);
@@ -116,6 +120,9 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
         return <GrupoSanguineo {...commonProps} logoUrl={LOGO_URL} />;
       case "Bacteriología":
         return <BacteriologiaCompletoReport {...commonProps} />;
+      case "PSA":
+        return <PSAReport {...commonProps} references={references} />;
+
       case "PORTADA":
         return <PortadaGeneral patient={patient} logoUrl={LOGO_URL} />;
       case "IMPRESION_MASIVA":

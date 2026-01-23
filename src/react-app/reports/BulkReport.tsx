@@ -12,6 +12,8 @@ import HematologiaContent from "./content/HematologiaContent";
 import GrupoSanguineoContent from "./content/GrupoSanguineoContent";
 import PageComponent from "./components/Page";
 import BacteriologiaContent from "./content/BacteriologiaReport";
+import PSAContent from "./content/PSAContent";
+
 import AntibiogramaContent from "./content/AntibiogramaContent";
 
 
@@ -28,7 +30,9 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
     hematologia: [],
     quimica: [],
     coagulacion: [],
+    psa: [],
   });
+
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -36,7 +40,9 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
         { key: "hematologia", tabla: "hematologia" },
         { key: "quimica", tabla: "quimica" },
         { key: "coagulacion", tabla: "coagulacion" },
+        { key: "psa", tabla: "psa" },
       ];
+
       const results: { [k: string]: any[] } = {};
       await Promise.all(
         tables.map(async (t) => {
@@ -138,6 +144,14 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
             <MiscelaneosContent {...commonProps} />
           </PageComponent>
         );
+      case "PSA":
+        return (
+          <PageComponent key={`ex-${index}`}>
+            <PSAContent {...commonProps} references={references.psa} />
+          </PageComponent>
+        );
+
+
 
       default:
         return null;
