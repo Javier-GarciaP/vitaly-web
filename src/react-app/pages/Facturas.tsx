@@ -65,7 +65,9 @@ export default function FacturasPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [busquedaExamen, setBusquedaExamen] = useState("");
   const [selectedExamenIndex, setSelectedExamenIndex] = useState(0);
+  const [selectedPacienteIndex, setSelectedPacienteIndex] = useState(0);
   const [customExamen, setCustomExamen] = useState({ nombre: "", precio: "" });
+
 
   useEffect(() => {
     loadFacturas();
@@ -141,7 +143,9 @@ export default function FacturasPage() {
     (window as any)._selected_patient_id = p.id;
     setShowSugerencias(false);
     setIsNuevoPaciente(false);
+    setSelectedPacienteIndex(0);
   };
+
 
   const toggleNuevoPaciente = () => {
     if (!isNuevoPaciente) {
@@ -377,12 +381,31 @@ export default function FacturasPage() {
                         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-100 rounded-xl outline-none text-[11px] font-bold uppercase focus:border-slate-300 shadow-sm"
                         placeholder="BUSCAR NOMBRE O CÉDULA..."
                         value={pacienteInput}
-                        onChange={(e) => { setPacienteInput(e.target.value); setShowSugerencias(true); }}
+                        onChange={(e) => { setPacienteInput(e.target.value); setShowSugerencias(true); setSelectedPacienteIndex(0); }}
+                        onKeyDown={(e) => {
+                          if (showSugerencias && sugerenciasPacientes.length > 0) {
+                            if (e.key === "ArrowDown") {
+                              setSelectedPacienteIndex(prev => (prev < sugerenciasPacientes.length - 1 ? prev + 1 : 0));
+                              e.preventDefault();
+                            } else if (e.key === "ArrowUp") {
+                              setSelectedPacienteIndex(prev => (prev > 0 ? prev - 1 : sugerenciasPacientes.length - 1));
+                              e.preventDefault();
+                            } else if (e.key === "Enter") {
+                              seleccionarPaciente(sugerenciasPacientes[selectedPacienteIndex]);
+                              e.preventDefault();
+                            }
+                          }
+                        }}
                       />
                       {showSugerencias && sugerenciasPacientes.length > 0 && (
-                        <div className="absolute z-[160] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl">
-                          {sugerenciasPacientes.map(p => (
-                            <button key={p.id} onClick={() => seleccionarPaciente(p)} className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-50 last:border-0 flex justify-between items-center">
+                        <div className="absolute z-[160] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden">
+                          {sugerenciasPacientes.map((p, idx) => (
+                            <button
+                              key={p.id}
+                              onMouseEnter={() => setSelectedPacienteIndex(idx)}
+                              onClick={() => seleccionarPaciente(p)}
+                              className={`w-full px-4 py-3 text-left border-b border-slate-50 last:border-0 flex justify-between items-center transition-colors ${selectedPacienteIndex === idx ? "bg-slate-50 border-l-4 border-l-blue-500" : "bg-white"}`}
+                            >
                               <span className="font-bold text-[10px] text-slate-700 uppercase">{p.nombre}</span>
                               <span className="text-[8px] font-bold text-slate-400 uppercase font-mono">{p.cedula}</span>
                             </button>
@@ -390,6 +413,7 @@ export default function FacturasPage() {
                         </div>
                       )}
                     </div>
+
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-top-2">
                       <div className="md:col-span-2">

@@ -12,6 +12,8 @@ import HematologiaReport from "./templates/HematologiaReport";
 import GrupoSanguineo from "./templates/GrupoSanguineo";
 import BacteriologiaCompletoReport from "./templates/BacteriologiaCompletoReport";
 import BulkReport from "./BulkReport";
+import PageComponent from "./components/Page";
+
 
 import { Paciente } from "@/types/types";
 
@@ -84,16 +86,18 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
       return (
         <Document title={`Reporte_Especiales_${patient.nombre}`}>
           {listaExamenes.map((examen, index) => (
+            <PageComponent key={index}>
               <MiscelaneosContent
-                key={index}
                 data={examen}
                 patient={patient}
                 qrImage={qrImage}
               />
+            </PageComponent>
           ))}
         </Document>
       );
     }
+
 
     // OTROS EXÁMENES: Se asume que sus archivos ya contienen <Document> (o vía ReportLayout)
     switch (t) {
@@ -116,7 +120,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
         return <PortadaGeneral patient={patient} logoUrl={LOGO_URL} />;
       case "IMPRESION_MASIVA":
         return (
-          <BulkReport bulkData={data} patient={patient} logoUrl={LOGO_URL} type={type}/>
+          <BulkReport bulkData={data} patient={patient} logoUrl={LOGO_URL} type={type} />
         );
       default:
         return null;

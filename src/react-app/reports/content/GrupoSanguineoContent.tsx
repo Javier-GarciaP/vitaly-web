@@ -40,10 +40,10 @@ const styles = StyleSheet.create({
   // LOGO: Ahora flota sobre el diseño
   logoCard: {
     position: "absolute",
-    bottom: 20,
-    left: -50,
-    width: 190,
-    height: 190,
+    top: -25,
+    left: -20,
+    width: 120,
+    height: 120,
     objectFit: "contain",
   },
   // Header alineado a la derecha para no chocar con el logo absoluto
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   labName: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "bold",
     color: "#800020",
   },
@@ -131,7 +131,7 @@ const GrupoSanguineoContent: React.FC<GrupoSanguineoProps> = ({
           {logoUrl && <Image src={logoUrl} style={styles.logoCard} />}
 
           <View style={styles.headerContainer}>
-            <Text style={styles.labName}>LABORATORIO VITALY</Text>
+            <Text style={styles.labName}>LABORATORIO CLÍNICO VITALY</Text>
             <Text style={styles.cardTitle}>IDENTIFICACIÓN SANGUÍNEA</Text>
           </View>
 

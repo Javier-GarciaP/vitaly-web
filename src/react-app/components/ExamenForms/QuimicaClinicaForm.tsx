@@ -66,17 +66,31 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
 
       <div className="grid grid-cols-1 gap-6">
 
-        {/* GLICEMIA Y RENAL */}
+        {/* METABOLISMO */}
         <div className={sectionCard}>
           <div className="flex items-center gap-2 mb-4">
             <Activity size={14} className="text-blue-600" />
-            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Metabolismo & Renal</h4>
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Metabolismo</h4>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelBase}>Glicemia</label>
               <input type="text" value={resultados?.glicemia || ""} onChange={(e) => handleChange("glicemia", e.target.value)} className={`${inputBase} ${isHighlighted("glicemia")}`} placeholder="mg/dL" />
             </div>
+            <div>
+              <label className={labelBase}>Ácido Úrico</label>
+              <input type="text" value={resultados?.ac_urico || ""} onChange={(e) => handleChange("ac_urico", e.target.value)} className={`${inputBase} ${isHighlighted("ac_urico")}`} placeholder="mg/dL" />
+            </div>
+          </div>
+        </div>
+
+        {/* RENAL */}
+        <div className={sectionCard}>
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardList size={14} className="text-indigo-500" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Renal</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelBase}>Urea</label>
               <input type="text" value={resultados?.urea || ""} onChange={(e) => handleChange("urea", e.target.value)} className={`${inputBase} ${isHighlighted("urea")}`} placeholder="mg/dL" />
@@ -92,16 +106,16 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
         <div className={sectionCard}>
           <div className="flex items-center gap-2 mb-4">
             <HeartPulse size={14} className="text-rose-500" />
-            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Perfil Lipídico</h4>
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Lípídico</h4>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelBase}>Colesterol</label>
               <input type="text" value={resultados?.colesterol || ""} onChange={(e) => handleChange("colesterol", e.target.value)} className={`${inputBase} ${isHighlighted("colesterol")}`} placeholder="Total" />
             </div>
             <div>
-              <label className={labelBase}>HDL</label>
-              <input type="text" value={resultados?.hdl || ""} onChange={(e) => handleChange("hdl", e.target.value)} className={`${inputBase} ${isHighlighted("hdl")}`} placeholder="Bueno" />
+              <label className={labelBase}>Colesterol HDL</label>
+              <input type="text" value={resultados?.hdl || ""} onChange={(e) => handleChange("hdl", e.target.value)} className={`${inputBase} ${isHighlighted("hdl")}`} />
             </div>
             <div>
               <label className={labelBase}>Triglicéridos</label>
@@ -110,11 +124,11 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
           </div>
         </div>
 
-        {/* PERFIL HEPÁTICO */}
+        {/* HEPÁTICO Y ENZIMAS */}
         <div className={sectionCard}>
           <div className="flex items-center gap-2 mb-4">
             <Droplets size={14} className="text-amber-500" />
-            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Hepático & Enzimas</h4>
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Hepático y Enzimas</h4>
           </div>
           <div className="space-y-4">
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
@@ -127,7 +141,7 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
                 <input type="text" value={resultados?.tgp || ""} onChange={(e) => handleChange("tgp", e.target.value)} className={`${inputBase} ${isHighlighted("tgp")}`} />
               </div>
               <div>
-                <label className={labelBase}>Fosf.</label>
+                <label className={labelBase}>Fosfatasa Alc.</label>
                 <input type="text" value={resultados?.fosf_alc || ""} onChange={(e) => handleChange("fosf_alc", e.target.value)} className={`${inputBase} ${isHighlighted("fosf_alc")}`} />
               </div>
               <div>
@@ -139,6 +153,7 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
                 <input type="text" value={resultados?.amilasa || ""} onChange={(e) => handleChange("amilasa", e.target.value)} className={`${inputBase} ${isHighlighted("amilasa")}`} />
               </div>
             </div>
+
             <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-3">
               <div>
                 <label className={labelBase}>Bilirr. Tot.</label>
@@ -153,46 +168,58 @@ export default function QuimicaClinicaForm({ resultados, onChange }: QuimicaClin
                 <input type="text" value={resultados?.bilirr_indirecta || ""} readOnly className={autoInput} />
               </div>
             </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 border-t border-slate-100 pt-3">
+              <div>
+                <label className={labelBase}>Proteínas T.</label>
+                <input type="text" value={resultados?.proteinas_tot || ""} onChange={(e) => handleChange("proteinas_tot", e.target.value)} className={`${inputBase} ${isHighlighted("proteinas_tot")}`} />
+              </div>
+              <div>
+                <label className={labelBase}>Albúmina</label>
+                <input type="text" value={resultados?.albumina || ""} onChange={(e) => handleChange("albumina", e.target.value)} className={`${inputBase} ${isHighlighted("albumina")}`} />
+              </div>
+              <div>
+                <label className={labelBase}>Globulinas</label>
+                <input type="text" value={resultados?.globulinas || ""} onChange={(e) => handleChange("globulinas", e.target.value)} className={`${inputBase} ${isHighlighted("globulinas")}`} />
+              </div>
+              <div>
+                <label className={`${labelBase} text-blue-500`}>Rel. A/G</label>
+                <input type="text" value={resultados?.relacion_ag || ""} readOnly className={autoInput} />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* PROTEÍNAS */}
+        {/* MINERAL / ELECTROLITOS */}
         <div className={sectionCard}>
           <div className="flex items-center gap-2 mb-4">
-            <ClipboardList size={14} className="text-indigo-500" />
-            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Proteínas</h4>
+            <FlaskConical size={14} className="text-cyan-600" />
+            <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider">Mineral / Electrolitos</h4>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div>
-              <label className={labelBase}>Proteínas T.</label>
-              <input type="text" value={resultados?.proteinas_tot || ""} onChange={(e) => handleChange("proteinas_tot", e.target.value)} className={`${inputBase} ${isHighlighted("proteinas_tot")}`} />
-            </div>
-            <div>
-              <label className={labelBase}>Albúmina</label>
-              <input type="text" value={resultados?.albumina || ""} onChange={(e) => handleChange("albumina", e.target.value)} className={`${inputBase} ${isHighlighted("albumina")}`} />
-            </div>
-            <div>
-              <label className={labelBase}>Globulinas</label>
-              <input type="text" value={resultados?.globulinas || ""} onChange={(e) => handleChange("globulinas", e.target.value)} className={`${inputBase} ${isHighlighted("globulinas")}`} />
-            </div>
-            <div>
-              <label className={labelBase}>Ác. Úrico</label>
-              <input type="text" value={resultados?.ac_urico || ""} onChange={(e) => handleChange("ac_urico", e.target.value)} className={`${inputBase} ${isHighlighted("ac_urico")}`} />
+              <label className={labelBase}>Fósforo</label>
+              <input type="text" value={resultados?.fosforo || ""} onChange={(e) => handleChange("fosforo", e.target.value)} className={`${inputBase} ${isHighlighted("fosforo")}`} />
             </div>
             <div>
               <label className={labelBase}>Calcio</label>
               <input type="text" value={resultados?.calcio || ""} onChange={(e) => handleChange("calcio", e.target.value)} className={`${inputBase} ${isHighlighted("calcio")}`} />
             </div>
             <div>
-              <label className={labelBase}>Fósforo</label>
-              <input type="text" value={resultados?.fosforo || ""} onChange={(e) => handleChange("fosforo", e.target.value)} className={`${inputBase} ${isHighlighted("fosforo")}`} />
+              <label className={labelBase}>Sodio</label>
+              <input type="text" value={resultados?.sodio || ""} onChange={(e) => handleChange("sodio", e.target.value)} className={`${inputBase} ${isHighlighted("sodio")}`} />
             </div>
-            <div className="col-span-2">
-              <label className={`${labelBase} text-blue-500`}>Rel. A/G</label>
-              <input type="text" value={resultados?.relacion_ag || ""} readOnly className={autoInput} />
+            <div>
+              <label className={labelBase}>Potasio</label>
+              <input type="text" value={resultados?.potasio || ""} onChange={(e) => handleChange("potasio", e.target.value)} className={`${inputBase} ${isHighlighted("potasio")}`} />
+            </div>
+            <div>
+              <label className={labelBase}>Cloro</label>
+              <input type="text" value={resultados?.cloro || ""} onChange={(e) => handleChange("cloro", e.target.value)} className={`${inputBase} ${isHighlighted("cloro")}`} />
             </div>
           </div>
         </div>
+
 
         {/* NOTAS */}
         <div>

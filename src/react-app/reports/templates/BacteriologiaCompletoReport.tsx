@@ -1,7 +1,8 @@
-import { Document, Page, View, StyleSheet } from '@react-pdf/renderer';
+import { Document } from '@react-pdf/renderer';
 import AntibiogramaContent from '../content/AntibiogramaContent';
-import BacteriologiaContent from '../content/BacteriologiaReport'; 
+import BacteriologiaContent from '../content/BacteriologiaReport';
 import { BacteriologiaData, Paciente } from '@/types/types';
+import PageComponent from '../components/Page';
 
 interface BacteriologiaCompletoReportProps {
   data: BacteriologiaData;
@@ -9,55 +10,19 @@ interface BacteriologiaCompletoReportProps {
   qrImage?: string;
 }
 
-const styles = StyleSheet.create({
-  page: {
-    paddingVertical: 5,
-    backgroundColor: '#fff',
-  },
-  mainContainer: {
-    flexDirection: 'row',
-    height: '100%',
-  },
-  leftColumn: {
-    width: '50%',
-    paddingRight: 35,
-    paddingLeft: 5,
-    borderRightWidth: 0.5, 
-    borderRightColor: '#ccc',
-    borderRightStyle: 'dashed',
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative',
-    height: '100%',
-  },
-  rightColumn: {
-    width: '50%',
-  }
-});
-
 const BacteriologiaCompletoReport: React.FC<BacteriologiaCompletoReportProps> = ({ data, patient, qrImage }) => (
   <Document title={`Reporte Bacteriología - ${patient.nombre}`}>
-    
+
     {/* HOJA 1: CULTIVO */}
-    <Page size="LETTER" orientation="landscape" style={styles.page}>
-      <View style={styles.mainContainer}>
-        <View style={styles.leftColumn}>
-          <BacteriologiaContent data={data} patient={patient} qrImage={qrImage}/>
-        </View>
-        <View style={styles.rightColumn} />
-      </View>
-    </Page>
+    <PageComponent>
+      <BacteriologiaContent data={data} patient={patient} qrImage={qrImage} />
+    </PageComponent>
 
     {/* HOJA 2: ANTIBIOGRAMA (Si existe) */}
     {data.antibiograma_list && data.antibiograma_list.length > 0 && (
-      <Page size="LETTER" orientation="landscape" style={styles.page}>
-        <View style={styles.mainContainer}>
-          <View style={styles.leftColumn}>
-            <AntibiogramaContent data={data} patient={patient} qrImage={qrImage} />
-          </View>
-          <View style={styles.rightColumn} />
-        </View>
-      </Page>
+      <PageComponent>
+        <AntibiogramaContent data={data} patient={patient} qrImage={qrImage} />
+      </PageComponent>
     )}
   </Document>
 );

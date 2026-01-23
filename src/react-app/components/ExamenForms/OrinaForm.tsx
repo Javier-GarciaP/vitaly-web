@@ -215,6 +215,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
                 <option value="Escasas">Escasas</option>
                 <option value="Reg. Cantidad">Reg. Cant.</option>
                 <option value="Abundante">Abundante</option>
+                <option value="Moderado">Moderado</option>
               </select>
             </div>
           </div>

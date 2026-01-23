@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   infoContainer: {
-    width: '70%',
+    width: '100%',
   },
   text: {
     fontSize: 7,
@@ -22,12 +22,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    textAlign: 'center',
   },
-  pageNumber: {
-    fontSize: 7,
-    color: '#888',
-    textAlign: 'right',
-  }
 });
 
 /**
@@ -41,15 +37,8 @@ const CommonFooter: React.FC = () => (
       <Text style={styles.text}>San José de Bolívar, Táchira - Tel: (0424) 7234517</Text>
       <Text style={styles.text}>RIF: J-50413383-3 | Bioanalista Responsable</Text>
     </View>
-
-    {/* Paginación automática proporcionada por react-pdf */}
-    <Text
-      style={styles.pageNumber}
-      render={({ pageNumber, totalPages }) => (
-        `Página ${pageNumber} de ${totalPages}`
-      )}
-    />
   </View>
 );
+
 
 export default CommonFooter;

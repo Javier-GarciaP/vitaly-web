@@ -115,10 +115,11 @@ const QuimicaContent: React.FC<QuimicaReportProps> = ({ data, patient, qrImage, 
   };
 
   // Helper to check if a section should be rendered based on data presence
-  const hasMetabolismo = data?.glicemia || data?.urea || data?.creatinina || data?.ac_urico;
-  const hasLipidico = data?.colesterol || data?.trigliceridos || data?.hdl || data?.ldh;
-  const hasEnzimas = data?.tgo || data?.tgp || data?.fosf_alc || data?.bilirr_total || data?.bilirr_directa || data?.bilirr_indirecta;
-  const hasProteinas = data?.proteinas_tot || data?.albumina || data?.globulinas || data?.relacion_ag;
+  const hasMetabolismo = data?.glicemia || data?.ac_urico;
+  const hasRenal = data?.urea || data?.creatinina;
+  const hasLipidico = data?.colesterol || data?.trigliceridos || data?.hdl;
+  const hasEnzimas = data?.tgo || data?.tgp || data?.fosf_alc || data?.bilirr_total || data?.bilirr_directa || data?.bilirr_indirecta || data?.ldh || data?.amilasa || data?.proteinas_tot || data?.albumina || data?.globulinas;
+  const hasMineral = data?.fosforo || data?.calcio || data?.sodio || data?.potasio || data?.cloro;
 
   return (
     <View style={styles.container}>
@@ -134,40 +135,54 @@ const QuimicaContent: React.FC<QuimicaReportProps> = ({ data, patient, qrImage, 
       />
 
       {hasMetabolismo && (
-        <SectionCard title="Metabolismo & Renal">
+        <SectionCard title="Metabolismo">
           <ExamRow label="Glicemia Basal" result={data?.glicemia} reference={getRef("Glicemia", "70 - 110 mg/dL")} />
-          <ExamRow label="Urea" result={data?.urea} reference={getRef("Urea", "15 - 45 mg/dL")} />
-          <ExamRow label="Creatinina" result={data?.creatinina} reference={getRef("Creatinina", "0.6 - 1.4 mg/dL")} />
           <ExamRow label="Ácido Úrico" result={data?.ac_urico} reference={getRef("Ácido Úrico", "2.4 - 7.0 mg/dL")} />
         </SectionCard>
       )}
 
+      {hasRenal && (
+        <SectionCard title="Renal">
+          <ExamRow label="Urea" result={data?.urea} reference={getRef("Urea", "15 - 45 mg/dL")} />
+          <ExamRow label="Creatinina" result={data?.creatinina} reference={getRef("Creatinina", "0.6 - 1.4 mg/dL")} />
+        </SectionCard>
+      )}
+
       {hasLipidico && (
-        <SectionCard title="Perfil Lipídico">
+        <SectionCard title="Lípidico">
           <ExamRow label="Colesterol Total" result={data?.colesterol} reference={getRef("Colesterol Total", "< 200 mg/dL")} />
-          <ExamRow label="Triglicéridos" result={data?.trigliceridos} reference={getRef("Triglicéridos", "< 150 mg/dL")} />
           <ExamRow label="Colesterol HDL" result={data?.hdl} reference={getRef("Colesterol HDL", "> 45 mg/dL")} />
-          <ExamRow label="Colesterol LDL" result={data?.ldh} reference={getRef("Colesterol LDL", "< 130 mg/dL")} />
+          <ExamRow label="Triglicéridos" result={data?.trigliceridos} reference={getRef("Triglicéridos", "< 150 mg/dL")} />
         </SectionCard>
       )}
 
       {hasEnzimas && (
-        <SectionCard title="Enzimas & Función Hepática">
+        <SectionCard title="Hepático y Enzimas">
           <ExamRow label="T.G.O (AST)" result={data?.tgo} reference={getRef("T.G.O (AST)", "< 40 U/L")} />
           <ExamRow label="T.G.P (ALT)" result={data?.tgp} reference={getRef("T.G.P (ALT)", "< 41 U/L")} />
           <ExamRow label="Fosfatasa Alcalina" result={data?.fosf_alc} reference={getRef("Fosfatasa Alcalina", "40 - 129 U/L")} />
+          <ExamRow label="L.D.H" result={data?.ldh} reference={getRef("L.D.H", "115 - 225 U/L")} />
+          <ExamRow label="Amilasa" result={data?.amilasa} reference={getRef("Amilasa", "28 - 100 U/L")} />
+
           <ExamRow label="Bilirrubina Total" result={data?.bilirr_total} reference={getRef("Bilirrubina Total", "< 1.0 mg/dL")} />
           <ExamRow label="Bilirrubina Directa" result={data?.bilirr_directa} reference={getRef("Bilirrubina Directa", "< 0.25 mg/dL")} />
           <ExamRow label="Bilirrubina Indirecta" result={data?.bilirr_indirecta} reference={getRef("Bilirrubina Indirecta", "< 0.75 mg/dL")} />
-        </SectionCard>
-      )}
 
-      {hasProteinas && (
-        <SectionCard title="Proteínas">
+          <View style={{ height: 4 }} />
           <ExamRow label="Proteínas Totales" result={data?.proteinas_tot} reference={getRef("Proteínas Totales", "6.4 - 8.3 g/dL")} />
           <ExamRow label="Albúmina" result={data?.albumina} reference={getRef("Albúmina", "3.5 - 5.2 g/dL")} />
           <ExamRow label="Globulinas" result={data?.globulinas} reference={getRef("Globulinas", "2.3 - 3.4 g/dL")} />
           <ExamRow label="Relación A/G" result={data?.relacion_ag} reference={getRef("Relación A/G", "1.1 - 2.2")} />
+        </SectionCard>
+      )}
+
+      {hasMineral && (
+        <SectionCard title="Mineral / Electrolitos">
+          <ExamRow label="Fósforo" result={data?.fosforo} reference={getRef("Fósforo", "2.5 - 4.5 mg/dL")} />
+          <ExamRow label="Calcio" result={data?.calcio} reference={getRef("Calcio", "8.5 - 10.5 mg/dL")} />
+          <ExamRow label="Sodio" result={data?.sodio} reference={getRef("Sodio", "135 - 145 mEq/L")} />
+          <ExamRow label="Potasio" result={data?.potasio} reference={getRef("Potasio", "3.5 - 5.1 mEq/L")} />
+          <ExamRow label="Cloro" result={data?.cloro} reference={getRef("Cloro", "98 - 107 mEq/L")} />
         </SectionCard>
       )}
 

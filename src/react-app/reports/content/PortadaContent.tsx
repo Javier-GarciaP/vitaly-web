@@ -23,16 +23,17 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 40,
     // Este padding superior reserva el espacio donde "flotará" el logo
-    paddingTop: 160, 
+    paddingTop: 160,
     flexDirection: 'column',
   },
   // EL LOGO: Ahora es independiente del resto de los elementos
   logoAbsolute: {
     position: 'absolute',
-    top: -150,
-    left: -60,
-    width: 450,      // Puedes subirlo a 200 o más y no moverá nada
-    height: 450,
+    top: -73,
+    right: -40,
+    left: -5,
+    width: 300,      // Puedes subirlo a 200 o más y no moverá nada
+    height: 300,
     objectFit: 'contain',
   },
   headerSection: {
@@ -119,7 +120,7 @@ const PortadaContent: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
         )}
 
         <View style={styles.mainContent}>
-          
+
           {/* TÍTULOS (Ubicados debajo del espacio del logo gracias al paddingTop) */}
           <View style={styles.headerSection}>
             <Text style={styles.labName}>LABORATORIO CLÍNICO VITALY</Text>
@@ -129,7 +130,7 @@ const PortadaContent: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
           {/* FICHA DEL PACIENTE */}
           <View style={styles.patientCard}>
             <Text style={styles.cardTitle}>Datos del Paciente</Text>
-            
+
             <View style={styles.infoRow}>
               <Text style={styles.label}>Nombre Completo</Text>
               <Text style={styles.value}>{patient?.nombre || 'YULI GARCIA'}</Text>
@@ -151,7 +152,7 @@ const PortadaContent: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
           {/* PIE DE PÁGINA */}
           <View style={styles.footer}>
             <Text style={styles.notice}>
-              Este documento es un reporte médico oficial. La confidencialidad de los 
+              Este documento es un reporte médico oficial. La confidencialidad de los
               datos está garantizada bajo las normativas de salud vigentes.
             </Text>
             <Text style={styles.bottomLine}>

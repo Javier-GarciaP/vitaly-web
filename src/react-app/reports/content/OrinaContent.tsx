@@ -148,7 +148,7 @@ const OrinaContent: React.FC<OrinaReportProps> = ({
           edad: patient.edad,
           fechaExamen: patient.fecha || "",
         }}
-        title="UROANÁLISIS COMPLETO"
+        title="UROANÁLISIS"
         qrImage={qrImage}
       />
 

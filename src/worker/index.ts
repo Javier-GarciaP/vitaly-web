@@ -410,9 +410,10 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
 
   try {
     const facturaActual = await db
-      .prepare("SELECT examenes FROM facturas WHERE id = ?")
+      .prepare("SELECT examenes, paciente_id, fecha FROM facturas WHERE id = ?")
       .bind(id)
-      .first<{ examenes: string }>();
+      .first<{ examenes: string; paciente_id: number; fecha: string }>();
+
 
     if (!facturaActual) return c.json({ error: "Factura no encontrada" }, 404);
 
@@ -459,9 +460,9 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
 
       const newHighlightFields = [...new Set(paramsParaResaltar)];
 
-      // Buscar si ya existe el examen PENDIENTE
+      // Buscar si ya existe el examen (Buscamos en cualquier estado para evitar DUPLICADOS al editar)
       const examenExistente = await db
-        .prepare("SELECT * FROM examenes WHERE paciente_id = ? AND tipo = ? AND fecha = ? AND estado = 'pendiente'")
+        .prepare("SELECT * FROM examenes WHERE paciente_id = ? AND tipo = ? AND fecha = ?")
         .bind(data.paciente_id, cat, data.fecha)
         .first<{ id: number; uuid: string; resultados: string }>();
 
@@ -505,17 +506,30 @@ app.put("/api/facturas/:id", zValidator("json", facturaSchema), async (c) => {
     }
 
     // 3. Sincronizar Eliminaciones (Delete Logic)
-    // Si una categoría estaba antes pero ya no está en las activas, borrar el examen pendiente
+    // Usamos la fecha previa para asegurar que borramos los exámenes de la fecha original si ésta cambió
     for (const catPrev of categoriasPrevias) {
       if (!categoriasActivas.includes(catPrev)) {
         await db
           .prepare(
             "DELETE FROM examenes WHERE paciente_id = ? AND tipo = ? AND fecha = ? AND estado = 'pendiente'"
           )
-          .bind(data.paciente_id, catPrev, data.fecha)
+          .bind(data.paciente_id, catPrev, facturaActual.fecha)
           .run();
       }
     }
+
+    // EXTRA: Si la fecha cambió, debemos borrar los exámenes de las categorías activas que quedaron en la fecha vieja
+    if (data.fecha !== facturaActual.fecha) {
+      for (const cat of categoriasActivas) {
+        await db
+          .prepare(
+            "DELETE FROM examenes WHERE paciente_id = ? AND tipo = ? AND fecha = ? AND estado = 'pendiente'"
+          )
+          .bind(data.paciente_id, cat, facturaActual.fecha)
+          .run();
+      }
+    }
+
 
     return c.json({ success: true });
   } catch (error: any) {

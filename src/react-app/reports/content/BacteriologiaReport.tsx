@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, Text } from '@react-pdf/renderer';
 import CommonHeader from '../components/CommonHeader';
-import CommonFooter from '../components/CommonFooter';
 import { BacteriologiaData, Paciente } from '@/types/types';
+
 
 interface BacteriologiaReportProps {
   data: BacteriologiaData;
@@ -118,10 +118,10 @@ const BacteriologiaContent: React.FC<BacteriologiaReportProps> = ({ data, patien
           <BacterioSection title="Cultivo de Hongos" value={data?.cultivo_hongos} />
         </View>
       </View>
-
-      <CommonFooter />
     </View>
   );
 };
+
+
 
 export default BacteriologiaContent;

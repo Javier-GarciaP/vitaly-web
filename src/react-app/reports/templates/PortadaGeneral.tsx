@@ -15,11 +15,12 @@ const PortadaGeneral: React.FC<PortadaGeneralProps> = ({
 }) => {
   return (
     <Document title="Reporte de Laboratorio Clínico">
-      <PageComponent>
+      <PageComponent showFooter={false}>
         <PortadaContent patient={patient} logoUrl={logoUrl} />
       </PageComponent>
     </Document>
   );
 };
+
 
 export default PortadaGeneral;

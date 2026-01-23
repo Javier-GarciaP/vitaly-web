@@ -142,8 +142,8 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
       />
 
       {/* SERIE ROJA */}
-      <SectionCard title="Serie Roja & Índices">
-        <ExamRow label="Recuento de Hematíes" result={data?.hematies} reference={getRef("Hematíes", "4.5 - 5.5 mill/mm³")} />
+      <SectionCard title="Serie Roja">
+        <ExamRow label="Hematíes" result={data?.hematies} reference={getRef("Hematíes", "4.5 - 5.5 mill/mm³")} />
         <View style={{ flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#eee', paddingVertical: 2 }}>
           <Text style={{ fontSize: 9, fontWeight: 'bold', width: '40%', color: '#333' }}>Hemoglobina</Text>
           <Text style={{ fontSize: 9, width: '20%', textAlign: 'center', fontWeight: 'bold' }}>{data?.hemoglobina}</Text>

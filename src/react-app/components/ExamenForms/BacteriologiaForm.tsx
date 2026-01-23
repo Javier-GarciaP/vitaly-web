@@ -210,11 +210,13 @@ export default function BacteriologiaForm({
       );
       setSugerencias(filtradas);
       setMostrarSugerencias(true);
-      setSelectedIndex(-1);
+      setSelectedIndex(filtradas.length > 0 ? 0 : -1);
     } else {
       setMostrarSugerencias(false);
+      setSelectedIndex(-1);
     }
   };
+
 
   const agregarAntibiotico = (nombre?: string) => {
     const nombreFinal = nombre || textoAnti;

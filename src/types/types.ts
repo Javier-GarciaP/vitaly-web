@@ -52,8 +52,12 @@ export interface QuimicaData {
   amilasa?: string;
   calcio?: string;
   fosforo?: string;
+  sodio?: string;
+  potasio?: string;
+  cloro?: string;
   observacion?: string;
 }
+
 
 export interface OrinaData {
   // SECCIÓN 1: CARACTERES GENERALES

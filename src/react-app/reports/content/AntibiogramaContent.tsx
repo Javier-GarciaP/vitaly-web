@@ -2,8 +2,8 @@ import React from "react";
 import { View, StyleSheet, Text } from "@react-pdf/renderer";
 // Eliminamos ReportLayout
 import CommonHeader from "../components/CommonHeader";
-import CommonFooter from "../components/CommonFooter";
 import { BacteriologiaData, Paciente } from "@/types/types";
+
 
 interface AntibiogramaReportProps {
   data: BacteriologiaData;
@@ -113,10 +113,10 @@ const AntibiogramaContent: React.FC<AntibiogramaReportProps> = ({
           ))}
         </View>
       )}
-
-      <CommonFooter />
     </View>
   );
 };
+
+
 
 export default AntibiogramaContent;

@@ -52,7 +52,7 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
     };
     fetchAll();
   }, []);
-  
+
   // Función auxiliar para renderizar cada página de examen
   const renderExamenPage = (item: any, index: number) => {
     const commonProps = {
@@ -128,10 +128,17 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
       case "Exámenes Especiales":
         if (Array.isArray(commonProps.data)) {
           return commonProps.data.map((sub: any, subIndex: number) => (
-            <MiscelaneosContent key={`ex-${index}-m-${subIndex}`} data={sub} patient={patient} qrImage={commonProps.qrImage} />
+            <PageComponent key={`ex-${index}-m-${subIndex}`}>
+              <MiscelaneosContent data={sub} patient={patient} qrImage={commonProps.qrImage} />
+            </PageComponent>
           ));
         }
-        return <MiscelaneosContent key={`ex-${index}`} {...commonProps} />;
+        return (
+          <PageComponent key={`ex-${index}`}>
+            <MiscelaneosContent {...commonProps} />
+          </PageComponent>
+        );
+
       default:
         return null;
     }
@@ -140,9 +147,10 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
   return (
     <Document>
       {/* 1. Portada al inicio (Solo una vez) */}
-      <PageComponent>
+      <PageComponent showFooter={false}>
         <PortadaContent patient={patient} logoUrl={logoUrl} />
       </PageComponent>
+
 
       {/* 2. Mapeo de todos los exámenes completados (Ignora los no completados) */}
       {bulkData
