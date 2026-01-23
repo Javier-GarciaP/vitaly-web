@@ -18,12 +18,10 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     width: '50%',
-    paddingRight: 35,
-    paddingLeft: 5,
-    borderRightWidth: 0.5, 
+    paddingHorizontal: 25,
+    borderRightWidth: 0.5,
     borderRightColor: '#ccc',
     borderRightStyle: 'dashed',
-    // Flex y Relative son clave para que el Footer (absolute) funcione
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
@@ -31,9 +29,10 @@ const styles = StyleSheet.create({
   },
   rightColumn: {
     width: '50%',
-    // Espacio vacío para ahorro de papel o duplicado
   }
 });
+
+
 
 /**
  * ReportLayout: Define el formato físico del documento.

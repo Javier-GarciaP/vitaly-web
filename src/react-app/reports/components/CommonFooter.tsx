@@ -5,8 +5,8 @@ const styles = StyleSheet.create({
   footer: {
     position: 'absolute',
     bottom: 30,
-    left: 40,
-    right: 40,
+    left: 25,
+    right: 25,
     borderTopWidth: 0.5,
     borderTopColor: '#e2e8f0',
     paddingTop: 8,

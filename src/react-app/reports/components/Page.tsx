@@ -19,17 +19,16 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     width: '50%',
-    paddingRight: 35,
-    paddingLeft: 5,
+    paddingHorizontal: 25,
     borderRightWidth: 0.5,
     borderRightColor: '#ccc',
     borderRightStyle: 'dashed',
-    // Flex y Relative son clave para que el Footer (absolute) funcione
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
     height: '100%',
   },
+
   rightColumn: {
     width: '50%',
     // Espacio vacío para ahorro de papel o duplicado
