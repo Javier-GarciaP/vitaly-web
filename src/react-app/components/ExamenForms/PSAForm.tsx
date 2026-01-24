@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Activity, FlaskConical, Beaker } from "lucide-react";
 
 interface PSAFormProps {
