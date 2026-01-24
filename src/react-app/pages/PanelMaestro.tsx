@@ -34,7 +34,7 @@ import PSAForm from "@/react-app/components/ExamenForms/PSAForm";
 
 import { generateQRBase64 } from "@/utils/qr";
 import ReportViewer from "@/react-app/reports/ReportViewer";
-import { getTodayDate, formatDisplayDate } from "@/utils/date";
+import { getTodayDate } from "@/utils/date";
 
 const EXAMEN_CONFIG: Record<string, { color: string; icon: any; bg: string }> = {
   Hematología: { color: "text-rose-500", bg: "bg-rose-50", icon: Droplets },
@@ -458,7 +458,7 @@ export default function PanelControlMaster() {
                     nombre: pacienteActivo?.nombre || "",
                     cedula: pacienteActivo?.cedula || "",
                     edad: pacienteActivo?.edad || "N/A",
-                    fecha: formatDisplayDate(activeExamen.fecha)
+                    fecha: activeExamen.fecha
                   }}
                 />
               </div>

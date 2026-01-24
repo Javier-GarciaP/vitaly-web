@@ -507,11 +507,7 @@ export default function ResultadosPage() {
                   nombre: selectedExamen.paciente_nombre,
                   cedula: selectedExamen.paciente_cedula,
                   edad: selectedExamen.paciente_edad,
-                  fecha: (() => {
-                    const d = new Date(selectedExamen.fecha);
-                    const offset = d.getTimezoneOffset() * 60000;
-                    return new Date(d.getTime() + offset).toLocaleDateString("es-ES");
-                  })(),
+                  fecha: selectedExamen.fecha,
                 }}
               />
             </div>
@@ -634,9 +630,7 @@ export default function ResultadosPage() {
                   nombre: selectedExamen.paciente_nombre,
                   cedula: selectedExamen.paciente_cedula,
                   edad: selectedExamen.paciente_edad,
-                  fecha: new Intl.DateTimeFormat("es-ES", {
-                    year: "numeric", month: "long", day: "numeric",
-                  }).format(new Date()),
+                  fecha: selectedExamen.fecha,
                 }}
               />
             </div>

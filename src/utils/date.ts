@@ -35,3 +35,16 @@ export const formatDisplayDate = (date: string | Date): string => {
 export const getDayName = (): string => {
     return new Date().toLocaleDateString("es-ES", { weekday: "long" });
 };
+
+/**
+ * Resuelve la fecha que debe mostrarse en un reporte basándose en la configuración.
+ */
+export const getResolvedReportDate = (creationDate: string | Date): string => {
+    const useCustom = localStorage.getItem("useCustomReportDate") === "true";
+    const customValue = localStorage.getItem("customReportDate");
+
+    if (useCustom && customValue) {
+        return formatDisplayDate(customValue);
+    }
+    return formatDisplayDate(creationDate);
+};

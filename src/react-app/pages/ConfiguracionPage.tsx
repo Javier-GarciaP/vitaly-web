@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput } from "@/utils/currency";
 import { useNotification } from "@/react-app/context/NotificationContext";
+import { useSettings } from "@/react-app/context/SettingsContext";
 import { FORM_FIELDS } from "@/utils/formFields";
 
 // --- INTERFACES ---
@@ -33,10 +34,11 @@ type TabActiva = "catalogo" | "parametros" | "apariencia";
 
 export default function ConfiguracionPage() {
   const { showNotification, confirmAction } = useNotification();
+  const { settings, updateSettings, saveSettings } = useSettings();
+
   // --- ESTADOS DE NAVEGACIÓN ---
   const [tabActiva, setTabActiva] = useState<TabActiva>("catalogo");
 
-  // --- ESTADOS DE EXÁMENES ---
   const [examenes, setExamenes] = useState<ExamenPredefinido[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isExamenModalOpen, setIsExamenModalOpen] = useState(false);
@@ -54,8 +56,10 @@ export default function ConfiguracionPage() {
   const [valoresRef, setValoresRef] = useState<ValorReferencia[]>([]);
   const [savingRef, setSavingRef] = useState(false);
 
-  // --- ESTADOS DE APARIENCIA ---
-  const [footerText, setFooterText] = useState("© 2024 Laboratorio Clínico - Todos los derechos reservados");
+  const handleSaveApariencia = () => {
+    saveSettings();
+    showNotification("success", "Configuración Guardada", "Las preferencias de apariencia y reportes han sido actualizadas");
+  };
 
   // --- EFECTOS ---
   useEffect(() => {
@@ -388,15 +392,48 @@ export default function ConfiguracionPage() {
 
               <div className="space-y-6">
                 <div>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Control de Fecha en Reportes</label>
+                  <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-700 uppercase">Usar Fecha Personalizada</p>
+                        <p className="text-[9px] text-slate-400 font-medium">Ignora la fecha de creación e imprime la fecha de abajo</p>
+                      </div>
+                      <button
+                        onClick={() => updateSettings({ useCustomReportDate: !settings.useCustomReportDate })}
+                        className={`w-12 h-6 rounded-full transition-all relative ${settings.useCustomReportDate ? "bg-emerald-500" : "bg-slate-200"}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.useCustomReportDate ? "left-7" : "left-1"}`} />
+                      </button>
+                    </div>
+
+                    {settings.useCustomReportDate && (
+                      <div className="pt-4 border-t border-slate-200 animate-in slide-in-from-top-2">
+                        <label className="block text-[8px] font-black text-slate-400 uppercase mb-2">Fecha a Mostrar en los Reportes</label>
+                        <input
+                          type="date"
+                          value={settings.customReportDate}
+                          onChange={(e) => updateSettings({ customReportDate: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[11px] font-bold outline-none focus:border-slate-400 transition-all"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
                   <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Texto de pie de página (Legal / Contacto)</label>
                   <textarea
-                    value={footerText || "© 2024 Laboratorio Clínico - Todos los derechos reservados"}
-                    onChange={(e) => setFooterText(e.target.value)}
+                    value={settings.footerText || "© 2024 Laboratorio Clínico - Todos los derechos reservados"}
+                    onChange={(e) => updateSettings({ footerText: e.target.value })}
                     className="w-full p-6 bg-slate-50 border border-slate-50 rounded-2xl focus:border-slate-200 focus:bg-white outline-none transition-all text-[11px] font-bold h-40 resize-none leading-relaxed"
                     placeholder="Escriba aquí la dirección, teléfonos o leyendas legales..."
                   />
                 </div>
-                <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all">
+                <button
+                  onClick={handleSaveApariencia}
+                  className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all"
+                >
                   Guardar Preferencias
                 </button>
               </div>

@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { auth } from "@/react-app/lib/firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { NotificationProvider, useNotification } from "@/react-app/context/NotificationContext";
+import { SettingsProvider } from "@/react-app/context/SettingsContext";
 
 function DashboardLayoutContent() {
   const location = useLocation();
@@ -296,7 +297,9 @@ function DashboardLayoutContent() {
 export default function DashboardLayout() {
   return (
     <NotificationProvider>
-      <DashboardLayoutContent />
+      <SettingsProvider>
+        <DashboardLayoutContent />
+      </SettingsProvider>
     </NotificationProvider>
   );
 }

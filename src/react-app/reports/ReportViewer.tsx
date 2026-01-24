@@ -15,6 +15,7 @@ import BulkReport from "./BulkReport";
 import PSAReport from "./templates/PSAReport";
 
 import PageComponent from "./components/Page";
+import { useSettings } from "@/react-app/context/SettingsContext";
 
 
 import { Paciente } from "@/types/types";
@@ -44,6 +45,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
   patient,
   qrImage,
 }) => {
+  const { getResolvedDate } = useSettings();
   const LOGO_URL = "./logo.png";
   const [references, setReferences] = useState<any[]>([]);
   const [loadingRefs, setLoadingRefs] = useState(false);
@@ -81,7 +83,8 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
   }, [type]);
 
   const renderTemplate = () => {
-    const commonProps = { data, patient, qrImage };
+    const resolvedPatient = { ...patient, fecha: getResolvedDate(patient.fecha || new Date()) };
+    const commonProps = { data, patient: resolvedPatient, qrImage };
     const t = type.trim();
 
     // CASO ESPECIAL: MISCELÁNEOS (Maneja múltiples páginas)
@@ -93,7 +96,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
             <PageComponent key={index}>
               <MiscelaneosContent
                 data={examen}
-                patient={patient}
+                patient={resolvedPatient}
                 qrImage={qrImage}
               />
             </PageComponent>
@@ -124,10 +127,15 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
         return <PSAReport {...commonProps} references={references} />;
 
       case "PORTADA":
-        return <PortadaGeneral patient={patient} logoUrl={LOGO_URL} />;
+        return <PortadaGeneral patient={resolvedPatient} logoUrl={LOGO_URL} />;
       case "IMPRESION_MASIVA":
         return (
-          <BulkReport bulkData={data} patient={patient} logoUrl={LOGO_URL} type={type} />
+          <BulkReport
+            bulkData={data}
+            patient={resolvedPatient}
+            logoUrl={LOGO_URL}
+            type={type}
+          />
         );
       default:
         return null;

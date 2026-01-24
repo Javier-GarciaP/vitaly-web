@@ -73,14 +73,6 @@ interface CommonHeaderProps {
   qrImage?: string;
 }
 
-const obtenerFechaFormateada = () => {
-  const fecha = new Date();
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }).format(fecha);
-};
 
 const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) => {
   return (
@@ -104,7 +96,7 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({ patient, title, qrImage }) 
           </View>
           <View style={styles.infoGroup}>
             <Text style={styles.label}>FECHA</Text>
-            <Text style={styles.value}>{obtenerFechaFormateada()}</Text>
+            <Text style={styles.value}>{patient?.fechaExamen}</Text>
           </View>
         </View>
       </View>
