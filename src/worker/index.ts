@@ -827,6 +827,32 @@ app.post(
   }
 );
 
+// PUT: Actualizar una plantilla de misceláneos
+app.put(
+  "/api/plantillas/miscelaneos/:id",
+  zValidator("json", plantillaMiscelaneoSchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const data = c.req.valid("json");
+    try {
+      await c.env.DB.prepare(
+        "UPDATE plantillas_miscelaneos SET nombre_examen = ?, metodo = ?, muestra = ?, contenido_plantilla = ? WHERE id = ?"
+      )
+        .bind(
+          data.nombre_examen,
+          data.metodo || "",
+          data.muestra || "",
+          data.contenido_plantilla || "",
+          id
+        )
+        .run();
+      return c.json({ success: true });
+    } catch (e) {
+      return c.json({ error: "Error al actualizar la plantilla" }, 500);
+    }
+  }
+);
+
 // DELETE: Eliminar una plantilla de misceláneos
 app.delete("/api/plantillas/miscelaneos/:id", async (c) => {
   const id = c.req.param("id");

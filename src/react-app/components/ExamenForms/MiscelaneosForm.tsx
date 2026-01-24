@@ -7,6 +7,7 @@ import {
   X,
   Save,
   Bold,
+  Edit2,
 } from "lucide-react";
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { MiscelaneosData } from "@/types/types";
@@ -78,6 +79,7 @@ export default function MiscelaneosForm({
   const [showLibrary, setShowLibrary] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [activeTemplateId, setActiveTemplateId] = useState<number | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -116,6 +118,7 @@ export default function MiscelaneosForm({
     const nuevo = { examen_solicitado: "", metodo: "", muestra: "", resultado_texto: "" };
     onChange([...resultados, nuevo]);
     setIndexActivo(resultados.length);
+    setActiveTemplateId(null);
   };
 
   const eliminarExamenDeLista = (idx: number) => {
@@ -123,6 +126,7 @@ export default function MiscelaneosForm({
     const filtrados = resultados.filter((_: any, i: number) => i !== idx);
     onChange(filtrados);
     setIndexActivo(0);
+    setActiveTemplateId(null);
   };
 
   const aplicarPlantilla = (p: any) => {
@@ -135,6 +139,7 @@ export default function MiscelaneosForm({
       resultado_texto: p.contenido_plantilla,
     };
     onChange(nuevosResultados);
+    setActiveTemplateId(p.id);
     showNotification("success", "Plantilla aplicada");
   };
 
@@ -148,15 +153,15 @@ export default function MiscelaneosForm({
 
     setIsSaving(true);
     try {
-      const res = await fetch("/api/plantillas/miscelaneos", {
-        method: "POST",
+      const isEdit = activeTemplateId !== null;
+      const url = isEdit ? `/api/plantillas/miscelaneos/${activeTemplateId}` : "/api/plantillas/miscelaneos";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre_examen: actual.examen_solicitado, // Usar el nombre del examen como base, pero la plantilla tiene su nombre?
-          // Nota: La API de miscelaneos parece usar nombre_examen como identificador principal.
-          // El modal pide "Nombre...", que sería el nombre_plantilla normalmente, pero miscelaneos usa nombre_examen.
-          // Usaremos el input del modal para sobreescribir o definir el nombre del examen en la plantilla.
-          nombre_plantilla: nombre, // Si la API lo soporta, sino usamos nombre_examen
+          nombre_examen: nombre,
           metodo: actual.metodo || "",
           muestra: actual.muestra || "",
           contenido_plantilla: actual.resultado_texto || "",
@@ -166,10 +171,10 @@ export default function MiscelaneosForm({
       if (res.ok) {
         await cargarPlantillas();
         setShowLibrary(true);
-        showNotification("success", "Plantilla guardada");
+        showNotification("success", isEdit ? "Plantilla actualizada" : "Plantilla guardada");
       }
     } catch (error) {
-      showNotification("error", "Error al guardar");
+      showNotification("error", "Error al procesar");
     } finally {
       setIsSaving(false);
     }
@@ -240,7 +245,7 @@ export default function MiscelaneosForm({
         {resultados.map((ex: any, i: number) => (
           <div key={i} className="flex-shrink-0 flex items-center group">
             <button
-              onClick={() => setIndexActivo(i)}
+              onClick={() => { setIndexActivo(i); setActiveTemplateId(null); }}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${indexActivo === i
                 ? "bg-slate-900 text-white border-slate-900"
                 : "bg-white text-slate-400 border-slate-200 hover:border-slate-300"
@@ -321,9 +326,17 @@ export default function MiscelaneosForm({
               <button
                 onClick={() => setShowSaveModal(true)}
                 disabled={isSaving}
-                className="text-[9px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                className={`text-[9px] font-bold uppercase transition-colors disabled:opacity-50 flex items-center gap-1 ${activeTemplateId ? 'text-blue-600 hover:text-blue-700' : 'text-emerald-600 hover:text-emerald-700'}`}
               >
-                <Save size={12} /> Guardar
+                {activeTemplateId ? (
+                  <>
+                    <Edit2 size={12} /> Editar
+                  </>
+                ) : (
+                  <>
+                    <Save size={12} /> Guardar
+                  </>
+                )}
               </button>
             </div>
           </div>

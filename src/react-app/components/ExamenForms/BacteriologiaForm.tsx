@@ -6,6 +6,7 @@ import {
   Trash2,
   FlaskConical,
   Save,
+  Edit2,
 } from "lucide-react";
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { BacteriologiaData } from "@/types/types";
@@ -79,6 +80,7 @@ export default function BacteriologiaForm({
 
   // Modal Save
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [activeTemplateId, setActiveTemplateId] = useState<number | null>(null);
 
   // Estados de UI
   const [textoAnti, setTextoAnti] = useState("");
@@ -134,6 +136,7 @@ export default function BacteriologiaForm({
       cultivo: p.cultivo || "",
       cultivo_hongos: p.cultivo_hongos || "",
     });
+    setActiveTemplateId(p.id);
     showNotification("success", "Plantilla aplicada");
   };
 
@@ -150,17 +153,21 @@ export default function BacteriologiaForm({
     };
 
     try {
-      const res = await fetch("/api/plantillas/bacteriologia", {
-        method: "POST",
+      const isEdit = activeTemplateId !== null;
+      const url = isEdit ? `/api/plantillas/bacteriologia/${activeTemplateId}` : "/api/plantillas/bacteriologia";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        showNotification("success", "Plantilla guardada");
+        showNotification("success", isEdit ? "Plantilla actualizada" : "Plantilla guardada");
         cargarPlantillas();
       }
     } catch (e) {
-      showNotification("error", "Error al guardar");
+      showNotification("error", "Error al procesar");
     }
   };
 
@@ -198,6 +205,7 @@ export default function BacteriologiaForm({
       germen_a: "",
       germen_b: "",
     });
+    setActiveTemplateId(null);
     showNotification("info", "Formulario vaciado");
   };
 
@@ -292,8 +300,16 @@ export default function BacteriologiaForm({
           <button onClick={() => setShowLibrary(!showLibrary)} className={`text-[10px] font-bold uppercase transition-colors ${showLibrary ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}>
             {showLibrary ? 'Cerrar' : 'Plantillas'}
           </button>
-          <button onClick={() => setShowSaveModal(true)} className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1">
-            <Save size={12} /> Guardar
+          <button onClick={() => setShowSaveModal(true)} className={`text-[10px] font-bold uppercase transition-colors flex items-center gap-1 ${activeTemplateId ? 'text-blue-600 hover:text-blue-700' : 'text-emerald-600 hover:text-emerald-700'}`}>
+            {activeTemplateId ? (
+              <>
+                <Edit2 size={12} /> Editar
+              </>
+            ) : (
+              <>
+                <Save size={12} /> Guardar
+              </>
+            )}
           </button>
         </div>
       </div>
