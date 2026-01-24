@@ -37,6 +37,22 @@ export default function PSAForm({ resultados, onChange }: PSAFormProps) {
     const inputBase = "w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[13px] font-bold text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-300";
     const autoInput = "w-full bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-[13px] font-black text-blue-700 outline-none cursor-default";
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            const form = (e.target as HTMLElement).closest("div.w-full.space-y-6");
+            if (form) {
+                const focusable = Array.from(
+                    form.querySelectorAll('input:not([readonly]), textarea')
+                ) as HTMLElement[];
+                const index = focusable.indexOf(e.target as HTMLElement);
+                if (index > -1 && index < focusable.length - 1) {
+                    e.preventDefault();
+                    focusable[index + 1].focus();
+                }
+            }
+        }
+    };
+
     return (
         <div className="w-full space-y-6 pb-20">
 
@@ -65,6 +81,7 @@ export default function PSAForm({ resultados, onChange }: PSAFormProps) {
                                     type="text"
                                     value={resultados?.psa_total || ""}
                                     onChange={(e) => handleChange("psa_total", e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     className={inputBase}
                                     placeholder="0.00"
                                 />
@@ -79,6 +96,7 @@ export default function PSAForm({ resultados, onChange }: PSAFormProps) {
                                     type="text"
                                     value={resultados?.psa_libre || ""}
                                     onChange={(e) => handleChange("psa_libre", e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     className={inputBase}
                                     placeholder="0.00"
                                 />
@@ -115,6 +133,7 @@ export default function PSAForm({ resultados, onChange }: PSAFormProps) {
                                 type="text"
                                 value={resultados?.metodo || ""}
                                 onChange={(e) => handleChange("metodo", e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 className={inputBase}
                                 placeholder="Elisa"
                             />
@@ -128,6 +147,7 @@ export default function PSAForm({ resultados, onChange }: PSAFormProps) {
                     <textarea
                         value={resultados?.observacion || ""}
                         onChange={(e) => handleChange("observacion", e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 outline-none focus:border-blue-500 min-h-[80px] resize-none"
                         placeholder="Notas técnicas..."
                     />

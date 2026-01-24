@@ -26,13 +26,15 @@ function DashboardLayoutContent() {
   const [user, setUser] = useState<{ name: string; email: string; photo: string } | null>(null);
   const [isFastMode, setIsFastMode] = useState(() => localStorage.getItem("fastMode") === "true");
 
-  // Atajos de teclado: Shift + F (Facturación), Shift + M (Panel Maestro), Shift + X (Toggle Fast Mode)
+  // Atajos de teclado: Ctrl + Shift + F (Facturación), Ctrl + Shift + M (Panel Maestro), Ctrl + Shift + X (Toggle Fast Mode)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (e.shiftKey && key === 'f') navigate("/facturas");
-      if (e.shiftKey && key === 'm') navigate("/panel");
-      if (e.shiftKey && key === 'x') {
+      const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+
+      if (isCmdOrCtrl && e.shiftKey && key === 'f') navigate("/facturas");
+      if (isCmdOrCtrl && e.shiftKey && key === 'm') navigate("/panel");
+      if (isCmdOrCtrl && e.shiftKey && key === 'x') {
         const next = !isFastMode;
         setIsFastMode(next);
         localStorage.setItem("fastMode", String(next));
@@ -212,7 +214,7 @@ function DashboardLayoutContent() {
           {isFastMode && (sidebarOpen || isMobile) && (
             <div className="px-4 py-3 bg-blue-50 rounded-xl border border-blue-100 animate-in zoom-in-95">
               <p className="text-[7px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1 text-center">Modo Fast Activo</p>
-              <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest text-center">Shift + X para salir</p>
+              <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest text-center">Ctrl + Shift + X para salir</p>
             </div>
           )}
 

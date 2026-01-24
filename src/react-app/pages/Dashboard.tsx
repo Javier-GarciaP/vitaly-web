@@ -89,7 +89,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="relative z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
-            <p className="text-[9px] font-black uppercase tracking-widest text-white">Presione <span className="bg-white text-blue-600 px-1.5 py-0.5 rounded ml-1">Shift + X</span> para modo normal</p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-white">Presione <span className="bg-white text-blue-600 px-1.5 py-0.5 rounded ml-1">Ctrl + Shift + X</span> para modo normal</p>
           </div>
           {/* Decorative effect */}
           <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000" />

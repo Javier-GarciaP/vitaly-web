@@ -25,6 +25,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
         acetona: "Negativo",
         urobilin: "Normal",
         bacterias: "Escasas",
+        levaduras: "No se observan",
         filam_moco: "No contiene"
       });
     }
@@ -36,7 +37,7 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
 
   const isHighlighted = (field: string) => resultados?._highlightFields?.includes(field) ? "ring-2 ring-amber-500 bg-amber-50" : "";
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<any>) => {
     if (e.key === "Enter") {
       const target = e.target as HTMLInputElement;
       const fieldName = target.name;
@@ -193,7 +194,12 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
             </div>
             <div>
               <label className={labelBase}>Bacterias</label>
-              <select value={resultados?.bacterias || "Escasas"} onChange={(e) => handleChange("bacterias", e.target.value)} className={`${selectBase} ${isHighlighted("bacterias")}`}>
+              <select
+                value={resultados?.bacterias || "Escasas"}
+                onChange={(e) => handleChange("bacterias", e.target.value)}
+                onKeyDown={handleKeyDown}
+                className={`${selectBase} ${isHighlighted("bacterias")}`}
+              >
                 <option value="Escasas">Escasas</option>
                 <option value="Reg. Cantidad">Reg. Cant.</option>
                 <option value="Abundante">Abundante</option>
@@ -202,7 +208,12 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
             </div>
             <div>
               <label className={labelBase}>Levaduras</label>
-              <select value={resultados?.levaduras || "No se observan"} onChange={(e) => handleChange("levaduras", e.target.value)} className={`${selectBase} ${isHighlighted("levaduras")}`}>
+              <select
+                value={resultados?.levaduras || "No se observan"}
+                onChange={(e) => handleChange("levaduras", e.target.value)}
+                onKeyDown={handleKeyDown}
+                className={`${selectBase} ${isHighlighted("levaduras")}`}
+              >
                 <option value="No se observan">Negativo</option>
                 <option value="Aisladas">Aisladas</option>
                 <option value="Aisladas - Gemación">Gemación</option>
@@ -210,7 +221,12 @@ export default function OrinaForm({ resultados, onChange }: OrinaFormProps) {
             </div>
             <div>
               <label className={labelBase}>Filam. Moco</label>
-              <select value={resultados?.filam_moco || "No contiene"} onChange={(e) => handleChange("filam_moco", e.target.value)} className={`${selectBase} ${isHighlighted("filam_moco")}`}>
+              <select
+                value={resultados?.filam_moco || "No contiene"}
+                onChange={(e) => handleChange("filam_moco", e.target.value)}
+                onKeyDown={handleKeyDown}
+                className={`${selectBase} ${isHighlighted("filam_moco")}`}
+              >
                 <option value="No contiene">Negativo</option>
                 <option value="Escasas">Escasas</option>
                 <option value="Reg. Cantidad">Reg. Cant.</option>

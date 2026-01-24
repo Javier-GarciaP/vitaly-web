@@ -166,7 +166,7 @@ const OrinaContent: React.FC<OrinaReportProps> = ({
       </SectionCard>
 
       <SectionCard title="Sedimento Urinario (Microscópico)">
-        <OrinaRow label1="Células Epit." value1={data?.celulas_epit} label2="Filam. Moco" value2={data?.filam_moco} />
+        <OrinaRow label1="Filam. Moco" value1={data?.filam_moco} label2="Células Epit." value2={data?.celulas_epit} />
         <OrinaRow label1="Leucocitos" value1={data?.leucocitos} label2="Hematíes" value2={data?.hematies} />
         <OrinaRow label1="Bacterias" value1={data?.bacterias} label2="Levaduras" value2={data?.levaduras} />
 
