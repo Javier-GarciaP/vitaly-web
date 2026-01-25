@@ -2,7 +2,7 @@
 
 Sistema integral de gestión para laboratorios clínicos, diseñado para optimizar el flujo de trabajo, el registro de pacientes y la entrega de resultados.
 
-![Dashboard Preview](docs/images/dashboard.png)
+![Dashboard Preview](./public/img-readme.png)
 
 ## Características Principales
 
