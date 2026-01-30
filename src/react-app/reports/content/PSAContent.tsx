@@ -136,13 +136,13 @@ const PSAContent: React.FC<PSAReportProps> = ({ data, patient, qrImage, referenc
                     edad: patient.edad,
                     fechaExamen: patient.fecha || "",
                 }}
-                title="ANTÍGENO PROSTÁTICO ESPECÍFICO"
+                title="ANTÍGENO PROSTÁTICO"
                 qrImage={qrImage}
             />
 
             <View style={styles.card}>
                 <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>Inmunología / Marcadores Tumorales</Text>
+                    <Text style={styles.cardTitle}>Marcador Tumoral</Text>
                 </View>
                 <View style={styles.cardBody}>
                     <View style={styles.tableHeader}>

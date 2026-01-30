@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 7.5,
     color: '#999',
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 2,
     paddingHorizontal: 30,
   },
   bottomLine: {
@@ -152,8 +152,10 @@ const PortadaContent: React.FC<PortadaGeneralProps> = ({ patient, logoUrl }) => 
           {/* PIE DE PÁGINA */}
           <View style={styles.footer}>
             <Text style={styles.notice}>
-              Este documento es un reporte médico oficial. La confidencialidad de los
-              datos está garantizada bajo las normativas de salud vigentes.
+              Este documento es un reporte médico oficial.
+            </Text>
+            <Text style={styles.notice}>
+              La confidencialidad de los datos está garantizada bajo las normativas de salud vigentes.
             </Text>
             <Text style={styles.bottomLine}>
               San José de Bolívar, Táchira • RIF: J-50413383-3
