@@ -129,6 +129,30 @@ export default function ConfiguracionPage() {
     try {
       const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`);
       const data = (await res.json()) as ValorReferencia[];
+
+      if (seccionActiva === "hematologia") {
+        const vsgKeys = [
+          { key: "VSG 1h Hombre", def: "< 15 mm/h" },
+          { key: "VSG 1h Mujer", def: "< 20 mm/h" },
+          { key: "VSG 1h Niños", def: "< 10 mm/h" },
+          { key: "VSG 2h Hombre", def: "< 15 mm/h" },
+          { key: "VSG 2h Mujer", def: "< 20 mm/h" },
+          { key: "VSG 2h Niños", def: "< 10 mm/h" },
+        ];
+
+        let maxId = data.length > 0 ? Math.max(...data.map((d) => d.id)) : 0;
+
+        vsgKeys.forEach((k) => {
+          if (!data.find((d) => d.nombre_examen === k.key)) {
+            data.push({
+              id: ++maxId,
+              nombre_examen: k.key,
+              valor_referencia: k.def,
+            });
+          }
+        });
+      }
+
       setValoresRef(data.map((item) => ({ ...item, originalValue: item.valor_referencia })));
     } catch (error) {
       console.error(error);

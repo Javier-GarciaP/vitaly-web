@@ -943,12 +943,16 @@ app.put(
     }
 
     try {
-      // En Cloudflare D1, la mejor forma de hacer bulk update es con batch()
-      // Preparamos todas las sentencias de actualización
+      // En Cloudflare D1, hacemos un UPSERT usando ON CONFLICT(nombre_examen)
+      // Esto permite ACTUALIZAR si existe, o INSERTAR si es nuevo (como los de VSG nuevos)
       const statements = valores.map((item) =>
         db
-          .prepare(`UPDATE ${tableName} SET valor_referencia = ? WHERE id = ?`)
-          .bind(item.valor_referencia, item.id)
+          .prepare(`
+            INSERT INTO ${tableName} (nombre_examen, valor_referencia) 
+            VALUES (?, ?)
+            ON CONFLICT(nombre_examen) DO UPDATE SET valor_referencia = excluded.valor_referencia
+          `)
+          .bind(item.nombre_examen, item.valor_referencia)
       );
 
       // Ejecutamos todas en una sola transacción atómica

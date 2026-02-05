@@ -150,7 +150,7 @@ function DashboardLayoutContent() {
         <div className="h-20 flex items-center justify-between px-6 shrink-0">
           {(sidebarOpen || isMobile) && (
             <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 transition-all">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg font-black text-xs text-white transition-colors duration-500 ${isFastMode ? "bg-blue-600 shadow-blue-100" : "bg-slate-900"}`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg font-black text-xs text-white transition-colors duration-500 ${isFastMode ? "bg-blue-600 shadow-blue-100" : "bg-red-900"}`}>
                 V
               </div>
               <div>

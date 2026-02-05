@@ -15,7 +15,7 @@ export default function HematologiaForm({ resultados, onChange }: HematologiaFor
     hematocrito: " %",
     vcm: " fL",
     hcm: " pg",
-    chcm: " g/dL",
+    chcm: " g/l",
     leucocitos: " /mm³",
     plaquetas: " /mm³",
     neutrofilos: " %",

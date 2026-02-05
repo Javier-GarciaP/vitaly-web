@@ -122,11 +122,7 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
     { label: "Niños 6-12a", key: "Niños 6 a 12 años", def: "11.5 - 15.5 g/dL" },
   ].map(r => `${r.label}: ${getRef(r.key, r.def)}`).join("\n");
 
-  // Construct VSG References
-  const vsgRefs = [
-    { label: "Hombres", key: "V.S.G Hombres", def: "0 - 15 mm/h" },
-    { label: "Mujeres", key: "V.S.G Mujeres", def: "0 - 20 mm/h" },
-  ].map(r => `${r.label}: ${getRef(r.key, r.def)}`).join(" | ");
+
 
   return (
     <View style={styles.container}>
@@ -157,12 +153,12 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
         <Text style={{ fontSize: 7, color: '#94a3b8', fontWeight: 'bold', marginBottom: 2, textTransform: 'uppercase' }}>Índices Hematimétricos</Text>
         <ExamRow label="V.C.M" result={data?.vcm} reference={getRef("V.C.M", "80 - 100 fL")} />
         <ExamRow label="H.C.M" result={data?.hcm} reference={getRef("H.C.M", "27 - 31 pg")} />
-        <ExamRow label="C.H.C.M" result={data?.chcm} reference={getRef("C.H.C.M", "32 - 36 g/dL")} />
+        <ExamRow label="C.H.C.M" result={data?.chcm} reference={getRef("C.H.C.M", "32 - 36 g/l")} />
       </SectionCard>
 
       {/* SERIE BLANCA */}
       <SectionCard title="Serie Blanca (Leucocitaria)">
-        <ExamRow label="Leucocitos Totales" result={data?.leucocitos} reference={getRef("Leucocitos", "5.000 - 10.000 /mm³")} />
+        <ExamRow label="Leucocitos" result={data?.leucocitos} reference={getRef("Leucocitos", "5.000 - 10.000 /mm³")} />
         <View style={{ height: 4 }} />
         <ExamRow label="Neutrófilos" result={data?.neutrofilos} reference={getRef("Neutrófilos", "55 - 70 %")} />
         <ExamRow label="Linfocitos" result={data?.linfocitos} reference={getRef("Linfocitos", "20 - 40 %")} />
@@ -179,9 +175,6 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
       {(data?.vsg_1h || data?.vsg_2h) && (
         <SectionCard title="V.S.G (Eritrosedimentación)">
           <View style={styles.vsgContainer}>
-            <View style={{ width: '35%' }}>
-              <Text style={{ fontSize: 6.5, color: '#666', marginTop: 1 }}>{vsgRefs}</Text>
-            </View>
             <View style={styles.vsgGroup}>
               {data?.vsg_1h && (
                 <View style={styles.vsgItem}>
@@ -201,6 +194,22 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
                   <Text style={styles.vsgValue}>{data.vsg_indice}</Text>
                 </View>
               )}
+            </View>
+            <View style={{ width: '55%' }}>
+              <Text style={{ fontSize: 6.5, color: '#666', marginTop: 1, marginBottom: 2 }}>
+                <Text style={{ fontWeight: 'bold' }}>1h:</Text> {[
+                  { label: "Hombre", key: "VSG 1h Hombre", def: "< 15 mm/h" },
+                  { label: "Mujer", key: "VSG 1h Mujer", def: "< 20 mm/h" },
+                  { label: "Niños", key: "VSG 1h Niños", def: "< 10 mm/h" },
+                ].map(r => `${r.label}: ${getRef(r.key, r.def)}`).join(" | ")}
+              </Text>
+              <Text style={{ fontSize: 6.5, color: '#666' }}>
+                <Text style={{ fontWeight: 'bold' }}>2h:</Text> {[
+                  { label: "Hombre", key: "VSG 2h Hombre", def: "< 15 mm/h" },
+                  { label: "Mujer", key: "VSG 2h Mujer", def: "< 20 mm/h" },
+                  { label: "Niños", key: "VSG 2h Niños", def: "< 10 mm/h" },
+                ].map(r => `${r.label}: ${getRef(r.key, r.def)}`).join(" | ")}
+              </Text>
             </View>
           </View>
         </SectionCard>
