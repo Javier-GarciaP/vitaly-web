@@ -13,7 +13,17 @@ import LoginPage from "@/react-app/pages/LoginPage"; // El que creamos antes
 import ProtectedRoute from "@/react-app/components/ProtecteRoute";
 import ControlPacientePage from "@/react-app/pages/ControlPacientePage";
 
+import { useEffect } from "react";
+import DatabaseService from "../services/db/database";
+
 export default function App() {
+  useEffect(() => {
+    // Initialize Local Database
+    DatabaseService.getDB().catch((err) => {
+      console.error("Failed to initialize database:", err);
+    });
+  }, []);
+
   return (
     <Router>
       <Routes>

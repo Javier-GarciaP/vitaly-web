@@ -19,6 +19,9 @@ import {
   Legend,
 } from "recharts";
 import { getDayName, formatDisplayDate, getTodayDate } from "@/utils/date";
+import PacientesService from "../../services/PacientesService";
+import ExamenesService from "../../services/ExamenesService";
+import FacturasService from "../../services/FacturasService";
 
 interface Estadisticas {
   totalPacientes: number;
@@ -58,10 +61,41 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Estadisticas | null>(null);
 
   useEffect(() => {
-    fetch("/api/estadisticas")
-      .then((res) => res.json() as Promise<Estadisticas>)
-      .then((data) => setStats(data))
-      .catch((err) => console.error("Error cargando estadísticas:", err));
+    const loadStats = async () => {
+      try {
+        const [currPacientes, currExamenes, currFacturas] = await Promise.all([
+          PacientesService.getAll(),
+          ExamenesService.getAll(),
+          FacturasService.getAll()
+        ]);
+
+        const hoy = getTodayDate();
+
+        const countPacientes = currPacientes.length;
+        const countExamenes = currExamenes.length;
+        const countPendientes = currExamenes.filter(e => e.estado === 'pendiente').length;
+        const countFacturasHoy = currFacturas.filter(f => f.fecha === hoy).length;
+
+        // Distribution logic
+        const distribMap = currExamenes.reduce((acc, curr) => {
+          acc[curr.tipo] = (acc[curr.tipo] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+        const distribucion = Object.entries(distribMap).map(([name, value]) => ({ name, value }));
+
+        setStats({
+          totalPacientes: countPacientes,
+          totalExamenes: countExamenes,
+          examenesPendientes: countPendientes,
+          facturasHoy: countFacturasHoy,
+          distribucion
+        });
+      } catch (err) {
+        console.error("Error cargando estadísticas locales:", err);
+      }
+    };
+    loadStats();
   }, []);
 
   const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"];

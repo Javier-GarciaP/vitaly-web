@@ -1,7 +1,7 @@
 {
   "name": "vitaly-lab",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.1.1",
   "author": "Javier García",
   "license": "UNLICENSED",
   "repository": {
@@ -12,6 +12,7 @@
   "dependencies": {
     "@hono/zod-validator": "^0.5.0",
     "@react-pdf/renderer": "^4.3.1",
+    "@tauri-apps/plugin-sql": "^2.3.2",
     "buffer": "^6.0.3",
     "canvas-confetti": "^1.9.4",
     "dexie": "^4.2.1",
@@ -57,6 +58,8 @@
     "check": "tsc && vite build && wrangler deploy --dry-run",
     "dev": "vite",
     "lint": "eslint .",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "deploy:cop": "node scripts/deploy.mjs cop",
+    "deploy:usd": "node scripts/deploy.mjs usd"
   }
 }

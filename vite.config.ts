@@ -7,6 +7,7 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  base: "",
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   plugins: [
 

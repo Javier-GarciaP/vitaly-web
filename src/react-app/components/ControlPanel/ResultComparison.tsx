@@ -1,5 +1,7 @@
 import { AlertTriangle, CheckCircle, TrendingDown, TrendingUp, Activity } from "lucide-react";
 
+import { Paciente } from "../../../services/PacientesService";
+
 interface ValueStatus {
     value: string | number;
     reference: string;
@@ -11,9 +13,10 @@ interface ResultComparisonProps {
     examType: string;
     results: any;
     references: Array<{ nombre_examen: string; valor_referencia: string }>;
+    patient: Paciente;
 }
 
-export default function ResultComparison({ examType, results, references }: ResultComparisonProps) {
+export default function ResultComparison({ examType, results, references, patient }: ResultComparisonProps) {
 
     // Función para determinar si un valor está dentro del rango de referencia
     const analyzeValue = (value: string | number | undefined, reference: string, label: string): ValueStatus => {
@@ -137,6 +140,22 @@ export default function ResultComparison({ examType, results, references }: Resu
 
     // Función para obtener el valor de referencia de la BD
     const getReference = (nombre: string): string => {
+        const isFemale = patient.sexo === "F";
+
+        // Búsqueda inteligente para Hemoglobina
+        if (nombre === "Hemoglobina") {
+            const genderKey = isFemale ? "hemoglobina mujer" : "hemoglobina hombre";
+            const ref = references.find(r => r.nombre_examen.toLowerCase() === genderKey);
+            if (ref) return ref.valor_referencia;
+        }
+
+        // Búsqueda inteligente para VSG
+        if (nombre === "VSG") {
+            const genderKey = isFemale ? "v.s.g mujeres" : "v.s.g hombres";
+            const ref = references.find(r => r.nombre_examen.toLowerCase() === genderKey);
+            if (ref) return ref.valor_referencia;
+        }
+
         const ref = references.find(r =>
             r.nombre_examen.toLowerCase() === nombre.toLowerCase()
         );
@@ -171,6 +190,7 @@ export default function ResultComparison({ examType, results, references }: Resu
                     analyzeValue(results.plaquetas, getReference("Plaquetas"), "Plaquetas"),
                     analyzeValue(results.neutrofilos, getReference("Neutrófilos"), "Neutrófilos"),
                     analyzeValue(results.linfocitos, getReference("Linfocitos"), "Linfocitos"),
+                    analyzeValue(results.vsg_1h, getReference("VSG"), "VSG 1h"),
                 ].filter(item => item.value !== "-");
 
             case "Coagulación":
@@ -178,7 +198,14 @@ export default function ResultComparison({ examType, results, references }: Resu
                     analyzeValue(results.tp_paciente, getReference("TP Paciente"), "TP Paciente"),
                     analyzeValue(results.tpt_paciente, getReference("TPT Paciente"), "TPT Paciente"),
                     analyzeValue(results.fibrinogeno, getReference("Fibrinógeno"), "Fibrinógeno"),
-                    analyzeValue(results.tp_inr, getReference("INR"), "INR"),
+                    analyzeValue(results.tp_inr, getReference("I.N.R."), "I.N.R."),
+                ].filter(item => item.value !== "-");
+
+            case "PSA":
+                return [
+                    analyzeValue(results.psa_total, getReference("PSA Total"), "PSA Total"),
+                    analyzeValue(results.psa_libre, getReference("PSA Libre"), "PSA Libre"),
+                    analyzeValue(results.indice_psa, getReference("Indice PSA"), "Indice PSA"),
                 ].filter(item => item.value !== "-");
 
             default:

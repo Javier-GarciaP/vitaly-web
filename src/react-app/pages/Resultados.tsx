@@ -30,22 +30,24 @@ import CoagulacionForm from "@/react-app/components/ExamenForms/CoagulacionForm"
 import GrupoSanguineoForm from "@/react-app/components/ExamenForms/GrupoSanguineoForm";
 import BacteriologiaForm from "@/react-app/components/ExamenForms/BacteriologiaForm";
 import MiscelaneosForm from "@/react-app/components/ExamenForms/MiscelaneosForm";
+import PSAForm from "@/react-app/components/ExamenForms/PSAForm";
 
 import { generateQRBase64 } from "@/utils/qr";
 import ReportViewer from "@/react-app/reports/ReportViewer";
+import ExamenesService, { Examen as ServiceExamen } from "../../services/ExamenesService";
 
-interface Examen {
+// Extend or alias to avoid conflicts if needed, but local interface has extra props? 
+// The local interface has paciente_nombre etc. ServiceExamen also has them as optional.
+// Let's rely on ServiceExamen but ensure we handle optional id.
+
+interface Examen extends ServiceExamen {
+  // Local interface overrides if stricter
   id: number;
-  paciente_id: number;
   paciente_nombre: string;
   paciente_cedula: string;
   tipo: string;
   fecha: string;
-  estado: string;
-  resultados: any;
-  created_at: string;
-  uuid?: string;
-  paciente_edad?: number;
+  estado: 'pendiente' | 'en_proceso' | 'completado';
 }
 
 export default function ResultadosPage() {
@@ -89,11 +91,10 @@ export default function ResultadosPage() {
 
   const loadExamenes = async () => {
     try {
-      const res = await fetch("/api/examenes");
-      const data = (await res.json()) as Examen[];
-      setExamenes(data);
+      const data = await ExamenesService.getAll();
+      setExamenes(data as any[]);
     } catch (e) {
-      console.error("Error cargando exámenes");
+      console.error("Error cargando exámenes", e);
     }
   };
 
@@ -131,30 +132,24 @@ export default function ResultadosPage() {
     if (!selectedExamen || isSaving) return;
     setIsSaving(true);
     const payload = {
-      paciente_id: selectedExamen.paciente_id,
-      tipo: selectedExamen.tipo,
+      // paciente_id: selectedExamen.paciente_id, // No need to update these if not changed
+      // tipo: selectedExamen.tipo,
       fecha: selectedExamen.fecha,
       resultados: editResultados,
-      estado: editEstado,
+      estado: editEstado as "pendiente" | "en_proceso" | "completado",
     };
 
     try {
-      const res = await fetch(`/api/examenes/${selectedExamen.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      await ExamenesService.update(selectedExamen.id, payload);
 
-      if (res.ok) {
-        showNotification("success", "Cambios Aplicados", `El estudio de ${selectedExamen.tipo} ha sido actualizado`);
-        setShowEditModal(false);
-        await loadExamenes();
-        setSelectedExamen({
-          ...selectedExamen,
-          resultados: editResultados,
-          estado: editEstado,
-        });
-      }
+      showNotification("success", "Cambios Aplicados", `El estudio de ${selectedExamen.tipo} ha sido actualizado`);
+      setShowEditModal(false);
+      await loadExamenes();
+      setSelectedExamen({
+        ...selectedExamen,
+        resultados: editResultados,
+        estado: editEstado as "pendiente" | "en_proceso" | "completado",
+      });
     } catch (e) {
       console.error("Error en la petición:", e);
       showNotification("error", "Error", "No se pudieron guardar los cambios");
@@ -171,15 +166,11 @@ export default function ResultadosPage() {
       variant: "danger",
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/examenes/${selectedExamen.id}`, {
-            method: "DELETE",
-          });
+          await ExamenesService.delete(selectedExamen.id);
 
-          if (res.ok) {
-            showNotification("delete", "Registro Eliminado", `El estudio de ${selectedExamen.tipo} ha sido removido`);
-            setSelectedExamen(null);
-            loadExamenes();
-          }
+          showNotification("delete", "Registro Eliminado", `El estudio de ${selectedExamen.tipo} ha sido removido`);
+          setSelectedExamen(null);
+          loadExamenes();
         } catch (error) {
           console.error("Error:", error);
           showNotification("error", "Error", "No se pudo eliminar el registro");
@@ -230,6 +221,7 @@ export default function ResultadosPage() {
       Coagulación: <CoagulacionForm {...props} />,
       "Grupo Sanguíneo": <GrupoSanguineoForm {...props} />,
       Bacteriología: <BacteriologiaForm {...props} />,
+      PSA: <PSAForm {...props} />,
       Misceláneos: <MiscelaneosForm {...props} />,
     };
     return forms[selectedExamen.tipo] || (

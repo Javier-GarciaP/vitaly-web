@@ -2,12 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { Plus, X, User, Activity, Search, ClipboardList } from "lucide-react";
 import { getTodayDate } from "@/utils/date";
 import { useNotification } from "@/react-app/context/NotificationContext";
-
-interface Paciente {
-  id: number;
-  cedula: string;
-  nombre: string;
-}
+import PacientesService, { Paciente } from "../../services/PacientesService";
+import ExamenesService from "../../services/ExamenesService";
 
 export default function ExamenesPage() {
   const { showNotification } = useNotification();
@@ -34,25 +30,27 @@ export default function ExamenesPage() {
 
   const loadPacientes = async () => {
     try {
-      const res = await fetch("/api/pacientes");
-      const data = await res.json() as Paciente[];
+      const data = await PacientesService.getAll();
       setPacientes(data);
-    } catch (e) { console.error("Error cargando pacientes"); }
+    } catch (e) { console.error("Error cargando pacientes", e); }
   };
 
   const sugerenciasFiltradas = useMemo(() => {
     if (pacienteInput.length < 2) return [];
     return pacientes.filter(p =>
       p.nombre.toLowerCase().includes(pacienteInput.toLowerCase()) ||
-      p.cedula.includes(pacienteInput)
+      p.cedula?.includes(pacienteInput)
     ).slice(0, 5);
   }, [pacienteInput, pacientes]);
 
   const seleccionarPaciente = (p: Paciente) => {
-    setFormData({ ...formData, paciente_id: p.id.toString() });
-    setPacienteInput(`${p.nombre} (${p.cedula})`);
-    setShowSugerencias(false);
-    setErrorPaciente("");
+    // Check if p.id is defined
+    if (p.id !== undefined) {
+      setFormData({ ...formData, paciente_id: p.id.toString() });
+      setPacienteInput(`${p.nombre} (${p.cedula})`);
+      setShowSugerencias(false);
+      setErrorPaciente("");
+    }
   };
 
   const addTipoExamen = (tipo: string) => {
@@ -75,25 +73,20 @@ export default function ExamenesPage() {
 
     try {
       const promesas = selectedTipos.map(tipo => {
-        return fetch("/api/examenes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paciente_id: parseInt(formData.paciente_id),
-            tipo,
-            fecha: formData.fecha,
-            estado: formData.estado,
-            uuid: crypto.randomUUID(),
-          }),
+        return ExamenesService.create({
+          paciente_id: parseInt(formData.paciente_id),
+          tipo,
+          fecha: formData.fecha,
+          estado: formData.estado as "pendiente" | "en_proceso" | "completado",
+          uuid: crypto.randomUUID(),
         });
       });
 
-      const respuestas = await Promise.all(promesas);
-      if (respuestas.every(res => res.ok)) {
-        showNotification("success", "Orden Generada", `${selectedTipos.length} estudios han sido registrados correctamente`);
-        closeModal();
-      }
+      await Promise.all(promesas);
+      showNotification("success", "Orden Generada", `${selectedTipos.length} estudios han sido registrados correctamente`);
+      closeModal();
     } catch (e) {
+      console.error(e);
       showNotification("error", "Error", "No se pudo procesar la solicitud");
     }
   };

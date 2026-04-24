@@ -7,6 +7,10 @@ export default function ProtectedRoute() {
   const isTauri = typeof window !== "undefined" && (window as any).__TAURI_INTERNALS__;
 
   if (isTauri) {
+    const workspace = localStorage.getItem("vitaly_workspace");
+    if (!workspace) {
+      return <Navigate to="/login" replace />;
+    }
     return <Outlet />;
   }
 

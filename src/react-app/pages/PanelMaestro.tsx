@@ -19,6 +19,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNotification } from "@/react-app/context/NotificationContext";
+import PacientesService from "../../services/PacientesService";
+import ExamenesService from "../../services/ExamenesService";
+import FacturasService from "../../services/FacturasService";
 
 // --- COMPONENTES EXTERNOS ---
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
@@ -81,11 +84,15 @@ export default function PanelControlMaster() {
 
   const loadInitialData = async () => {
     try {
-      const [resP, resE, resF] = await Promise.all([fetch("/api/pacientes"), fetch("/api/examenes"), fetch("/api/facturas")]);
-      setPacientes(await resP.json());
-      setExamenes(await resE.json());
-      setFacturas(await resF.json());
-    } catch (e) { console.error("Error cargando datos"); }
+      const [pacientesData, examenesData, facturasData] = await Promise.all([
+        PacientesService.getAll(),
+        ExamenesService.getAll(),
+        FacturasService.getAll()
+      ]);
+      setPacientes(pacientesData as any[]);
+      setExamenes(examenesData as any[]); // Cast because Examen interface might differ slightly
+      setFacturas(facturasData as any[]);
+    } catch (e) { console.error("Error cargando datos", e); }
   };
 
 
@@ -106,14 +113,20 @@ export default function PanelControlMaster() {
 
   const handleCreateExamen = async (tipo: string) => {
     if (!selectedPacienteId) return;
-    const res = await fetch("/api/examenes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paciente_id: selectedPacienteId, tipo, fecha: hoy, estado: "pendiente", resultados: {}, uuid: crypto.randomUUID() }),
-    });
-    if (res.ok) {
+    try {
+      await ExamenesService.create({
+        paciente_id: selectedPacienteId,
+        tipo,
+        fecha: hoy,
+        estado: "pendiente",
+        resultados: {},
+        uuid: crypto.randomUUID()
+      });
       showNotification("success", "Estudio Añadido", `${tipo} ha sido agregado al expediente`);
       loadInitialData();
+    } catch (e) {
+      console.error(e);
+      showNotification("error", "Error", "No se pudo añadir el examen");
     }
   };
 
@@ -123,10 +136,13 @@ export default function PanelControlMaster() {
       message: `¿Está seguro de eliminar el estudio de ${ex.tipo}? Esta acción no se puede deshacer.`,
       variant: "danger",
       onConfirm: async () => {
-        const res = await fetch(`/api/examenes/${ex.id}`, { method: "DELETE" });
-        if (res.ok) {
+        try {
+          await ExamenesService.delete(ex.id);
           showNotification("delete", "Estudio Eliminado", `El estudio de ${ex.tipo} ha sido removido`);
           loadInitialData();
+        } catch (e) {
+          console.error(e);
+          showNotification("error", "Error", "No se pudo eliminar el estudio");
         }
       }
     });
@@ -135,17 +151,20 @@ export default function PanelControlMaster() {
   const handleSaveResults = async () => {
     if (!activeExamen) return;
     setIsSaving(true);
-    const res = await fetch(`/api/examenes/${activeExamen.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...activeExamen, resultados: editResultados, estado: editEstado }),
-    });
-    if (res.ok) {
+    try {
+      await ExamenesService.update(activeExamen.id, {
+        resultados: editResultados,
+        estado: editEstado
+      });
       showNotification("success", "Cambios Guardados", `Resultados de ${activeExamen.tipo} actualizados`);
       setIsEditing(false);
       loadInitialData();
+    } catch (e) {
+      console.error(e);
+      showNotification("error", "Error", "No se pudo guardar los resultados");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   const handleOpenPrint = async (ex: Examen) => {

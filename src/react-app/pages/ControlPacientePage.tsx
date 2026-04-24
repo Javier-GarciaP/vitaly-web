@@ -2,13 +2,10 @@ import { useState, useEffect } from "react";
 import { Search, Activity, ChevronLeft, Database } from "lucide-react";
 import PatientMonitor from "@/react-app/components/ControlPanel/PatientMonitor";
 import ResultComparison from "@/react-app/components/ControlPanel/ResultComparison";
+import EvolutionView from "@/react-app/components/ControlPanel/EvolutionView";
 import { formatDisplayDate } from "@/utils/date";
-
-interface Paciente {
-    id: number;
-    nombre: string;
-    cedula: string;
-}
+import PacientesService, { Paciente } from "../../services/PacientesService";
+import ValoresReferenciaService, { TipoReferencia } from "../../services/ValoresReferenciaService";
 
 export default function ControlPacientePage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +14,7 @@ export default function ControlPacientePage() {
     const [selectedExam, setSelectedExam] = useState<any | null>(null);
     const [referencias, setReferencias] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [activeTab, setActiveTab] = useState<"comparison" | "evolution">("comparison");
 
     // Efecto para búsqueda de pacientes
     useEffect(() => {
@@ -24,13 +22,8 @@ export default function ControlPacientePage() {
             if (searchTerm.length > 1) {
                 setIsSearching(true);
                 try {
-                    const res = await fetch("/api/pacientes");
-                    const data = (await res.json()) as Paciente[];
-                    const filtered = data.filter((p: Paciente) =>
-                        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        p.cedula.includes(searchTerm)
-                    );
-                    setSearchResults(filtered.slice(0, 5));
+                    const data = await PacientesService.search(searchTerm);
+                    setSearchResults(data);
                 } catch (error) {
                     console.error("Error buscando pacientes:", error);
                 } finally {
@@ -53,17 +46,17 @@ export default function ControlPacientePage() {
 
     const loadReferencias = async (tipo: string) => {
         try {
-            let tabla = "";
+            let tabla: TipoReferencia | "" = "";
             if (tipo === "Química Clínica") tabla = "quimica";
             else if (tipo === "Hematología") tabla = "hematologia";
             else if (tipo === "Coagulación") tabla = "coagulacion";
+            else if (tipo === "PSA") tabla = "psa";
             else {
                 setReferencias([]);
                 return;
             }
 
-            const res = await fetch(`/api/valores-referencia?tabla=${tabla}`);
-            const data = (await res.json()) as any[];
+            const data = await ValoresReferenciaService.getAll(tabla);
             setReferencias(data);
         } catch (error) {
             console.error("Error cargando referencias:", error);
@@ -173,54 +166,90 @@ export default function ControlPacientePage() {
                         <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
                             <div className="bg-white border border-slate-100 rounded-[3rem] p-4 shadow-sm">
                                 <PatientMonitor
-                                    pacienteId={selectedPatient.id}
+                                    pacienteId={selectedPatient.id!}
                                     pacienteNombre={selectedPatient.nombre}
-                                    onExamSelect={setSelectedExam}
+                                    onExamSelect={(exam) => {
+                                        setSelectedExam(exam);
+                                        setActiveTab("comparison");
+                                    }}
                                 />
                             </div>
                         </div>
 
-                        {/* DERECHA: COMPARATIVA TÉCNICA */}
-                        <div className="lg:col-span-8">
-                            {selectedExam ? (
-                                <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-sm animate-in slide-in-from-right-8 duration-700 ease-out min-h-[700px]">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 border-b border-slate-50 pb-10">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-14 h-14 bg-slate-50 text-slate-900 rounded-[1.5rem] flex items-center justify-center border border-slate-100 shadow-inner">
-                                                <Database size={24} />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">{selectedExam.tipo}</h4>
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                    <Activity size={12} /> Análisis Bioquímico Detallado
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="inline-block px-4 py-1.5 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest mb-2">
-                                                {formatDisplayDate(selectedExam.fecha)}
-                                            </div>
-                                            <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Protocolo ID: VTL-{selectedExam.id}</p>
-                                        </div>
-                                    </div>
+                        {/* DERECHA: SECCIÓN DE CONTENIDO DINÁMICO */}
+                        <div className="lg:col-span-8 space-y-8">
+                            {/* TABS DE VISTA CLÍNICA */}
+                            <div className="flex bg-slate-100/50 p-1.5 rounded-2xl w-fit">
+                                <button
+                                    onClick={() => setActiveTab("comparison")}
+                                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "comparison"
+                                            ? "bg-white text-slate-900 shadow-lg shadow-slate-200"
+                                            : "text-slate-400 hover:text-slate-600"
+                                        }`}
+                                >
+                                    Comparativa Técnica
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("evolution")}
+                                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "evolution"
+                                            ? "bg-white text-slate-900 shadow-lg shadow-slate-200"
+                                            : "text-slate-400 hover:text-slate-600"
+                                        }`}
+                                >
+                                    Evolución Histórica
+                                </button>
+                            </div>
 
-                                    <div className="px-2">
-                                        <ResultComparison
-                                            examType={selectedExam.tipo}
-                                            results={selectedExam.resultados}
-                                            references={referencias}
-                                        />
+                            {activeTab === "comparison" ? (
+                                selectedExam ? (
+                                    <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-sm animate-in slide-in-from-right-8 duration-700 ease-out min-h-[700px]">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 border-b border-slate-50 pb-10">
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-14 h-14 bg-slate-50 text-slate-900 rounded-[1.5rem] flex items-center justify-center border border-slate-100 shadow-inner">
+                                                    <Database size={24} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">{selectedExam.tipo}</h4>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <Activity size={12} /> Análisis Bioquímico Detallado
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="inline-block px-4 py-1.5 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest mb-2">
+                                                    {formatDisplayDate(selectedExam.fecha)}
+                                                </div>
+                                                <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Protocolo ID: VTL-{selectedExam.id}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="px-2">
+                                            <ResultComparison
+                                                examType={selectedExam.tipo}
+                                                results={selectedExam.resultados}
+                                                references={referencias}
+                                                patient={selectedPatient}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="h-[700px] flex flex-col items-center justify-center bg-white border border-slate-100 rounded-[3rem] p-12 text-center shadow-sm border-dashed">
+                                        <div className="w-24 h-24 bg-slate-50 text-slate-100 rounded-full flex items-center justify-center mb-8 border border-slate-50 ring-8 ring-slate-50/50">
+                                            <Activity size={40} className="animate-pulse" />
+                                        </div>
+                                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] mb-4">Esperando selección</h3>
+                                        <p className="text-[11px] text-slate-200 font-bold uppercase tracking-widest max-w-xs leading-relaxed">
+                                            Seleccione un informe del monitor lateral para desglosar la visualización técnica
+                                        </p>
+                                    </div>
+                                )
                             ) : (
-                                <div className="h-[700px] flex flex-col items-center justify-center bg-white border border-slate-100 rounded-[3rem] p-12 text-center shadow-sm border-dashed">
-                                    <div className="w-24 h-24 bg-slate-50 text-slate-100 rounded-full flex items-center justify-center mb-8 border border-slate-50 ring-8 ring-slate-50/50">
-                                        <Activity size={40} className="animate-pulse" />
-                                    </div>
-                                    <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] mb-4">Esperando selección</h3>
-                                    <p className="text-[11px] text-slate-200 font-bold uppercase tracking-widest max-w-xs leading-relaxed">
-                                        Seleccione un informe del monitor lateral para desglosar la visualización técnica
-                                    </p>
+                                <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-sm animate-in slide-in-from-left-8 duration-700 ease-out min-h-[700px]">
+                                    <EvolutionView
+                                        pacienteId={selectedPatient.id!}
+                                        pacienteNombre={selectedPatient.nombre}
+                                        initialCategory={selectedExam?.tipo}
+                                    />
                                 </div>
                             )}
                         </div>

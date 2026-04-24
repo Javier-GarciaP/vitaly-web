@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -8,6 +9,24 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+// Habilitar CORS para permitir peticiones desde el frontend local (Vite/Tauri)
+app.use("/api/*", cors({
+  origin: (origin) => {
+    // Aceptar cualquier localhost o 127.0.0.1 en desarrollo, y el dominio oficial
+    if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin === "https://vitaly-pro.pages.dev") {
+      return origin;
+    }
+    return null;
+  },
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  maxAge: 86400,
+  credentials: true,
+}));
+
+// Responder explícitamente a OPTIONS para evitar fallos de preflight en algunos bundlers
+app.options("*", (c) => c.body(null, 204));
 
 const valorReferenciaItemSchema = z.object({
   id: z.number(),
@@ -66,6 +85,50 @@ const plantillaMiscelaneoSchema = z.object({
   metodo: z.string().optional().nullable(),
   muestra: z.string().optional().nullable(),
   contenido_plantilla: z.string().optional().nullable(),
+});
+
+// Health check para verificar conexión
+app.get("/api/health", (c) => {
+  return c.json({ status: "ok", message: "Vitaly Cloud Engine operational" });
+});
+
+// Proxy SQL para modo Web (Requiere Auth)
+app.post("/api/db/query", async (c) => {
+  try {
+    const { sql, params } = await c.req.json();
+    const db = c.env.DB;
+
+    const stmt = db.prepare(sql);
+    const bound = params && params.length > 0 ? stmt.bind(...params) : stmt;
+
+    const res = await bound.all();
+    return c.json(res);
+  } catch (e: any) {
+    console.error("DB Query Error:", e);
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+// Endpoint PÚBLICO para verificación (No requiere Token)
+app.get("/api/public/examen/:uuid", async (c) => {
+  const uuid = c.req.param("uuid");
+  const db = c.env.DB;
+
+  try {
+    const result = await db.prepare(
+      `SELECT e.*, p.nombre as paciente_nombre, p.cedula as paciente_cedula
+       FROM examenes e JOIN pacientes p ON e.paciente_id = p.id WHERE e.uuid = ?`
+    ).bind(uuid).first();
+
+    if (!result) return c.json({ error: "No encontrado" }, 404);
+
+    return c.json({
+      ...result,
+      resultados: typeof result.resultados === 'string' ? JSON.parse(result.resultados) : result.resultados
+    });
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
 });
 
 // --- DASHBOARD Y ESTADÍSTICAS ---
@@ -974,5 +1037,169 @@ app.put(
     }
   }
 );
+
+// --- BACKUP & RESTORE (FULL OVERWRITE) ---
+app.post("/api/backup/full-restore", async (c) => {
+  const body = await c.req.json();
+  const db = c.env.DB;
+
+  if (!body.data) {
+    return c.json({ error: "Invalid payload" }, 400);
+  }
+
+  const {
+    pacientes,
+    examenes,
+    facturas,
+    quimica_valores_referencia,
+    hematologia_valores_referencia,
+    coagulacion_valores_referencia,
+    psa_valores_referencia,
+    examenes_predefinidos
+  } = body.data;
+
+  try {
+    // 1. Clear all tables (Order matters due to FKs if enforced, though D1 might be loose)
+    // Deleting children first
+    await db.prepare("DELETE FROM examenes").run();
+    await db.prepare("DELETE FROM facturas").run();
+    // Deleting parents
+    await db.prepare("DELETE FROM pacientes").run();
+
+    // Clear catalogs
+    await db.prepare("DELETE FROM quimica_valores_referencia").run();
+    await db.prepare("DELETE FROM hematologia_valores_referencia").run();
+    await db.prepare("DELETE FROM coagulacion_valores_referencia").run();
+    await db.prepare("DELETE FROM psa_valores_referencia").run();
+    await db.prepare("DELETE FROM examenes_predefinidos").run();
+
+    const batch = [];
+
+    // 2. Insert Pacientes
+    if (pacientes) {
+      for (const p of pacientes) {
+        batch.push(
+          db.prepare("INSERT INTO pacientes (id, cedula, nombre, edad, sexo, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .bind(p.id, p.cedula, p.nombre, p.edad, p.sexo, p.created_at, p.updated_at)
+        );
+      }
+    }
+
+    // 3. Insert Examenes
+    if (examenes) {
+      for (const e of examenes) {
+        batch.push(
+          db.prepare("INSERT INTO examenes (id, paciente_id, tipo, fecha, resultados, estado, uuid, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            .bind(e.id, e.paciente_id, e.tipo, e.fecha, e.resultados, e.estado, e.uuid, e.created_at, e.updated_at)
+        );
+      }
+    }
+
+    // 4. Insert Facturas
+    if (facturas) {
+      for (const f of facturas) {
+        batch.push(
+          db.prepare("INSERT INTO facturas (id, paciente_id, examenes, total, fecha, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .bind(f.id, f.paciente_id, f.examenes, f.total, f.fecha, f.created_at, f.updated_at)
+        );
+      }
+    }
+
+    // 5. Insert Catalogs
+    if (quimica_valores_referencia) {
+      for (const v of quimica_valores_referencia) {
+        batch.push(db.prepare("INSERT INTO quimica_valores_referencia (id, nombre_examen, valor_referencia) VALUES (?, ?, ?)").bind(v.id, v.nombre_examen, v.valor_referencia));
+      }
+    }
+    if (hematologia_valores_referencia) {
+      for (const v of hematologia_valores_referencia) {
+        batch.push(db.prepare("INSERT INTO hematologia_valores_referencia (id, nombre_examen, valor_referencia) VALUES (?, ?, ?)").bind(v.id, v.nombre_examen, v.valor_referencia));
+      }
+    }
+    if (coagulacion_valores_referencia) {
+      for (const v of coagulacion_valores_referencia) {
+        batch.push(db.prepare("INSERT INTO coagulacion_valores_referencia (id, nombre_examen, valor_referencia) VALUES (?, ?, ?)").bind(v.id, v.nombre_examen, v.valor_referencia));
+      }
+    }
+    if (psa_valores_referencia) {
+      for (const v of psa_valores_referencia) {
+        batch.push(db.prepare("INSERT INTO psa_valores_referencia (id, nombre_examen, valor_referencia) VALUES (?, ?, ?)").bind(v.id, v.nombre_examen, v.valor_referencia));
+      }
+    }
+
+    if (examenes_predefinidos) {
+      for (const e of examenes_predefinidos) {
+        batch.push(
+          db.prepare("INSERT INTO examenes_predefinidos (id, nombre, precio, categoria, parametros) VALUES (?, ?, ?, ?, ?)")
+            .bind(e.id, e.nombre, e.precio, e.categoria, e.parametros)
+        );
+      }
+    }
+
+    // Execute in chunks of 50 to respect D1 limits if any, though batch handles it usually.
+    // D1 batch limit is 128 statements per request? D1 HTTP API limits might apply.
+    // For safety, let's just attempt batch. If it fails due to size, might need chunking.
+    // For now assuming typical usage (not thousands of records at once or worker might timeout).
+
+    if (batch.length > 0) {
+      // Simple chunking
+      const chunkSize = 50;
+      for (let i = 0; i < batch.length; i += chunkSize) {
+        await db.batch(batch.slice(i, i + chunkSize));
+      }
+    }
+
+    return c.json({ success: true, message: "Full restore completed" });
+
+  } catch (e: any) {
+    console.error("Restore failed", e);
+    return c.json({ error: "Restore failed", details: e.message }, 500);
+  }
+});
+
+// NUEVO: Endpoint para descargar todos los datos (Down sync)
+app.get("/api/backup/download", async (c) => {
+  const db = c.env.DB;
+
+  try {
+    const [
+      pacientes,
+      examenes,
+      facturas,
+      quimica,
+      hematologia,
+      coagulacion,
+      psa,
+      predefinidos
+    ] = await Promise.all([
+      db.prepare("SELECT * FROM pacientes").all(),
+      db.prepare("SELECT * FROM examenes").all(),
+      db.prepare("SELECT * FROM facturas").all(),
+      db.prepare("SELECT * FROM quimica_valores_referencia").all(),
+      db.prepare("SELECT * FROM hematologia_valores_referencia").all(),
+      db.prepare("SELECT * FROM coagulacion_valores_referencia").all(),
+      db.prepare("SELECT * FROM psa_valores_referencia").all(),
+      db.prepare("SELECT * FROM examenes_predefinidos").all()
+    ]);
+
+    return c.json({
+      timestamp: new Date().toISOString(),
+      version: 1,
+      data: {
+        pacientes: pacientes.results,
+        examenes: examenes.results,
+        facturas: facturas.results,
+        quimica_valores_referencia: quimica.results,
+        hematologia_valores_referencia: hematologia.results,
+        coagulacion_valores_referencia: coagulacion.results,
+        psa_valores_referencia: psa.results,
+        examenes_predefinidos: predefinidos.results
+      }
+    });
+  } catch (e: any) {
+    console.error("Download failed", e);
+    return c.json({ error: "Download failed", details: e.message }, 500);
+  }
+});
 
 export default app;

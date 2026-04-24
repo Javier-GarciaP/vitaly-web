@@ -4,6 +4,9 @@ interface Settings {
     footerText: string;
     useCustomReportDate: boolean;
     customReportDate: string;
+    apiUrl: string;
+    apiToken: string;
+    lastSync: string;
 }
 
 interface SettingsContextType {
@@ -21,6 +24,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             footerText: localStorage.getItem("reportFooterText") || "© 2024 Laboratorio Clínico - Todos los derechos reservados",
             useCustomReportDate: localStorage.getItem("useCustomReportDate") === "true",
             customReportDate: localStorage.getItem("customReportDate") || new Date().toISOString().split('T')[0],
+            apiUrl: localStorage.getItem("apiUrl") || "https://vitaly-worker-pro.javi-garcia.workers.dev",
+            apiToken: localStorage.getItem("apiToken") || "",
+            lastSync: localStorage.getItem("lastSync") || "Nunca",
         };
     });
 
@@ -32,6 +38,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         localStorage.setItem("reportFooterText", settings.footerText);
         localStorage.setItem("useCustomReportDate", String(settings.useCustomReportDate));
         localStorage.setItem("customReportDate", settings.customReportDate);
+        localStorage.setItem("apiUrl", settings.apiUrl);
+        localStorage.setItem("apiToken", settings.apiToken);
+        localStorage.setItem("lastSync", settings.lastSync);
     };
 
     // Auto-save whenever settings change to ensure "Global State" persistence

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Calendar, FileText, Loader } from "lucide-react";
+import ExamenesService from "../../../services/ExamenesService";
 
 interface HistoricalExam {
     id: number;
@@ -28,19 +29,13 @@ export default function PatientMonitor({ pacienteId, pacienteNombre, onExamSelec
         setLoading(true);
         try {
             // Cargar todos los exámenes del paciente
-            const res = await fetch(`/api/examenes?paciente_id=${pacienteId}`);
-            const data = (await res.json()) as HistoricalExam[];
+            const data = await ExamenesService.getAll(undefined, pacienteId);
 
             // FILTRO DE CONTROL PROFESIONAL: Solo los que tienen comparativa técnica
-            const TIPOS_VALIDOS = ["Hematología", "Química Clínica", "Coagulación"];
+            const TIPOS_VALIDOS = ["Hematología", "Química Clínica", "Coagulación", "PSA"];
             const filteredData = data.filter(e => TIPOS_VALIDOS.includes(e.tipo));
 
-            // Ordenar por fecha descendente (más reciente primero)
-            const sorted = filteredData.sort((a: HistoricalExam, b: HistoricalExam) =>
-                new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-            );
-
-            setExamenes(sorted);
+            setExamenes(filteredData as unknown as HistoricalExam[]);
         } catch (error) {
             console.error("Error loading patient history:", error);
         } finally {

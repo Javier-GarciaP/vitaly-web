@@ -8,29 +8,26 @@ import {
   ChevronRight,
   Sliders,
   Trash2,
+  Cloud,
+  CloudDownload,
+  RefreshCw,
+  Globe,
+  ShieldCheck,
+  Server
 } from "lucide-react";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput } from "@/utils/currency";
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { useSettings } from "@/react-app/context/SettingsContext";
 import { FORM_FIELDS } from "@/utils/formFields";
+import ExamenesService, { ExamenPredefinido } from "../../services/ExamenesService";
+import ValoresReferenciaService, { ValorReferencia, TipoReferencia } from "../../services/ValoresReferenciaService";
+import BackupService from "../../services/BackupService";
 
-// --- INTERFACES ---
-interface ExamenPredefinido {
-  id: number;
-  nombre: string;
-  precio: number;
-  categoria: string;
-  parametros?: string[];
-}
-
-interface ValorReferencia {
-  id: number;
-  nombre_examen: string;
-  valor_referencia: string;
+interface ValorReferenciaUI extends ValorReferencia {
   originalValue?: string;
 }
 
-type TabActiva = "catalogo" | "parametros" | "apariencia";
+type TabActiva = "catalogo" | "parametros" | "apariencia" | "sync";
 
 export default function ConfiguracionPage() {
   const { showNotification, confirmAction } = useNotification();
@@ -51,10 +48,90 @@ export default function ConfiguracionPage() {
   });
 
   // --- ESTADOS DE VALORES DE REFERENCIA ---
-  const [seccionActiva, setSeccionActiva] = useState<"quimica" | "hematologia" | "coagulacion" | "psa">("quimica");
+  const [seccionActiva, setSeccionActiva] = useState<TipoReferencia>("quimica");
 
-  const [valoresRef, setValoresRef] = useState<ValorReferencia[]>([]);
+  const [valoresRef, setValoresRef] = useState<ValorReferenciaUI[]>([]);
   const [savingRef, setSavingRef] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<"idle" | "checking" | "online" | "offline">("idle");
+
+  const dynamicApiUrl = localStorage.getItem("vitaly_workspace") === "usd"
+    ? "https://vitaly-web-usd.venezuela.workers.dev"
+    : "https://vitaly-web-cop.venezuela.workers.dev";
+
+  const verifyConnection = async (url: string, token?: string) => {
+    setConnectionStatus("checking");
+    const isOnline = await BackupService.testConnection(url, token);
+    setConnectionStatus(isOnline ? "online" : "offline");
+    return isOnline;
+  };
+
+  const handleSyncCloud = async () => {
+    setIsSyncing(true);
+    try {
+      const success = await BackupService.uploadBackup(dynamicApiUrl, settings.apiToken);
+      if (success) {
+        setConnectionStatus("online");
+        const now = new Date().toLocaleString("es-ES", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        updateSettings({ lastSync: now });
+        showNotification("success", "Sincronización Exitosa", "Los datos han sido respaldados en la nube de Cloudflare");
+      } else {
+        setConnectionStatus("offline");
+        showNotification("error", "Fallo de Sincronización", "No se pudo conectar con el servidor central. Verifique su conexión y credenciales.");
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification("error", "Error Crítico", "Ocurrió un error inesperado durante la subida de datos.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleDownloadCloud = async () => {
+    confirmAction({
+      title: "Descargar desde la Nube",
+      message: "Esta acción borrará todos los datos locales de los pacientes y catálogos actuales para reemplazarlos con los de la nube. ¿Estás seguro?",
+      onConfirm: async () => {
+        setIsSyncing(true);
+        try {
+          const backup = await BackupService.downloadBackup(dynamicApiUrl, settings.apiToken);
+          if (backup) {
+            await BackupService.restoreFromBackup(backup);
+            showNotification("success", "Sincronización Inversa Completada", "Tu base de datos local ha sido actualizada con éxito.");
+            // Recargar datos relevantes
+            loadExamenes();
+          } else {
+            showNotification("error", "Error de Descarga", "No se pudieron obtener los datos de la nube.");
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Error Crítico", "Fallo al restaurar la base de datos local.");
+        } finally {
+          setIsSyncing(false);
+        }
+      }
+    });
+  };
+
+  const handleSaveConfig = async () => {
+    saveSettings();
+    showNotification("info", "Guardando...", "Verificando conexión...");
+
+    // Verificamos directamente con los valores actuales
+    const isOnline = await verifyConnection(dynamicApiUrl, settings.apiToken);
+    if (isOnline) {
+      showNotification("success", "Configuración Guardada", "Conexión exitosa.");
+    } else {
+      showNotification("error", "Error de Conexión", "El servidor no respondió a la prueba de conexión (404/Error).");
+    }
+  };
 
   const handleSaveApariencia = () => {
     saveSettings();
@@ -70,12 +147,10 @@ export default function ConfiguracionPage() {
   // --- LÓGICA DE EXÁMENES ---
   const loadExamenes = async () => {
     try {
-      const res = await fetch("/api/examenes-predefinidos");
-      if (!res.ok) throw new Error("Error al cargar exámenes");
-      const data = (await res.json()) as ExamenPredefinido[];
+      const data = await ExamenesService.getPredefinidos();
       setExamenes(data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error cargando examenes predefinidos:", error);
       showNotification("error", "Error de Conexión", "No se pudo cargar el catálogo de exámenes");
     }
   };
@@ -87,20 +162,20 @@ export default function ConfiguracionPage() {
   const handleSubmitExamen = async (e: React.FormEvent) => {
     e.preventDefault();
     const precioLimpio = parseInt(cleanCurrencyInput(formData.precio));
-    const url = editingExamen ? `/api/examenes-predefinidos/${editingExamen.id}` : "/api/examenes-predefinidos";
+
     try {
-      const res = await fetch(url, {
-        method: editingExamen ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, precio: precioLimpio }),
-      });
-      if (res.ok) {
-        showNotification("success", editingExamen ? "Estudio Actualizado" : "Nuevo Estudio Añadido", `${formData.nombre} ahora está en el catálogo`);
-        setIsExamenModalOpen(false);
-        setEditingExamen(null);
-        loadExamenes();
+      if (editingExamen) {
+        await ExamenesService.updatePredefinido(editingExamen.id, { ...formData, precio: precioLimpio });
+        showNotification("success", "Estudio Actualizado", `${formData.nombre} actualizado correctamente`);
+      } else {
+        await ExamenesService.createPredefinido({ ...formData, precio: precioLimpio });
+        showNotification("success", "Nuevo Estudio Añadido", `${formData.nombre} ahora está en el catálogo`);
       }
+      setIsExamenModalOpen(false);
+      setEditingExamen(null);
+      loadExamenes();
     } catch (error) {
+      console.error(error);
       showNotification("error", "Error", "No se pudo procesar la solicitud");
     }
   };
@@ -112,12 +187,11 @@ export default function ConfiguracionPage() {
       variant: "danger",
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/examenes-predefinidos/${id}`, { method: "DELETE" });
-          if (res.ok) {
-            showNotification("delete", "Estudio Eliminado", "El registro ha sido removido del catálogo");
-            loadExamenes();
-          }
+          await ExamenesService.deletePredefinido(id);
+          showNotification("delete", "Estudio Eliminado", "El registro ha sido removido del catálogo");
+          loadExamenes();
         } catch (e) {
+          console.error(e);
           showNotification("error", "Error", "No se pudo eliminar el registro");
         }
       }
@@ -127,8 +201,8 @@ export default function ConfiguracionPage() {
   // --- LÓGICA DE VALORES REF ---
   const loadValoresReferencia = async () => {
     try {
-      const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`);
-      const data = (await res.json()) as ValorReferencia[];
+      const data = await ValoresReferenciaService.getAll(seccionActiva);
+      const dataUI = data.map((item) => ({ ...item, originalValue: item.valor_referencia }));
 
       if (seccionActiva === "hematologia") {
         const vsgKeys = [
@@ -140,20 +214,27 @@ export default function ConfiguracionPage() {
           { key: "VSG 2h Niños", def: "< 10 mm/h" },
         ];
 
-        let maxId = data.length > 0 ? Math.max(...data.map((d) => d.id)) : 0;
+        // Check if missing keys and create them dynamically if needed?
+        // For now, we just display what's in DB. 
+        // If we need to ensure they exist, we should check and create.
 
-        vsgKeys.forEach((k) => {
-          if (!data.find((d) => d.nombre_examen === k.key)) {
-            data.push({
-              id: ++maxId,
-              nombre_examen: k.key,
-              valor_referencia: k.def,
-            });
+        for (const k of vsgKeys) {
+          if (!dataUI.find(d => d.nombre_examen === k.key)) {
+            // If not found in DB, we could optionally add to the UI list as pending or create in DB
+            // Let's create in DB to persist
+            await ValoresReferenciaService.create(seccionActiva, k.key, k.def);
           }
-        });
+        }
+
+        // Reload after potential creation
+        if (vsgKeys.some(k => !dataUI.find(d => d.nombre_examen === k.key))) {
+          const updatedData = await ValoresReferenciaService.getAll(seccionActiva);
+          setValoresRef(updatedData.map((item) => ({ ...item, originalValue: item.valor_referencia })));
+          return;
+        }
       }
 
-      setValoresRef(data.map((item) => ({ ...item, originalValue: item.valor_referencia })));
+      setValoresRef(dataUI);
     } catch (error) {
       console.error(error);
     }
@@ -162,16 +243,11 @@ export default function ConfiguracionPage() {
   const saveAllValoresRef = async () => {
     setSavingRef(true);
     try {
-      const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valores: valoresRef }),
-      });
-      if (res.ok) {
-        showNotification("success", "Sincronización Exitosa", "Los baremos técnicos han sido actualizados");
-        loadValoresReferencia();
-      }
+      await ValoresReferenciaService.updateAll(seccionActiva, valoresRef);
+      showNotification("success", "Sincronización Exitosa", "Los baremos técnicos han sido actualizados");
+      loadValoresReferencia();
     } catch (error) {
+      console.error(error);
       showNotification("error", "Error", "No se pudo actualizar los parámetros");
     } finally {
       setSavingRef(false);
@@ -181,7 +257,7 @@ export default function ConfiguracionPage() {
   const filteredExamenes = examenes.filter(
     (ex) =>
       ex.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ex.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+      (ex.categoria || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -202,14 +278,14 @@ export default function ConfiguracionPage() {
 
       {/* TABS NAVEGACIÓN */}
       <div className="flex gap-8 border-b border-slate-50 overflow-x-auto no-scrollbar pb-1">
-        {(["catalogo", "parametros", "apariencia"] as const).map((tab) => (
+        {(["catalogo", "parametros", "apariencia", "sync"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setTabActiva(tab)}
             className={`pb-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${tabActiva === tab ? "text-slate-900" : "text-slate-300 hover:text-slate-500"
               }`}
           >
-            {tab === "catalogo" ? "Catálogo" : tab === "parametros" ? "Parámetros" : "Apariencia"}
+            {tab === "catalogo" ? "Catálogo" : tab === "parametros" ? "Parámetros" : tab === "apariencia" ? "Apariencia" : "Sync / Nube"}
             {tabActiva === tab && (
               <div className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-slate-900 animate-in fade-in zoom-in-50" />
             )}
@@ -303,7 +379,7 @@ export default function ConfiguracionPage() {
                               setFormData({
                                 nombre: ex.nombre,
                                 precio: ex.precio.toString(),
-                                categoria: ex.categoria,
+                                categoria: ex.categoria || "Hematología",
                                 parametros: ex.parametros || []
                               });
                               setIsExamenModalOpen(true);
@@ -464,7 +540,142 @@ export default function ConfiguracionPage() {
             </div>
           </div>
         )}
+
+        {/* NUBE / SYNC */}
+        {tabActiva === "sync" && (
+          <div className="max-w-4xl mx-auto py-10 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+            {/* ESTADO GLOBAL */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                <div className={`w-12 h-12 ${connectionStatus === "online" ? "bg-emerald-50 text-emerald-600" : connectionStatus === "offline" ? "bg-rose-50 text-rose-600" : "bg-blue-50 text-blue-600"} rounded-2xl flex items-center justify-center mb-4 transition-colors`}>
+                  {connectionStatus === "checking" ? <RefreshCw size={24} className="animate-spin" /> : <Cloud size={24} />}
+                </div>
+                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Estado Cloud</h4>
+                <p className={`text-[9px] font-bold uppercase tracking-tighter ${connectionStatus === "online" ? "text-emerald-500" : connectionStatus === "offline" ? "text-rose-500" : connectionStatus === "checking" ? "text-blue-400" : "text-slate-400"
+                  }`}>
+                  {connectionStatus === "online" ? "EN LÍNEA / D1" : connectionStatus === "offline" ? "DESCONECTADO" : connectionStatus === "checking" ? "VERIFICANDO..." : "ESPERANDO..."}
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-4">
+                  <RefreshCw size={24} className={isSyncing ? "animate-spin" : ""} />
+                </div>
+                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Última Subida</h4>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{settings.lastSync}</p>
+              </div>
+
+              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
+                  <ShieldCheck size={24} />
+                </div>
+                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Verificación</h4>
+                <p className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">Activo / SSL</p>
+              </div>
+            </div>
+
+            {/* CONFIGURACIÓN TÉCNICA */}
+            <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-10">
+              <div className="flex items-center gap-6 border-b border-slate-50 pb-8">
+                <div className="w-14 h-14 bg-slate-900 text-white rounded-3xl flex items-center justify-center shadow-2xl shadow-slate-200">
+                  <Server size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Infraestructura D1</h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Configuración del endpoint de respaldo y verificación pública</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-3 block ml-1">Endpoint de API (Automático por Entorno)</label>
+                    <div className="relative">
+                      <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                      <input
+                        type="text"
+                        value={localStorage.getItem("vitaly_workspace") === "usd" ? "https://vitaly-web-usd.venezuela.workers.dev" : "https://vitaly-web-cop.venezuela.workers.dev"}
+                        disabled
+                        className="w-full pl-12 pr-6 py-4 bg-slate-100 border border-slate-50 rounded-2xl text-[11px] font-bold outline-none text-slate-500 cursor-not-allowed transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-3 block ml-1">Token de Seguridad (Sync-Key)</label>
+                    <input
+                      type="password"
+                      value={settings.apiToken || ""}
+                      onChange={(e) => updateSettings({ apiToken: e.target.value })}
+                      className="w-full px-6 py-4 bg-slate-50 border border-slate-50 rounded-2xl text-[11px] font-bold outline-none focus:bg-white focus:border-slate-200 transition-all"
+                      placeholder="••••••••••••••••"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-8 bg-blue-50/50 rounded-[2rem] border border-blue-100/50">
+                  <div className="flex gap-4">
+                    <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                      <Cloud size={14} />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-2">Respaldo Automático y Verificación</h4>
+                      <p className="text-[11px] text-blue-700 font-medium leading-relaxed max-w-2xl">
+                        Este módulo sincroniza la base de datos local (SQLite) con Cloudflare D1. Esto permite que la página de verificación pública <span className="font-bold underline cursor-help">verify.vitaly.pro</span> funcione correctamente y sirve como respaldo ante fallos de hardware local.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={handleSyncCloud}
+                    disabled={isSyncing}
+                    className="flex-1 py-5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200"
+                  >
+                    {isSyncing ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        SINCRONIZANDO...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw size={16} />
+                        Sincronizar (Subir)
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleDownloadCloud}
+                    disabled={isSyncing}
+                    className="flex-1 py-5 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-100"
+                  >
+                    {isSyncing ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        DESCARGANDO...
+                      </>
+                    ) : (
+                      <>
+                        <CloudDownload size={16} />
+                        Bajar de la Nube
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleSaveConfig}
+                    className="px-10 py-5 bg-white border border-slate-200 text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-slate-50 transition-all"
+                  >
+                    Guardar Config.
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
 
       {/* MODAL EXAMEN MINIMALISTA */}
       {isExamenModalOpen && (
