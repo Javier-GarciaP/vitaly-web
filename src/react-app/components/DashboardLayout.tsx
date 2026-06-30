@@ -13,8 +13,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { auth } from "@/react-app/lib/firebase";
-import { signOut, onAuthStateChanged } from "firebase/auth";
+// Firebase removed
 import { NotificationProvider, useNotification } from "@/react-app/context/NotificationContext";
 import { SettingsProvider } from "@/react-app/context/SettingsContext";
 
@@ -51,26 +50,12 @@ function DashboardLayoutContent() {
   }, [navigate, isFastMode, showNotification]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser({
-          name: currentUser.displayName || "Admin Vitaly",
-          email: currentUser.email || "",
-          photo: currentUser.photoURL || "",
-        });
-      } else {
-        // Fallback para Tauri sin login
-        const isTauri = typeof window !== "undefined" && (window as any).__TAURI_INTERNALS__;
-        if (isTauri) {
-          setUser({
-            name: "Admin Vitaly",
-            email: "desktop@vitaly.pro",
-            photo: "",
-          });
-        }
-      }
+    // Local login mock
+    setUser({
+      name: "Admin Vitaly",
+      email: localStorage.getItem("DB_MODE") === "COP" ? "COP Database" : "USD Database",
+      photo: "",
     });
-    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -93,15 +78,11 @@ function DashboardLayoutContent() {
     if (isMobile) setSidebarOpen(false);
   }, [location.pathname, isMobile]);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      showNotification("info", "Sesión Finalizada", "Has salido del sistema de forma segura");
-      navigate("/login");
-    } catch (error) {
-      console.error("Error al cerrar sesión", error);
-      showNotification("error", "Error", "No se pudo cerrar la sesión");
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("WORKER_URL");
+    localStorage.removeItem("DB_MODE");
+    showNotification("info", "Sesión Finalizada", "Has salido del sistema de forma segura");
+    navigate("/login");
   };
 
   // Reordenado: Módulos Clínicos Prioritarios Primero

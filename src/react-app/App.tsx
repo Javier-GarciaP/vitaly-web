@@ -1,15 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router";
 import DashboardLayout from "@/react-app/components/DashboardLayout";
 import DashboardPage from "@/react-app/pages/Dashboard";
 import PacientesPage from "@/react-app/pages/Pacientes";
 import FacturasPage from "@/react-app/pages/Facturas";
 import ExamenesPage from "@/react-app/pages/Examenes";
 import ResultadosPage from "@/react-app/pages/Resultados";
-import PublicVerify from "./pages/PublicVerify";
 import PanelMaestro from "./pages/PanelMaestro";
 import ConfiguracionPage from "./pages/ConfiguracionPage";
 
-import LoginPage from "@/react-app/pages/LoginPage"; // El que creamos antes
+import LoginPage from "@/react-app/pages/LoginPage";
 import ProtectedRoute from "@/react-app/components/ProtecteRoute";
 import ControlPacientePage from "@/react-app/pages/ControlPacientePage";
 
@@ -20,10 +19,7 @@ export default function App() {
         {/* RUTA PÚBLICA: LOGIN */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* RUTA PÚBLICA: VERIFICACIÓN (Sin protección) */}
-        <Route path="/verificar/:uuid" element={<PublicVerify />} />
-
-        {/* RUTAS PROTEGIDAS: Solo accesibles si estás logueado */}
+        {/* RUTAS PROTEGIDAS: Solo accesibles si ingresaste la contraseña */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
