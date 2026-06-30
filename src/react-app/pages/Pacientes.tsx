@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, X, TrendingUp, Search } from "lucide-react";
 import { GraficaEvolucion } from "@/utils/GraficaEvolucion";
 import { useNotification } from "@/react-app/context/NotificationContext";
+import { getPacientes, createPaciente, updatePaciente, deletePaciente, getEvolucionPaciente } from "@/react-app/services/api";
 
 interface Paciente {
   id: number;
@@ -36,18 +37,18 @@ export default function PacientesPage() {
   }, []);
 
   const loadPacientes = async () => {
-    const res = await fetch("/api/pacientes");
-    const data = (await res.json()) as Paciente[];
-    setPacientes(data);
+    try {
+      const data = await getPacientes();
+      setPacientes(data);
+    } catch (error) {
+      console.error("Error cargando pacientes", error);
+    }
   };
 
   const fetchHistory = async (tipo: string) => {
     if (!selectedPaciente || !tipo) return;
     try {
-      const res = await fetch(
-        `/api/pacientes/${selectedPaciente.id}/evolucion/${tipo}`
-      );
-      const data = (await res.json()) as any[];
+      const data = await getEvolucionPaciente(selectedPaciente.id, tipo);
       setEvolucionData(data);
       setParametro("");
     } catch (error) {
@@ -64,18 +65,13 @@ export default function PacientesPage() {
       sexo: formData.sexo || undefined,
     };
 
-    const method = editingPaciente ? "PUT" : "POST";
-    const url = editingPaciente
-      ? `/api/pacientes/${editingPaciente.id}`
-      : "/api/pacientes";
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
+    try {
+      if (editingPaciente) {
+        await updatePaciente(editingPaciente.id, payload);
+      } else {
+        await createPaciente(payload);
+      }
+      
       showNotification(
         "success",
         editingPaciente ? "Paciente Actualizado" : "Paciente Registrado",
@@ -83,6 +79,8 @@ export default function PacientesPage() {
       );
       loadPacientes();
       closeModal();
+    } catch (e: any) {
+      console.error("Error guardando paciente", e);
     }
   };
 
@@ -93,9 +91,13 @@ export default function PacientesPage() {
       message: `¿Estás seguro de eliminar a ${paciente?.nombre}? Esta acción borrará permanentemente su historial clínico.`,
       variant: "danger",
       onConfirm: async () => {
-        await fetch(`/api/pacientes/${id}`, { method: "DELETE" });
-        showNotification("delete", "Registro Eliminado", `El paciente ${paciente?.nombre || ''} ha sido removido`);
-        setPacientes((prev) => prev.filter((p) => p.id !== id));
+        try {
+          await deletePaciente(id);
+          showNotification("delete", "Registro Eliminado", `El paciente ${paciente?.nombre || ''} ha sido removido`);
+          setPacientes((prev) => prev.filter((p) => p.id !== id));
+        } catch (e) {
+          console.error("Error eliminando paciente", e);
+        }
       }
     });
   };

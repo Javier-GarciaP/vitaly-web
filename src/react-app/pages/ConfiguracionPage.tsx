@@ -13,6 +13,8 @@ import { formatCurrency, formatCurrencyInput, cleanCurrencyInput } from "@/utils
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { useSettings } from "@/react-app/context/SettingsContext";
 import { FORM_FIELDS } from "@/utils/formFields";
+import { SyncModule } from "./configuracion/SyncModule";
+import { getExamenesPredefinidos, createExamenPredefinido, updateExamenPredefinido, deleteExamenPredefinido, getValoresReferencia, updateValoresReferencia } from "@/react-app/services/api";
 
 // --- INTERFACES ---
 interface ExamenPredefinido {
@@ -30,7 +32,7 @@ interface ValorReferencia {
   originalValue?: string;
 }
 
-type TabActiva = "catalogo" | "parametros" | "apariencia";
+type TabActiva = "catalogo" | "parametros" | "apariencia" | "sincronizacion";
 
 export default function ConfiguracionPage() {
   const { showNotification, confirmAction } = useNotification();
@@ -70,9 +72,7 @@ export default function ConfiguracionPage() {
   // --- LÓGICA DE EXÁMENES ---
   const loadExamenes = async () => {
     try {
-      const res = await fetch("/api/examenes-predefinidos");
-      if (!res.ok) throw new Error("Error al cargar exámenes");
-      const data = (await res.json()) as ExamenPredefinido[];
+      const data = await getExamenesPredefinidos();
       setExamenes(data);
     } catch (error) {
       console.error("Error:", error);
@@ -87,38 +87,33 @@ export default function ConfiguracionPage() {
   const handleSubmitExamen = async (e: React.FormEvent) => {
     e.preventDefault();
     const precioLimpio = parseInt(cleanCurrencyInput(formData.precio));
-    const url = editingExamen ? `/api/examenes-predefinidos/${editingExamen.id}` : "/api/examenes-predefinidos";
     try {
-      const res = await fetch(url, {
-        method: editingExamen ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, precio: precioLimpio }),
-      });
-      if (res.ok) {
-        showNotification("success", editingExamen ? "Estudio Actualizado" : "Nuevo Estudio Añadido", `${formData.nombre} ahora está en el catálogo`);
-        setIsExamenModalOpen(false);
-        setEditingExamen(null);
-        loadExamenes();
+      if (editingExamen) {
+        await updateExamenPredefinido(editingExamen.id, { ...formData, precio: precioLimpio });
+      } else {
+        await createExamenPredefinido({ ...formData, precio: precioLimpio });
       }
+      showNotification("success", editingExamen ? "Estudio Actualizado" : "Nuevo Estudio Añadido", `${formData.nombre} ahora está en el catálogo`);
+      setIsExamenModalOpen(false);
+      setEditingExamen(null);
+      loadExamenes();
     } catch (error) {
-      showNotification("error", "Error", "No se pudo procesar la solicitud");
+      showNotification("error", "Error", "No se pudo guardar el examen");
     }
   };
 
-  const deleteExamen = async (id: number) => {
+  const handleDeleteExamen = async (id: number) => {
     confirmAction({
-      title: "Eliminar Registro",
-      message: "¿Está seguro de eliminar este estudio permanentemente? Desaparecerá del catálogo de facturación.",
+      title: "¿Eliminar Estudio?",
+      message: "Esta acción removerá el estudio del catálogo permanentemente.",
       variant: "danger",
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/examenes-predefinidos/${id}`, { method: "DELETE" });
-          if (res.ok) {
-            showNotification("delete", "Estudio Eliminado", "El registro ha sido removido del catálogo");
-            loadExamenes();
-          }
+          await deleteExamenPredefinido(id);
+          showNotification("delete", "Estudio Eliminado", "Se removió del catálogo exitosamente");
+          loadExamenes();
         } catch (e) {
-          showNotification("error", "Error", "No se pudo eliminar el registro");
+          showNotification("error", "Error", "No se pudo eliminar el estudio");
         }
       }
     });
@@ -127,52 +122,22 @@ export default function ConfiguracionPage() {
   // --- LÓGICA DE VALORES REF ---
   const loadValoresReferencia = async () => {
     try {
-      const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`);
-      const data = (await res.json()) as ValorReferencia[];
-
-      if (seccionActiva === "hematologia") {
-        const vsgKeys = [
-          { key: "VSG 1h Hombre", def: "< 15 mm/h" },
-          { key: "VSG 1h Mujer", def: "< 20 mm/h" },
-          { key: "VSG 1h Niños", def: "< 10 mm/h" },
-          { key: "VSG 2h Hombre", def: "< 15 mm/h" },
-          { key: "VSG 2h Mujer", def: "< 20 mm/h" },
-          { key: "VSG 2h Niños", def: "< 10 mm/h" },
-        ];
-
-        let maxId = data.length > 0 ? Math.max(...data.map((d) => d.id)) : 0;
-
-        vsgKeys.forEach((k) => {
-          if (!data.find((d) => d.nombre_examen === k.key)) {
-            data.push({
-              id: ++maxId,
-              nombre_examen: k.key,
-              valor_referencia: k.def,
-            });
-          }
-        });
-      }
-
-      setValoresRef(data.map((item) => ({ ...item, originalValue: item.valor_referencia })));
+      const data = await getValoresReferencia(seccionActiva);
+      const conOriginales = data.map((v: any) => ({ ...v, originalValue: v.valor_referencia }));
+      setValoresRef(conOriginales);
     } catch (error) {
-      console.error(error);
+      console.error("Error cargando valores:", error);
     }
   };
 
-  const saveAllValoresRef = async () => {
+  const handleSaveValoresReferencia = async () => {
     setSavingRef(true);
     try {
-      const res = await fetch(`/api/valores-referencia?tabla=${seccionActiva}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valores: valoresRef }),
-      });
-      if (res.ok) {
-        showNotification("success", "Sincronización Exitosa", "Los baremos técnicos han sido actualizados");
-        loadValoresReferencia();
-      }
+      await updateValoresReferencia(seccionActiva, valoresRef);
+      showNotification("success", "Parámetros Guardados", `Se actualizaron los valores de referencia para ${seccionActiva.toUpperCase()}`);
+      loadValoresReferencia();
     } catch (error) {
-      showNotification("error", "Error", "No se pudo actualizar los parámetros");
+      showNotification("error", "Error", "No se pudieron guardar los parámetros");
     } finally {
       setSavingRef(false);
     }
@@ -202,14 +167,14 @@ export default function ConfiguracionPage() {
 
       {/* TABS NAVEGACIÓN */}
       <div className="flex gap-8 border-b border-slate-50 overflow-x-auto no-scrollbar pb-1">
-        {(["catalogo", "parametros", "apariencia"] as const).map((tab) => (
+        {(["catalogo", "parametros", "apariencia", "sincronizacion"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setTabActiva(tab)}
             className={`pb-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${tabActiva === tab ? "text-slate-900" : "text-slate-300 hover:text-slate-500"
               }`}
           >
-            {tab === "catalogo" ? "Catálogo" : tab === "parametros" ? "Parámetros" : "Apariencia"}
+            {tab === "catalogo" ? "Catálogo" : tab === "parametros" ? "Parámetros" : tab === "sincronizacion" ? "Sincronización" : "Apariencia"}
             {tabActiva === tab && (
               <div className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-slate-900 animate-in fade-in zoom-in-50" />
             )}
@@ -313,7 +278,7 @@ export default function ConfiguracionPage() {
                             <Edit2 size={14} />
                           </button>
                           <button
-                            onClick={() => deleteExamen(ex.id)}
+                            onClick={() => handleDeleteExamen(ex.id)}
                             className="p-2 text-slate-300 hover:text-rose-500 rounded-lg transition-all"
                           >
                             <Trash2 size={14} />
@@ -389,7 +354,7 @@ export default function ConfiguracionPage() {
 
               <div className="p-8 bg-white border-t border-slate-50">
                 <button
-                  onClick={saveAllValoresRef}
+                  onClick={handleSaveValoresReferencia}
                   disabled={savingRef}
                   className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-200"
                 >
@@ -397,6 +362,13 @@ export default function ConfiguracionPage() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* SINCRONIZACIÓN */}
+        {tabActiva === "sincronizacion" && (
+          <div className="flex justify-center p-4">
+            <SyncModule />
           </div>
         )}
 

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Plus, X, User, Activity, Search, ClipboardList } from "lucide-react";
 import { getTodayDate } from "@/utils/date";
 import { useNotification } from "@/react-app/context/NotificationContext";
+import { getPacientes, createExamen } from "@/react-app/services/api";
 
 interface Paciente {
   id: number;
@@ -34,8 +35,7 @@ export default function ExamenesPage() {
 
   const loadPacientes = async () => {
     try {
-      const res = await fetch("/api/pacientes");
-      const data = await res.json() as Paciente[];
+      const data = await getPacientes();
       setPacientes(data);
     } catch (e) { console.error("Error cargando pacientes"); }
   };
@@ -75,24 +75,18 @@ export default function ExamenesPage() {
 
     try {
       const promesas = selectedTipos.map(tipo => {
-        return fetch("/api/examenes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paciente_id: parseInt(formData.paciente_id),
-            tipo,
-            fecha: formData.fecha,
-            estado: formData.estado,
-            uuid: crypto.randomUUID(),
-          }),
+        return createExamen({
+          paciente_id: parseInt(formData.paciente_id),
+          tipo,
+          fecha: formData.fecha,
+          estado: formData.estado,
+          uuid: crypto.randomUUID(),
         });
       });
 
-      const respuestas = await Promise.all(promesas);
-      if (respuestas.every(res => res.ok)) {
-        showNotification("success", "Orden Generada", `${selectedTipos.length} estudios han sido registrados correctamente`);
-        closeModal();
-      }
+      await Promise.all(promesas);
+      showNotification("success", "Orden Generada", `${selectedTipos.length} estudios han sido registrados correctamente`);
+      closeModal();
     } catch (e) {
       showNotification("error", "Error", "No se pudo procesar la solicitud");
     }

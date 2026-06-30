@@ -19,11 +19,12 @@ import {
   Legend,
 } from "recharts";
 import { getDayName, formatDisplayDate, getTodayDate } from "@/utils/date";
+import { getEstadisticas } from "@/react-app/services/api";
 
 interface Estadisticas {
   totalPacientes: number;
   totalExamenes: number;
-  examenesPendientes: number;
+  pendientes: number;
   facturasHoy: number;
   distribucion: { name: string; value: number }[];
 }
@@ -58,8 +59,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Estadisticas | null>(null);
 
   useEffect(() => {
-    fetch("/api/estadisticas")
-      .then((res) => res.json() as Promise<Estadisticas>)
+    getEstadisticas()
       .then((data) => setStats(data))
       .catch((err) => console.error("Error cargando estadísticas:", err));
   }, []);
@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const cards = [
     { title: "Pacientes", value: stats?.totalPacientes || 0, icon: Users },
     { title: "Exámenes", value: stats?.totalExamenes || 0, icon: TestTube },
-    { title: "Pendientes", value: stats?.examenesPendientes || 0, icon: Clock },
+    { title: "Pendientes", value: stats?.pendientes || 0, icon: Clock },
     { title: "Facturas Hoy", value: stats?.facturasHoy || 0, icon: FileText },
   ];
 

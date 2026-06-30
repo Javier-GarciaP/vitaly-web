@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { formatDisplayDate } from "@/utils/date";
 import { useNotification } from "@/react-app/context/NotificationContext";
+import { getExamenes, updateExamen, deleteExamen } from "@/react-app/services/api";
 
 import HematologiaForm from "@/react-app/components/ExamenForms/HematologiaForm";
 import QuimicaClinicaForm from "@/react-app/components/ExamenForms/QuimicaClinicaForm";
@@ -89,8 +90,7 @@ export default function ResultadosPage() {
 
   const loadExamenes = async () => {
     try {
-      const res = await fetch("/api/examenes");
-      const data = (await res.json()) as Examen[];
+      const data = await getExamenes();
       setExamenes(data);
     } catch (e) {
       console.error("Error cargando exámenes");
@@ -139,22 +139,15 @@ export default function ResultadosPage() {
     };
 
     try {
-      const res = await fetch(`/api/examenes/${selectedExamen.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      await updateExamen(selectedExamen.id, payload);
+      showNotification("success", "Cambios Aplicados", `El estudio de ${selectedExamen.tipo} ha sido actualizado`);
+      setShowEditModal(false);
+      await loadExamenes();
+      setSelectedExamen({
+        ...selectedExamen,
+        resultados: editResultados,
+        estado: editEstado,
       });
-
-      if (res.ok) {
-        showNotification("success", "Cambios Aplicados", `El estudio de ${selectedExamen.tipo} ha sido actualizado`);
-        setShowEditModal(false);
-        await loadExamenes();
-        setSelectedExamen({
-          ...selectedExamen,
-          resultados: editResultados,
-          estado: editEstado,
-        });
-      }
     } catch (e) {
       console.error("Error en la petición:", e);
       showNotification("error", "Error", "No se pudieron guardar los cambios");
@@ -171,15 +164,10 @@ export default function ResultadosPage() {
       variant: "danger",
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/examenes/${selectedExamen.id}`, {
-            method: "DELETE",
-          });
-
-          if (res.ok) {
-            showNotification("delete", "Registro Eliminado", `El estudio de ${selectedExamen.tipo} ha sido removido`);
-            setSelectedExamen(null);
-            loadExamenes();
-          }
+          await deleteExamen(selectedExamen.id);
+          showNotification("delete", "Registro Eliminado", `El estudio de ${selectedExamen.tipo} ha sido removido`);
+          setSelectedExamen(null);
+          loadExamenes();
         } catch (error) {
           console.error("Error:", error);
           showNotification("error", "Error", "No se pudo eliminar el registro");
