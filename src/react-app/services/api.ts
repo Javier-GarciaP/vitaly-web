@@ -4,6 +4,7 @@
  * App 100% Desktop (Tauri): USA EXCLUSIVAMENTE SQLITE LOCAL
  */
 import { queryLocal, executeLocal } from "./localDb";
+import { getTodayDate } from "@/utils/date";
 
 // ======================== PACIENTES ========================
 
@@ -11,18 +12,24 @@ export async function getPacientes() {
   return await queryLocal("SELECT * FROM pacientes ORDER BY nombre ASC");
 }
 
-export async function createPaciente(data: { cedula: string; nombre: string; edad?: string; sexo?: string }) {
+export async function createPaciente(data: { cedula?: string; nombre?: string; edad?: string; sexo?: string }) {
+  const cedulaFinal = data.cedula?.trim() ? data.cedula.trim() : `S/I-${Date.now().toString().slice(-6)}`;
+  const nombreFinal = data.nombre?.trim() ? data.nombre.trim() : "SIN NOMBRE";
+
   const result = await executeLocal(
     "INSERT INTO pacientes (cedula, nombre, edad, sexo) VALUES ($1, $2, $3, $4)",
-    [data.cedula, data.nombre, data.edad || null, data.sexo || null]
+    [cedulaFinal, nombreFinal, data.edad || null, data.sexo || null]
   );
-  return { id: result.lastInsertId, ...data };
+  return { id: result.lastInsertId, cedula: cedulaFinal, nombre: nombreFinal, edad: data.edad, sexo: data.sexo };
 }
 
-export async function updatePaciente(id: number, data: { cedula: string; nombre: string; edad?: string; sexo?: string }) {
+export async function updatePaciente(id: number, data: { cedula?: string; nombre?: string; edad?: string; sexo?: string }) {
+  const cedulaFinal = data.cedula?.trim() ? data.cedula.trim() : `S/I-${Date.now().toString().slice(-6)}`;
+  const nombreFinal = data.nombre?.trim() ? data.nombre.trim() : "SIN NOMBRE";
+
   await executeLocal(
     "UPDATE pacientes SET cedula = $1, nombre = $2, edad = $3, sexo = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5",
-    [data.cedula, data.nombre, data.edad || null, data.sexo || null, id]
+    [cedulaFinal, nombreFinal, data.edad || null, data.sexo || null, id]
   );
   return { id, ...data };
 }
@@ -167,7 +174,9 @@ export async function updateValoresReferencia(tipo: string, valores: any[]) {
 export async function getEstadisticas() {
   const [pCount] = await queryLocal("SELECT COUNT(*) as total FROM pacientes");
   const [eCount] = await queryLocal("SELECT COUNT(*) as total FROM examenes");
-  const [fToday] = await queryLocal("SELECT COUNT(*) as total FROM facturas WHERE date(fecha) = date('now')");
+  
+  const today = getTodayDate();
+  const [fToday] = await queryLocal("SELECT COUNT(*) as total FROM facturas WHERE fecha = $1", [today]);
   const distrib = await queryLocal(`
     SELECT tipo as name, COUNT(*) as value,
     SUM(CASE WHEN estado = 'pendiente' THEN 1 ELSE 0 END) as pendientes_tipo

@@ -1,13 +1,39 @@
 import Database from "@tauri-apps/plugin-sql";
 
 let db: Database | null = null;
+let currentDbName = "";
 
 // Detectar si estamos en Tauri o en el navegador
 const isTauri = () => typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
 
+export function getCurrentDbName(): string {
+  if (typeof window === "undefined") return "sqlite:vitaly_default.db";
+  const url = localStorage.getItem("WORKER_URL") || "";
+  if (url.includes("cop")) return "sqlite:vitaly_cop.db";
+  if (url.includes("usd")) return "sqlite:vitaly_usd.db";
+  return "sqlite:vitaly_default.db";
+}
+
+export async function closeDb() {
+  if (db) {
+    try {
+      await db.close();
+    } catch (e) {
+      console.warn("Error closing DB:", e);
+    }
+    db = null;
+  }
+}
+
 export async function getDb(): Promise<Database> {
+  const targetDbName = getCurrentDbName();
+  if (db && currentDbName !== targetDbName) {
+    await closeDb();
+  }
+  
   if (!db) {
-    db = await Database.load("sqlite:vitaly.db");
+    db = await Database.load(targetDbName);
+    currentDbName = targetDbName;
   }
   return db;
 }
@@ -16,6 +42,12 @@ export async function initLocalDb(): Promise<void> {
   if (!isTauri()) {
     console.log("[LocalDB] No es Tauri, saltando inicialización SQLite.");
     return;
+  }
+
+  // Si ya tenemos una DB abierta y el nombre no coincide, forzamos cierre para reabrir
+  const targetDbName = getCurrentDbName();
+  if (db && currentDbName !== targetDbName) {
+    await closeDb();
   }
 
   const database = await getDb();

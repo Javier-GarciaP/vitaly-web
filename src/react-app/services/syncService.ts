@@ -21,6 +21,12 @@ async function cloudFetch(path: string, options?: RequestInit) {
       ...(options?.headers || {}),
     },
   });
+  
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "Unknown error");
+    throw new Error(`HTTP ${res.status}: ${errorText}`);
+  }
+  
   return res;
 }
 

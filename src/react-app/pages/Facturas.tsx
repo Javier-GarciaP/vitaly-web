@@ -160,8 +160,8 @@ export default function FacturasPage() {
   };
 
   const handleRegistrarPaciente = async () => {
-    if (!nuevoPaciente.nombre || !nuevoPaciente.cedula || !nuevoPaciente.sexo) {
-      showNotification("error", "Datos Incompletos", "Nombre, Cédula y Sexo son obligatorios");
+    if (!nuevoPaciente.nombre.trim() && !nuevoPaciente.cedula.trim()) {
+      showNotification("error", "Datos Incompletos", "Debe ingresar al menos un Nombre o una Cédula");
       return;
     }
     try {
@@ -414,7 +414,6 @@ export default function FacturasPage() {
                       <div>
                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Sexo</label>
                         <select
-                          required
                           className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-100 appearance-none cursor-pointer"
                           value={nuevoPaciente.sexo}
                           onChange={e => setNuevoPaciente({ ...nuevoPaciente, sexo: e.target.value })}

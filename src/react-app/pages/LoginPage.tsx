@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Activity, ShieldCheck, Lock } from "lucide-react";
 import { dispararCanones } from "@/utils/Confetti";
+import { initLocalDb } from "@/react-app/services/localDb";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -20,13 +21,17 @@ export default function LoginPage() {
     if (password === "vitalycop") {
       localStorage.setItem("WORKER_URL", WORKER_COP_URL);
       localStorage.setItem("DB_MODE", "COP");
-      dispararCanones();
-      setTimeout(() => navigate("/"), 1000);
+      initLocalDb().then(() => {
+        dispararCanones();
+        setTimeout(() => navigate("/"), 1000);
+      });
     } else if (password === "vitalyusd") {
       localStorage.setItem("WORKER_URL", WORKER_USD_URL);
       localStorage.setItem("DB_MODE", "USD");
-      dispararCanones();
-      setTimeout(() => navigate("/"), 1000);
+      initLocalDb().then(() => {
+        dispararCanones();
+        setTimeout(() => navigate("/"), 1000);
+      });
     } else {
       setError("Contraseña incorrecta. Acceso denegado.");
     }

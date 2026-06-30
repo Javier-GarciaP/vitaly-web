@@ -58,6 +58,11 @@ export default function PacientesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.nombre.trim() && !formData.cedula.trim()) {
+      showNotification("error", "Error", "Debe ingresar al menos un Nombre o una Cédula");
+      return;
+    }
+
     const payload = {
       cedula: formData.cedula,
       nombre: formData.nombre,
@@ -270,7 +275,6 @@ export default function PacientesPage() {
                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Nombre Completo</label>
                   <input
                     type="text"
-                    required
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                     className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold uppercase tracking-wide"
@@ -281,7 +285,6 @@ export default function PacientesPage() {
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Cédula</label>
                     <input
                       type="text"
-                      required
                       value={formData.cedula}
                       onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                       className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold font-mono uppercase"
@@ -291,7 +294,6 @@ export default function PacientesPage() {
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Edad</label>
                     <input
                       type="text"
-                      required
                       value={formData.edad}
                       onChange={(e) => setFormData({ ...formData, edad: e.target.value })}
                       className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold uppercase"
@@ -299,9 +301,8 @@ export default function PacientesPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Sexo (Obligatorio)</label>
+                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Sexo</label>
                   <select
-                    required
                     value={formData.sexo}
                     onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
                     className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-slate-300 transition-all text-xs font-bold uppercase tracking-wide appearance-none cursor-pointer"
