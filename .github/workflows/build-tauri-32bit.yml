@@ -8,6 +8,10 @@ on:
       - 'README.md'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   build-tauri:
     runs-on: windows-latest
@@ -19,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -34,6 +38,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_WORKER_URL_COP: ${{ secrets.VITE_WORKER_URL_COP }}
+          VITE_WORKER_URL_USD: ${{ secrets.VITE_WORKER_URL_USD }}
         with:
           args: --target i686-pc-windows-msvc
 
