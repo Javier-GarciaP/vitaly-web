@@ -5,26 +5,9 @@ import { z } from "zod";
 // --- CONFIGURACIÓN E INTERFACES ---
 interface Env {
   DB: D1Database;
-  API_KEY?: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
-
-app.use("/api/*", async (c, next) => {
-  // Las rutas de verificación públicas no necesitan API Key
-  if (c.req.path.startsWith("/api/verify/")) {
-    return next();
-  }
-  
-  const apiKey = c.req.header("x-api-key");
-  const validApiKey = c.env.API_KEY || "vitaly-super-secret-key";
-  
-  if (apiKey !== validApiKey) {
-    return c.json({ error: "Acceso denegado. API Key inválida." }, 401);
-  }
-  
-  await next();
-});
 
 const valorReferenciaItemSchema = z.object({
   id: z.number(),
@@ -348,10 +331,10 @@ app.get("/v/:uuid", async (c) => {
       }
       return Object.entries(val).map(([k, v]) => {
         if (k === 'antibiograma_list' || k === 'observacion' || k === 'nombre_examen') return '';
-        return `<div class="flex justify-between border-b border-slate-100 pb-1 mb-1">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">${k.replace(/_/g, ' ')}</span>
-          <span class="text-[10px] font-bold text-slate-800 uppercase">${String(v)}</span>
-        </div>`;
+        return (`<div class="flex justify-between border-b border-slate-100 pb-1 mb-1">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">\${k.replace(/_/g, ' ')}</span>
+          <span class="text-[10px] font-bold text-slate-800 uppercase">\${String(v)}</span>
+        </div>`)
       }).join('');
     }
     return String(val);
@@ -359,12 +342,12 @@ app.get("/v/:uuid", async (c) => {
 
   const resultadosHtml = Object.entries(resultados).map(([key, val]) => {
     if (key === 'antibiograma_list' || key === 'observacion') return '';
-    return `
+    return (`
       <div class="flex flex-col sm:flex-row justify-between py-4 border-b border-slate-50">
-        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${key.replace(/_/g, ' ')}</span>
-        <span class="text-[12px] font-black text-slate-900 uppercase">${renderValue(val)}</span>
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">\${key.replace(/_/g, ' ')}</span>
+        <span class="text-[12px] font-black text-slate-900 uppercase">\${renderValue(val)}</span>
       </div>
-    `;
+    `);
   }).join('');
 
   return c.html(`
@@ -412,15 +395,15 @@ app.get("/v/:uuid", async (c) => {
         </div>
 
         <div class="space-y-4">
-          ${resultadosHtml}
+          \${resultadosHtml}
         </div>
         
-        ${resultados.observacion ? `
+        \${resultados.observacion ? \`
         <div class="mt-12 p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl">
           <h4 class="text-[10px] font-black uppercase tracking-widest mb-4">Interpretación Clínica / Observaciones</h4>
-          <p class="text-[11px] font-medium leading-relaxed uppercase tracking-wide opacity-80">${resultados.observacion}</p>
+          <p class="text-[11px] font-medium leading-relaxed uppercase tracking-wide opacity-80">\${resultados.observacion}</p>
         </div>
-        ` : ''}
+        \` : ''}
         
       </div>
       
