@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -8,6 +9,13 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+// --- MIDDLEWARES ---
+app.use("/*", cors({
+  origin: "*", // En producción, deberías restringir esto al origen de tu app Tauri
+  allowHeaders: ["Content-Type", "x-api-key", "Authorization"],
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
 
 const valorReferenciaItemSchema = z.object({
   id: z.number(),
@@ -45,10 +53,10 @@ const facturaSchema = z.object({
 });
 
 const pacienteSchema = z.object({
-  cedula: z.string().min(1),
-  nombre: z.string().min(1),
-  edad: z.string().optional(),
-  sexo: z.enum(["M", "F", "Otro"]).optional(),
+  cedula: z.string().min(1).nullable().optional(),
+  nombre: z.string().min(1).nullable().optional(),
+  edad: z.string().nullable().optional(),
+  sexo: z.enum(["M", "F", "Otro"]).nullable().optional(),
 });
 
 const plantillaBacteriologiaSchema = z.object({

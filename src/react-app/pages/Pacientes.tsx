@@ -269,11 +269,28 @@ export default function PacientesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form 
+              onSubmit={handleSubmit} 
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const target = e.target as HTMLElement;
+                  if (target.tagName.toLowerCase() === 'button') return;
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const elements = Array.from(form.querySelectorAll('input, select, button[type="submit"]')) as HTMLElement[];
+                  const index = elements.indexOf(target);
+                  if (index > -1 && index < elements.length - 1) {
+                    elements[index + 1].focus();
+                  }
+                }
+              }}
+              className="space-y-6"
+            >
               <div className="space-y-4">
                 <div>
                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-1">Nombre Completo</label>
                   <input
+                    autoFocus
                     type="text"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}

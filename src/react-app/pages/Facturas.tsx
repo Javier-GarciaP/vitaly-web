@@ -377,6 +377,10 @@ export default function FacturasPage() {
                               seleccionarPaciente(sugerenciasPacientes[selectedPacienteIndex]);
                               e.preventDefault();
                             }
+                          } else if (e.key === "Enter") {
+                            // If no suggestions, toggle to create new patient
+                            toggleNuevoPaciente();
+                            e.preventDefault();
                           }
                         }}
                       />
@@ -398,10 +402,26 @@ export default function FacturasPage() {
                     </div>
 
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-top-2">
+                    <form 
+                      onSubmit={(e) => { e.preventDefault(); handleRegistrarPaciente(); }} 
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const target = e.target as HTMLElement;
+                          if (target.tagName.toLowerCase() === 'button') return;
+                          e.preventDefault();
+                          const form = e.currentTarget;
+                          const elements = Array.from(form.querySelectorAll('input, select, button[type="submit"]')) as HTMLElement[];
+                          const index = elements.indexOf(target);
+                          if (index > -1 && index < elements.length - 1) {
+                            elements[index + 1].focus();
+                          }
+                        }
+                      }}
+                      className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-top-2"
+                    >
                       <div className="md:col-span-2">
                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Nombre</label>
-                        <input className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-blue-100" value={nuevoPaciente.nombre} onChange={e => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })} />
+                        <input autoFocus className="w-full px-3 py-2 bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-blue-100" value={nuevoPaciente.nombre} onChange={e => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })} />
                       </div>
                       <div>
                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Cédula</label>
@@ -425,13 +445,13 @@ export default function FacturasPage() {
                       </div>
                       <div className="md:col-span-4 mt-2">
                         <button
-                          onClick={handleRegistrarPaciente}
+                          type="submit"
                           className="w-full py-2.5 bg-blue-600 text-white text-[10px] font-bold uppercase rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
                         >
                           Guardar y Seleccionar Paciente
                         </button>
                       </div>
-                    </div>
+                    </form>
                   )}
                 </div>
 

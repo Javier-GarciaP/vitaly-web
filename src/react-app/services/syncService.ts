@@ -121,10 +121,10 @@ export async function pullFromCloud(): Promise<{ pulled: number; errors: string[
 
   // --- VALORES DE REFERENCIA ---
   const refTables = [
-    { api: "/api/valores-referencia/quimica", table: "quimica_valores_referencia" },
-    { api: "/api/valores-referencia/hematologia", table: "hematologia_valores_referencia" },
-    { api: "/api/valores-referencia/coagulacion", table: "coagulacion_valores_referencia" },
-    { api: "/api/valores-referencia/psa", table: "psa_valores_referencia" },
+    { api: "/api/valores-referencia?tabla=quimica", table: "quimica_valores_referencia" },
+    { api: "/api/valores-referencia?tabla=hematologia", table: "hematologia_valores_referencia" },
+    { api: "/api/valores-referencia?tabla=coagulacion", table: "coagulacion_valores_referencia" },
+    { api: "/api/valores-referencia?tabla=psa", table: "psa_valores_referencia" },
   ];
 
   for (const ref of refTables) {

@@ -195,21 +195,19 @@ const HematologiaContent: React.FC<HematologiaReportProps> = ({
                 </View>
               )}
             </View>
-            <View style={{ width: '55%' }}>
-              <Text style={{ fontSize: 6.5, color: '#666', marginTop: 1, marginBottom: 2 }}>
-                <Text style={{ fontWeight: 'bold' }}>1h:</Text> {[
-                  { label: "Hombre", key: "VSG 1h Hombre", def: "< 15 mm/h" },
-                  { label: "Mujer", key: "VSG 1h Mujer", def: "< 20 mm/h" },
-                  { label: "Niños", key: "VSG 1h Niños", def: "< 10 mm/h" },
-                ].map(r => `${r.label}: ${getRef(r.key, r.def)}`).join(" | ")}
-              </Text>
-              <Text style={{ fontSize: 6.5, color: '#666' }}>
-                <Text style={{ fontWeight: 'bold' }}>2h:</Text> {[
-                  { label: "Hombre", key: "VSG 2h Hombre", def: "< 15 mm/h" },
-                  { label: "Mujer", key: "VSG 2h Mujer", def: "< 20 mm/h" },
-                  { label: "Niños", key: "VSG 2h Niños", def: "< 10 mm/h" },
-                ].map(r => `${r.label}: ${getRef(r.key, r.def)}`).join(" | ")}
-              </Text>
+            <View style={{ width: '55%', flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 6.5, fontWeight: 'bold', color: '#666', marginBottom: 2 }}>1ª Hora</Text>
+                <Text style={{ fontSize: 6.5, color: '#666' }}>Hombre: {getRef("VSG 1h Hombre", "< 15 mm/h")}</Text>
+                <Text style={{ fontSize: 6.5, color: '#666' }}>Mujer: {getRef("VSG 1h Mujer", "< 20 mm/h")}</Text>
+                <Text style={{ fontSize: 6.5, color: '#666' }}>Niños: {getRef("VSG 1h Niños", "< 10 mm/h")}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 6.5, fontWeight: 'bold', color: '#666', marginBottom: 2 }}>2ª Hora</Text>
+                <Text style={{ fontSize: 6.5, color: '#666' }}>Hombre: {getRef("VSG 2h Hombre", "< 15 mm/h")}</Text>
+                <Text style={{ fontSize: 6.5, color: '#666' }}>Mujer: {getRef("VSG 2h Mujer", "< 20 mm/h")}</Text>
+                <Text style={{ fontSize: 6.5, color: '#666' }}>Niños: {getRef("VSG 2h Niños", "< 10 mm/h")}</Text>
+              </View>
             </View>
           </View>
         </SectionCard>
