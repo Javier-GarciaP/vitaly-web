@@ -54,50 +54,68 @@ export async function getFacturas() {
   }));
 }
 
-export async function createFactura(data: { paciente_id: number; examenes: any[]; total: number; fecha: string; categorias?: string[] }) {
+const tipoMap: Record<string, string> = {
+  "hematologia": "Hematología",
+  "hematología": "Hematología",
+  "quimica": "Química Clínica",
+  "química clínica": "Química Clínica",
+  "quimica clinica": "Química Clínica",
+  "orina": "Orina",
+  "heces": "Heces",
+  "coagulacion": "Coagulación",
+  "coagulación": "Coagulación",
+  "grupo sanguineo": "Grupo Sanguíneo",
+  "grupo sanguíneo": "Grupo Sanguíneo",
+  "bacteriologia": "Bacteriología",
+  "bacteriología": "Bacteriología",
+  "miscelaneos": "Misceláneos",
+  "misceláneos": "Misceláneos",
+  "psa": "PSA",
+};
+
+export async function createFactura(data: { paciente_id: number; examenes: any[]; total: number; fecha: string }) {
   const result = await executeLocal(
     "INSERT INTO facturas (paciente_id, examenes, total, fecha) VALUES ($1, $2, $3, $4)",
     [data.paciente_id, JSON.stringify(data.examenes), data.total, data.fecha]
   );
 
-  // Auto-create examen records per unique category so they appear in PanelMaestro
-  const categorias = data.categorias && data.categorias.length > 0
-    ? data.categorias
-    : [...new Set(data.examenes.map((e: any) => e.categoria).filter(Boolean))];
+  // Agrupar parametros por categoria
+  const catParams: Record<string, Set<string>> = {};
+  for (const item of data.examenes) {
+    if (!item.categoria) continue;
+    const tipoExamen = tipoMap[item.categoria.toLowerCase()] || item.categoria;
+    if (!catParams[tipoExamen]) catParams[tipoExamen] = new Set();
+    
+    if (Array.isArray(item.parametros)) {
+      item.parametros.forEach((p: string) => catParams[tipoExamen].add(p));
+    }
+  }
 
-  for (const categoria of categorias) {
-    // Map categoria name to the PanelMaestro examen tipo names
-    const tipoMap: Record<string, string> = {
-      "hematologia": "Hematología",
-      "hematología": "Hematología",
-      "quimica": "Química Clínica",
-      "química clínica": "Química Clínica",
-      "quimica clinica": "Química Clínica",
-      "orina": "Orina",
-      "heces": "Heces",
-      "coagulacion": "Coagulación",
-      "coagulación": "Coagulación",
-      "grupo sanguineo": "Grupo Sanguíneo",
-      "grupo sanguíneo": "Grupo Sanguíneo",
-      "bacteriologia": "Bacteriología",
-      "bacteriología": "Bacteriología",
-      "miscelaneos": "Misceláneos",
-      "misceláneos": "Misceláneos",
-      "psa": "PSA",
-    };
-
-    const tipoExamen = tipoMap[categoria.toLowerCase()] || categoria;
-
-    // Check if an examen of this type already exists today for this patient
+  for (const [tipoExamen, paramsSet] of Object.entries(catParams)) {
+    const paramsArray = Array.from(paramsSet);
+    
+    // Verificar si ya existe el examen para hoy
     const existing = await queryLocal(
-      "SELECT id FROM examenes WHERE paciente_id = $1 AND tipo = $2 AND fecha = $3",
+      "SELECT id, resultados FROM examenes WHERE paciente_id = $1 AND tipo = $2 AND fecha = $3",
       [data.paciente_id, tipoExamen, data.fecha]
     );
 
     if (existing.length === 0) {
       await executeLocal(
         "INSERT INTO examenes (paciente_id, tipo, fecha, resultados, estado, uuid) VALUES ($1, $2, $3, $4, $5, $6)",
-        [data.paciente_id, tipoExamen, data.fecha, JSON.stringify({}), "pendiente", crypto.randomUUID()]
+        [data.paciente_id, tipoExamen, data.fecha, JSON.stringify({ _highlightFields: paramsArray }), "pendiente", crypto.randomUUID()]
+      );
+    } else {
+      // Fusionar parametros si el examen ya existe
+      const ex = existing[0];
+      const currentRes = typeof ex.resultados === 'string' ? JSON.parse(ex.resultados) : (ex.resultados || {});
+      const currentHighlights = currentRes._highlightFields || [];
+      const mergedHighlights = Array.from(new Set([...currentHighlights, ...paramsArray]));
+      currentRes._highlightFields = mergedHighlights;
+
+      await executeLocal(
+        "UPDATE examenes SET resultados = $1 WHERE id = $2",
+        [JSON.stringify(currentRes), ex.id]
       );
     }
   }
@@ -105,10 +123,120 @@ export async function createFactura(data: { paciente_id: number; examenes: any[]
   return { id: result.lastInsertId };
 }
 
-
 export async function deleteFactura(id: number) {
+  // 1. Obtener la factura para saber qué exámenes borrar
+  const fRows = await queryLocal("SELECT * FROM facturas WHERE id = $1", [id]);
+  if (fRows.length === 0) throw new Error("Factura no encontrada");
+  const factura = fRows[0];
+  const examenesFactura = typeof factura.examenes === 'string' ? JSON.parse(factura.examenes) : factura.examenes;
+  
+  // Extraer las categorías únicas usando el mapa
+  const categoriasSet = new Set<string>();
+  for (const item of examenesFactura) {
+    if (item.categoria) {
+      categoriasSet.add(tipoMap[item.categoria.toLowerCase()] || item.categoria);
+    }
+  }
+
+  // 2. Verificar estado de todos los exámenes asociados
+  const examsToDelete = [];
+  for (const tipoExamen of categoriasSet) {
+    const eRows = await queryLocal(
+      "SELECT id, estado FROM examenes WHERE paciente_id = $1 AND tipo = $2 AND fecha = $3",
+      [factura.paciente_id, tipoExamen, factura.fecha]
+    );
+    if (eRows.length > 0) {
+      const ex = eRows[0];
+      if (ex.estado !== 'pendiente') {
+        // Bloquear eliminación
+        throw new Error(`No se puede eliminar la factura porque el examen de ${tipoExamen} ya está en proceso o completado.`);
+      }
+      examsToDelete.push(ex.id);
+    }
+  }
+
+  // 3. Si todo está pendiente, eliminar factura y los exámenes
   await executeLocal("DELETE FROM facturas WHERE id = $1", [id]);
+  for (const exId of examsToDelete) {
+    await executeLocal("DELETE FROM examenes WHERE id = $1", [exId]);
+  }
+
   return { ok: true };
+}
+
+export async function updateFactura(id: number, data: { paciente_id: number; examenes: any[]; total: number; fecha: string }) {
+  // 1. Obtener factura antigua
+  const fRows = await queryLocal("SELECT * FROM facturas WHERE id = $1", [id]);
+  if (fRows.length === 0) throw new Error("Factura no encontrada");
+  const oldFactura = fRows[0];
+  const oldExamenesList = typeof oldFactura.examenes === 'string' ? JSON.parse(oldFactura.examenes) : oldFactura.examenes;
+
+  // 2. Actualizar la factura
+  await executeLocal(
+    "UPDATE facturas SET paciente_id = $1, examenes = $2, total = $3, fecha = $4 WHERE id = $5",
+    [data.paciente_id, JSON.stringify(data.examenes), data.total, data.fecha, id]
+  );
+
+  // 3. Procesar las categorías y parámetros de la NUEVA factura
+  const newCatParams: Record<string, Set<string>> = {};
+  for (const item of data.examenes) {
+    if (!item.categoria) continue;
+    const tipoExamen = tipoMap[item.categoria.toLowerCase()] || item.categoria;
+    if (!newCatParams[tipoExamen]) newCatParams[tipoExamen] = new Set();
+    if (Array.isArray(item.parametros)) {
+      item.parametros.forEach((p: string) => newCatParams[tipoExamen].add(p));
+    }
+  }
+
+  // 4. Determinar qué categorías viejas ya no están
+  const oldCatSet = new Set<string>();
+  for (const item of oldExamenesList) {
+    if (item.categoria) oldCatSet.add(tipoMap[item.categoria.toLowerCase()] || item.categoria);
+  }
+
+  for (const oldTipo of oldCatSet) {
+    if (!newCatParams[oldTipo]) {
+      // Categoría eliminada: borrar el examen si está pendiente
+      const eRows = await queryLocal(
+        "SELECT id, estado FROM examenes WHERE paciente_id = $1 AND tipo = $2 AND fecha = $3",
+        [oldFactura.paciente_id, oldTipo, oldFactura.fecha]
+      );
+      if (eRows.length > 0 && eRows[0].estado === 'pendiente') {
+        await executeLocal("DELETE FROM examenes WHERE id = $1", [eRows[0].id]);
+      }
+    }
+  }
+
+  // 5. Crear o actualizar las categorías nuevas/mantenidas
+  for (const [tipoExamen, paramsSet] of Object.entries(newCatParams)) {
+    const paramsArray = Array.from(paramsSet);
+    
+    const existing = await queryLocal(
+      "SELECT id, resultados, estado FROM examenes WHERE paciente_id = $1 AND tipo = $2 AND fecha = $3",
+      [data.paciente_id, tipoExamen, data.fecha]
+    );
+
+    if (existing.length === 0) {
+      await executeLocal(
+        "INSERT INTO examenes (paciente_id, tipo, fecha, resultados, estado, uuid) VALUES ($1, $2, $3, $4, $5, $6)",
+        [data.paciente_id, tipoExamen, data.fecha, JSON.stringify({ _highlightFields: paramsArray }), "pendiente", crypto.randomUUID()]
+      );
+    } else {
+      // Solo actualizamos highlight si está pendiente. Si ya está completado, no se le tocan los highlight fields 
+      // (ya no se resalta nada porque ya está lleno, y no queremos romper el JSON).
+      const ex = existing[0];
+      if (ex.estado === 'pendiente') {
+        const currentRes = typeof ex.resultados === 'string' ? JSON.parse(ex.resultados) : (ex.resultados || {});
+        currentRes._highlightFields = paramsArray; // Sobreescribimos con los del nuevo carrito
+        await executeLocal(
+          "UPDATE examenes SET resultados = $1 WHERE id = $2",
+          [JSON.stringify(currentRes), ex.id]
+        );
+      }
+    }
+  }
+
+  return { id };
 }
 
 // ======================== EXAMENES ========================

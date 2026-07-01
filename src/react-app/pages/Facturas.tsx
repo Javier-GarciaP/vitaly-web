@@ -12,7 +12,7 @@ import {
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { formatCurrency, formatCurrencyInput, cleanCurrencyInput, numberToWords } from "@/utils/currency";
 import { getTodayDate } from "@/utils/date";
-import { getFacturas, getPacientes, getExamenesPredefinidos, createPaciente, createFactura, deleteFactura } from "@/react-app/services/api";
+import { getFacturas, getPacientes, getExamenesPredefinidos, createPaciente, createFactura, deleteFactura, updateFactura } from "@/react-app/services/api";
 
 interface Paciente {
   id: number;
@@ -232,10 +232,7 @@ export default function FacturasPage() {
       };
 
       if (editingId) {
-        // We will fallback to recreating or just warn if editing facturas isn't fully supported
-        // Right now, I will just create a new factura and delete the old one, since there is no updateFactura
-        await deleteFactura(editingId);
-        await createFactura(payload);
+        await updateFactura(editingId, payload);
       } else {
         await createFactura(payload);
       }
@@ -244,9 +241,9 @@ export default function FacturasPage() {
       loadFacturas();
       setShowModal(false);
       resetPOS();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      showNotification("error", "Error", "Error en el proceso de facturación");
+      showNotification("error", "Error", e.message || "Error en el proceso de facturación");
     } finally {
       setIsSaving(false);
     }
@@ -262,9 +259,9 @@ export default function FacturasPage() {
           await deleteFactura(id);
           showNotification("delete", "Factura Eliminada", "El registro ha sido removido del historial");
           loadFacturas();
-        } catch (e) {
+        } catch (e: any) {
           console.error(e);
-          showNotification("error", "Error", "No se pudo eliminar la factura");
+          showNotification("error", "Operación Denegada", e.message || "No se pudo eliminar la factura");
         }
       }
     });
