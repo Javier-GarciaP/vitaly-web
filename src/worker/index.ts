@@ -338,7 +338,7 @@ app.get("/v/:uuid", async (c) => {
         return val.map(v => `<div class="bg-slate-50 p-2 my-1 rounded">${renderValue(v)}</div>`).join('');
       }
       return Object.entries(val).map(([k, v]) => {
-        if (k === 'antibiograma_list' || k === 'observacion' || k === 'nombre_examen') return '';
+        if (k === 'antibiograma_list' || k === 'observacion' || k === 'nombre_examen' || k === '_highlightFields') return '';
         return (`<div class="flex justify-between border-b border-slate-100 pb-1 mb-1">
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">${k.replace(/_/g, ' ')}</span>
           <span class="text-[10px] font-bold text-slate-800 uppercase">${String(v)}</span>
@@ -349,7 +349,7 @@ app.get("/v/:uuid", async (c) => {
   };
 
   const resultadosHtml = Object.entries(resultados).map(([key, val]) => {
-    if (key === 'antibiograma_list' || key === 'observacion') return '';
+    if (key === 'antibiograma_list' || key === 'observacion' || key === '_highlightFields') return '';
     return (`
       <div class="flex flex-col sm:flex-row justify-between py-4 border-b border-slate-50">
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${key.replace(/_/g, ' ')}</span>
