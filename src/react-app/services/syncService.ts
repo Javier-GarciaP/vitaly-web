@@ -12,7 +12,7 @@ function getApiKey(): string {
 async function cloudFetch(path: string, options?: RequestInit) {
   const workerUrl = getWorkerUrl();
   if (!workerUrl) throw new Error("No hay URL de Worker configurada");
-  
+
   const res = await fetch(workerUrl + path, {
     ...options,
     headers: {
@@ -21,12 +21,12 @@ async function cloudFetch(path: string, options?: RequestInit) {
       ...(options?.headers || {}),
     },
   });
-  
+
   if (!res.ok) {
     const errorText = await res.text().catch(() => "Unknown error");
     throw new Error(`HTTP ${res.status}: ${errorText}`);
   }
-  
+
   return res;
 }
 
@@ -157,25 +157,56 @@ export async function pushToCloud(): Promise<{ pushed: number; errors: string[] 
   let pushed = 0;
   const errors: string[] = [];
 
+  // --- PRE-FETCH DE NUBE (Optimización N+1) ---
+  const cloudPacientesMap = new Map<string, any>();
+  const cloudFacturasMap = new Map<number, any>();
+  const cloudExamenesMap = new Map<string, any>(); // UUID -> Examen
+  const cloudExamenesIdMap = new Map<number, any>(); // ID -> Examen (fallback si no hay uuid)
+
+  try {
+    const [resPacientes, resFacturas, resExamenes] = await Promise.all([
+      cloudFetch("/api/pacientes").catch(() => null),
+      cloudFetch("/api/facturas").catch(() => null),
+      cloudFetch("/api/examenes").catch(() => null)
+    ]);
+    
+    if (resPacientes && resPacientes.ok) {
+      const cps = await resPacientes.json() as any[];
+      cps.forEach(cp => {
+        if (cp.cedula) cloudPacientesMap.set(cp.cedula, cp);
+      });
+    }
+    if (resFacturas && resFacturas.ok) {
+      const cfs = await resFacturas.json() as any[];
+      cfs.forEach(cf => cloudFacturasMap.set(cf.id, cf));
+    }
+    if (resExamenes && resExamenes.ok) {
+      const cxs = await resExamenes.json() as any[];
+      cxs.forEach(cx => {
+        if (cx.uuid) cloudExamenesMap.set(cx.uuid, cx);
+        cloudExamenesIdMap.set(cx.id, cx);
+      });
+    }
+  } catch (e: any) {
+    errors.push(`Error precargando datos de la nube: ${e.message}`);
+  }
+
   // --- PACIENTES ---
   try {
     const localPacientes = await queryLocal("SELECT * FROM pacientes");
     for (const p of localPacientes) {
       try {
-        // Try to update first, then create if 404
-        const resCheck = await cloudFetch(`/api/pacientes`);
-        const cloudPacientes = await resCheck.json() as any[];
-        const exists = cloudPacientes.find((cp: any) => cp.cedula === p.cedula);
-        
+        const exists = cloudPacientesMap.get(p.cedula);
+
         if (exists) {
           await cloudFetch(`/api/pacientes/${exists.id}`, {
             method: "PUT",
-            body: JSON.stringify({ cedula: p.cedula, nombre: p.nombre, edad: p.edad, sexo: p.sexo }),
+            body: JSON.stringify({ id: p.id, cedula: p.cedula, nombre: p.nombre, edad: p.edad, sexo: p.sexo, created_at: p.created_at }),
           });
         } else {
           await cloudFetch("/api/pacientes", {
             method: "POST",
-            body: JSON.stringify({ cedula: p.cedula, nombre: p.nombre, edad: p.edad, sexo: p.sexo }),
+            body: JSON.stringify({ id: p.id, cedula: p.cedula, nombre: p.nombre, edad: p.edad, sexo: p.sexo, created_at: p.created_at }),
           });
         }
         pushed++;
@@ -193,15 +224,33 @@ export async function pushToCloud(): Promise<{ pushed: number; errors: string[] 
     for (const f of localFacturas) {
       try {
         const examenes = typeof f.examenes === 'string' ? JSON.parse(f.examenes) : f.examenes;
-        await cloudFetch("/api/facturas", {
-          method: "POST",
-          body: JSON.stringify({
-            paciente_id: f.paciente_id,
-            examenes,
-            total: f.total,
-            fecha: f.fecha,
-          }),
-        });
+        const exists = cloudFacturasMap.get(f.id);
+
+        if (exists) {
+          await cloudFetch(`/api/facturas/${exists.id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              id: f.id,
+              paciente_id: f.paciente_id,
+              examenes,
+              total: f.total,
+              fecha: f.fecha,
+              created_at: f.created_at,
+            }),
+          });
+        } else {
+          await cloudFetch("/api/facturas", {
+            method: "POST",
+            body: JSON.stringify({
+              id: f.id,
+              paciente_id: f.paciente_id,
+              examenes,
+              total: f.total,
+              fecha: f.fecha,
+              created_at: f.created_at,
+            }),
+          });
+        }
         pushed++;
       } catch (e: any) {
         errors.push(`Push factura #${f.id}: ${e.message}`);
@@ -217,17 +266,43 @@ export async function pushToCloud(): Promise<{ pushed: number; errors: string[] 
     for (const ex of localExamenes) {
       try {
         const resultados = typeof ex.resultados === 'string' ? JSON.parse(ex.resultados) : ex.resultados;
-        await cloudFetch("/api/examenes", {
-          method: "POST",
-          body: JSON.stringify({
-            paciente_id: ex.paciente_id,
-            tipo: ex.tipo,
-            fecha: ex.fecha,
-            resultados,
-            estado: ex.estado,
-            uuid: ex.uuid,
-          }),
-        });
+        let exists = null;
+        if (ex.uuid) {
+           exists = cloudExamenesMap.get(ex.uuid);
+        }
+        if (!exists) {
+           exists = cloudExamenesIdMap.get(ex.id);
+        }
+
+        if (exists) {
+          await cloudFetch(`/api/examenes/${exists.id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              id: ex.id,
+              paciente_id: ex.paciente_id,
+              tipo: ex.tipo,
+              fecha: ex.fecha,
+              resultados,
+              estado: ex.estado,
+              uuid: ex.uuid,
+              created_at: ex.created_at,
+            }),
+          });
+        } else {
+          await cloudFetch("/api/examenes", {
+            method: "POST",
+            body: JSON.stringify({
+              id: ex.id,
+              paciente_id: ex.paciente_id,
+              tipo: ex.tipo,
+              fecha: ex.fecha,
+              resultados,
+              estado: ex.estado,
+              uuid: ex.uuid,
+              created_at: ex.created_at,
+            }),
+          });
+        }
         pushed++;
       } catch (e: any) {
         errors.push(`Push examen #${ex.id}: ${e.message}`);
@@ -247,7 +322,7 @@ export async function fullSync(): Promise<{ pulled: number; pushed: number; erro
   const pushResult = await pushToCloud();
   // Luego pull (descargar todo de la nube)
   const pullResult = await pullFromCloud();
-  
+
   return {
     pulled: pullResult.pulled,
     pushed: pushResult.pushed,
