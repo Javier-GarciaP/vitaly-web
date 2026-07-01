@@ -5,8 +5,8 @@ export const generateQRBase64 = async (uuid: string): Promise<string> => {
   const workerUrl = localStorage.getItem("WORKER_URL") || "";
   // La URL de verificación pública en la nube
   const validationUrl = workerUrl
-    ? `${workerUrl}/verificar/${uuid}`
-    : `https://vitaly-web-cop.venezuela.workers.dev/verificar/${uuid}`;
+    ? `${workerUrl}/v/${uuid}`
+    : `https://vitaly-web-cop.venezuela.workers.dev/v/${uuid}`;
 
   try {
     return await QRCode.toDataURL(validationUrl, {

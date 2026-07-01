@@ -123,6 +123,51 @@ export async function pullFromCloud(): Promise<{ pulled: number; errors: string[
     errors.push(`Error descargando examenes predefinidos: ${e.message}`);
   }
 
+  // --- PLANTILLAS BACTERIOLOGIA ---
+  try {
+    const res = await cloudFetch("/api/plantillas/bacteriologia");
+    const plantillas = await res.json() as any[];
+    for (const b of plantillas) {
+      if (!b) continue;
+      try {
+        await executeLocal(
+          `INSERT OR REPLACE INTO plantillas_bacteriologia 
+           (id, nombre_plantilla, muestra_default, observacion_directa, tincion_gram, recuento_colonias, cultivo, cultivo_hongos)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [b.id, b.nombre_plantilla || '', b.muestra_default || null, b.observacion_directa || null,
+           b.tincion_gram || null, b.recuento_colonias || null, b.cultivo || null, b.cultivo_hongos || null]
+        );
+        pulled++;
+      } catch (e: any) {
+        errors.push(`Plantilla bacteriologia ${b.nombre_plantilla}: ${e.message}`);
+      }
+    }
+  } catch (e: any) {
+    errors.push(`Error descargando plantillas bacteriologia: ${e.message}`);
+  }
+
+  // --- PLANTILLAS MISCELANEOS ---
+  try {
+    const res = await cloudFetch("/api/plantillas/miscelaneos");
+    const plantillas = await res.json() as any[];
+    for (const m of plantillas) {
+      if (!m) continue;
+      try {
+        await executeLocal(
+          `INSERT OR REPLACE INTO plantillas_miscelaneos 
+           (id, nombre_examen, metodo, muestra, contenido_plantilla)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [m.id, m.nombre_examen || '', m.metodo || null, m.muestra || null, m.contenido_plantilla || null]
+        );
+        pulled++;
+      } catch (e: any) {
+        errors.push(`Plantilla miscelaneos ${m.nombre_examen}: ${e.message}`);
+      }
+    }
+  } catch (e: any) {
+    errors.push(`Error descargando plantillas miscelaneos: ${e.message}`);
+  }
+
   // --- VALORES DE REFERENCIA ---
   const refTables = [
     { api: "/api/valores-referencia?tabla=quimica", table: "quimica_valores_referencia" },
@@ -322,7 +367,7 @@ export async function pushToCloud(): Promise<{ pushed: number; errors: string[] 
               fecha: ex.fecha,
               resultados,
               estado: ex.estado,
-              uuid: ex.uuid,
+              uuid: ex.uuid ?? undefined,
               created_at: ex.created_at,
             }),
           });
@@ -336,7 +381,7 @@ export async function pushToCloud(): Promise<{ pushed: number; errors: string[] 
               fecha: ex.fecha,
               resultados,
               estado: ex.estado,
-              uuid: ex.uuid,
+              uuid: ex.uuid ?? undefined,
               created_at: ex.created_at,
             }),
           });

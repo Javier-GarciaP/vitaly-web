@@ -136,6 +136,7 @@ export default function ResultadosPage() {
       fecha: selectedExamen.fecha,
       resultados: editResultados,
       estado: editEstado,
+      uuid: selectedExamen.uuid, // ← preservar el uuid para no romper el QR
     };
 
     try {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
+import { Link } from "react-router";
 import {
   Users,
   TestTube,
@@ -198,14 +199,14 @@ export default function DashboardPage() {
               { label: "Resultados", href: "/examenes" },
               { label: "Configuración", href: "/configuracion" },
             ].map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0 hover:px-2 transition-all group"
               >
                 <span className="text-xs font-bold text-slate-500 group-hover:text-slate-900 uppercase tracking-tight">{link.label}</span>
                 <ArrowUpRight size={14} className="text-slate-200 group-hover:text-slate-900 transition-colors" />
-              </a>
+              </Link>
             ))}
           </div>
         </div>

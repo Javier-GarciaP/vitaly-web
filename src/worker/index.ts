@@ -34,7 +34,7 @@ const examenSchema = z.object({
   fecha: z.string(),
   resultados: z.union([z.record(z.any()), z.array(z.any())]).optional(),
   estado: z.enum(["pendiente", "en_proceso", "completado"]),
-  uuid: z.string().optional(),
+  uuid: z.string().nullable().optional(),
 });
 
 const facturaSchema = z.object({
@@ -251,7 +251,7 @@ app.put("/api/examenes/:id", zValidator("json", examenSchema), async (c) => {
   const resultadosString = data.resultados ? JSON.stringify(data.resultados) : null;
 
   await c.env.DB.prepare(
-    "UPDATE examenes SET paciente_id = ?, tipo = ?, fecha = ?, resultados = ?, estado = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+    "UPDATE examenes SET paciente_id = ?, tipo = ?, fecha = ?, resultados = ?, estado = ?, uuid = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
   )
     .bind(
       data.paciente_id,
@@ -259,6 +259,7 @@ app.put("/api/examenes/:id", zValidator("json", examenSchema), async (c) => {
       data.fecha,
       resultadosString,
       data.estado,
+      data.uuid ?? null,
       id
     )
     .run();
@@ -787,30 +788,7 @@ app.get("/api/plantillas/bacteriologia", async (c) => {
   } catch (e) { }
 });
 
-// 2. CREAR NUEVA (POST)
-app.post("/api/plantillas/bacteriologia", async (c) => {
-  const body = await c.req.json();
-  try {
-    const res = await c.env.DB.prepare(
-      `INSERT INTO plantillas_bacteriologia 
-      (nombre_plantilla, muestra_default, observacion_directa, tincion_gram, recuento_colonias, cultivo, cultivo_hongos)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`
-    )
-      .bind(
-        body.nombre_plantilla,
-        body.muestra_default,
-        body.observacion_directa,
-        body.tincion_gram,
-        body.recuento_colonias,
-        body.cultivo,
-        body.cultivo_hongos
-      )
-      .run();
-
-    // res.meta.last_row_id es el ID que generó SQLite
-    return c.json({ success: true, id: res.meta.last_row_id }, 201);
-  } catch (e) { }
-});
+// 2. CREAR NUEVA (POST) - handled below with zValidator
 
 // 3. ACTUALIZAR (PUT)
 app.put("/api/plantillas/bacteriologia/:id", async (c) => {
