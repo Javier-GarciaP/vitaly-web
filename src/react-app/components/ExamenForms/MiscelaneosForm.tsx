@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { MiscelaneosData } from "@/types/types";
+import { getPlantillasMiscelaneos, createPlantillaMiscelaneos, updatePlantillaMiscelaneos, deletePlantillaMiscelaneos } from "@/react-app/services/api";
 
 interface MiscelaneosFormProps {
   resultados: any;
@@ -91,11 +92,8 @@ export default function MiscelaneosForm({
 
   const cargarPlantillas = async () => {
     try {
-      const res = await fetch("/api/plantillas/miscelaneos");
-      if (res.ok) {
-        const data = (await res.json()) as MiscelaneosData[];
-        setPlantillas(data);
-      }
+      const data = await getPlantillasMiscelaneos() as MiscelaneosData[];
+      setPlantillas(data);
     } catch (error) {
       console.error("Error cargando plantillas:", error);
     }
@@ -154,25 +152,20 @@ export default function MiscelaneosForm({
     setIsSaving(true);
     try {
       const isEdit = activeTemplateId !== null;
-      const url = isEdit ? `/api/plantillas/miscelaneos/${activeTemplateId}` : "/api/plantillas/miscelaneos";
-      const method = isEdit ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre_examen: nombre,
-          metodo: actual.metodo || "",
-          muestra: actual.muestra || "",
-          contenido_plantilla: actual.resultado_texto || "",
-        }),
-      });
-
-      if (res.ok) {
-        await cargarPlantillas();
-        setShowLibrary(true);
-        showNotification("success", isEdit ? "Plantilla actualizada" : "Plantilla guardada");
+      const payload = {
+        nombre_examen: nombre,
+        metodo: actual.metodo || "",
+        muestra: actual.muestra || "",
+        contenido_plantilla: actual.resultado_texto || "",
+      };
+      if (isEdit) {
+        await updatePlantillaMiscelaneos(activeTemplateId!, payload);
+      } else {
+        await createPlantillaMiscelaneos(payload);
       }
+      await cargarPlantillas();
+      setShowLibrary(true);
+      showNotification("success", isEdit ? "Plantilla actualizada" : "Plantilla guardada");
     } catch (error) {
       showNotification("error", "Error al procesar");
     } finally {
@@ -187,11 +180,9 @@ export default function MiscelaneosForm({
       variant: "danger",
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/plantillas/miscelaneos/${id}`, { method: "DELETE" });
-          if (res.ok) {
-            setPlantillas((prev) => prev.filter((p) => p.id !== id));
-            showNotification("delete", "Eliminada");
-          }
+          await deletePlantillaMiscelaneos(id);
+          setPlantillas((prev) => prev.filter((p: any) => p.id !== id));
+          showNotification("delete", "Eliminada");
         } catch (error) {
           showNotification("error", "Error conexión");
         }

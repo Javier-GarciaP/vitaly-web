@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useNotification } from "@/react-app/context/NotificationContext";
 import { BacteriologiaData } from "@/types/types";
+import { getPlantillasBacteriologia, createPlantillaBacteriologia, updatePlantillaBacteriologia, deletePlantillaBacteriologia } from "@/react-app/services/api";
 
 interface BacteriologiaFormProps {
   resultados: any;
@@ -104,11 +105,8 @@ export default function BacteriologiaForm({
 
   const cargarPlantillas = async () => {
     try {
-      const res = await fetch("/api/plantillas/bacteriologia");
-      if (res.ok) {
-        const data: BacteriologiaData[] = await res.json();
-        setPlantillas(data);
-      }
+      const data = await getPlantillasBacteriologia() as BacteriologiaData[];
+      setPlantillas(data);
     } catch (e) {
       console.error("Error cargando plantillas:", e);
     }
@@ -154,18 +152,13 @@ export default function BacteriologiaForm({
 
     try {
       const isEdit = activeTemplateId !== null;
-      const url = isEdit ? `/api/plantillas/bacteriologia/${activeTemplateId}` : "/api/plantillas/bacteriologia";
-      const method = isEdit ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        showNotification("success", isEdit ? "Plantilla actualizada" : "Plantilla guardada");
-        cargarPlantillas();
+      if (isEdit) {
+        await updatePlantillaBacteriologia(activeTemplateId!, payload);
+      } else {
+        await createPlantillaBacteriologia(payload);
       }
+      showNotification("success", isEdit ? "Plantilla actualizada" : "Plantilla guardada");
+      cargarPlantillas();
     } catch (e) {
       showNotification("error", "Error al procesar");
     }
@@ -179,13 +172,9 @@ export default function BacteriologiaForm({
       variant: "danger",
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/plantillas/bacteriologia/${id}`, {
-            method: "DELETE",
-          });
-          if (res.ok) {
-            setPlantillas(prev => prev.filter(p => p.id !== id));
-            showNotification("delete", "Plantilla eliminada");
-          }
+          await deletePlantillaBacteriologia(id);
+          setPlantillas(prev => prev.filter((p: any) => p.id !== id));
+          showNotification("delete", "Plantilla eliminada");
         } catch (e) {
           showNotification("error", "Error de conexión");
         }

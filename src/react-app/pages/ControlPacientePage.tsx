@@ -3,6 +3,7 @@ import { Search, Activity, ChevronLeft, Database } from "lucide-react";
 import PatientMonitor from "@/react-app/components/ControlPanel/PatientMonitor";
 import ResultComparison from "@/react-app/components/ControlPanel/ResultComparison";
 import { formatDisplayDate } from "@/utils/date";
+import { getPacientes, getValoresReferencia } from "@/react-app/services/api";
 
 interface Paciente {
     id: number;
@@ -24,8 +25,7 @@ export default function ControlPacientePage() {
             if (searchTerm.length > 1) {
                 setIsSearching(true);
                 try {
-                    const res = await fetch("/api/pacientes");
-                    const data = (await res.json()) as Paciente[];
+                    const data = await getPacientes() as Paciente[];
                     const filtered = data.filter((p: Paciente) =>
                         p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         p.cedula.includes(searchTerm)
@@ -57,13 +57,9 @@ export default function ControlPacientePage() {
             if (tipo === "Química Clínica") tabla = "quimica";
             else if (tipo === "Hematología") tabla = "hematologia";
             else if (tipo === "Coagulación") tabla = "coagulacion";
-            else {
-                setReferencias([]);
-                return;
-            }
+            else { setReferencias([]); return; }
 
-            const res = await fetch(`/api/valores-referencia?tabla=${tabla}`);
-            const data = (await res.json()) as any[];
+            const data = await getValoresReferencia(tabla) as any[];
             setReferencias(data);
         } catch (error) {
             console.error("Error cargando referencias:", error);

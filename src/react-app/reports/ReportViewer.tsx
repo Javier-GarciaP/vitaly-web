@@ -16,6 +16,7 @@ import PSAReport from "./templates/PSAReport";
 
 import PageComponent from "./components/Page";
 import { useSettings } from "@/react-app/context/SettingsContext";
+import { getValoresReferencia } from "@/react-app/services/api";
 
 
 import { Paciente } from "@/types/types";
@@ -68,11 +69,8 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
 
       try {
         setLoadingRefs(true);
-        const res = await fetch(`/api/valores-referencia?tabla=${tabla}`);
-        if (res.ok) {
-          const result = (await res.json()) as any[];
-          setReferences(result);
-        }
+        const data = await getValoresReferencia(tabla) as any[];
+        setReferences(data);
       } catch (error) {
         console.error("Error al cargar referencias:", error);
       } finally {

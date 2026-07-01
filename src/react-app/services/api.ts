@@ -59,8 +59,52 @@ export async function createFactura(data: { paciente_id: number; examenes: any[]
     "INSERT INTO facturas (paciente_id, examenes, total, fecha) VALUES ($1, $2, $3, $4)",
     [data.paciente_id, JSON.stringify(data.examenes), data.total, data.fecha]
   );
+
+  // Auto-create examen records per unique category so they appear in PanelMaestro
+  const categorias = data.categorias && data.categorias.length > 0
+    ? data.categorias
+    : [...new Set(data.examenes.map((e: any) => e.categoria).filter(Boolean))];
+
+  for (const categoria of categorias) {
+    // Map categoria name to the PanelMaestro examen tipo names
+    const tipoMap: Record<string, string> = {
+      "hematologia": "Hematología",
+      "hematología": "Hematología",
+      "quimica": "Química Clínica",
+      "química clínica": "Química Clínica",
+      "quimica clinica": "Química Clínica",
+      "orina": "Orina",
+      "heces": "Heces",
+      "coagulacion": "Coagulación",
+      "coagulación": "Coagulación",
+      "grupo sanguineo": "Grupo Sanguíneo",
+      "grupo sanguíneo": "Grupo Sanguíneo",
+      "bacteriologia": "Bacteriología",
+      "bacteriología": "Bacteriología",
+      "miscelaneos": "Misceláneos",
+      "misceláneos": "Misceláneos",
+      "psa": "PSA",
+    };
+
+    const tipoExamen = tipoMap[categoria.toLowerCase()] || categoria;
+
+    // Check if an examen of this type already exists today for this patient
+    const existing = await queryLocal(
+      "SELECT id FROM examenes WHERE paciente_id = $1 AND tipo = $2 AND fecha = $3",
+      [data.paciente_id, tipoExamen, data.fecha]
+    );
+
+    if (existing.length === 0) {
+      await executeLocal(
+        "INSERT INTO examenes (paciente_id, tipo, fecha, resultados, estado, uuid) VALUES ($1, $2, $3, $4, $5, $6)",
+        [data.paciente_id, tipoExamen, data.fecha, JSON.stringify({}), "pendiente", crypto.randomUUID()]
+      );
+    }
+  }
+
   return { id: result.lastInsertId };
 }
+
 
 export async function deleteFactura(id: number) {
   await executeLocal("DELETE FROM facturas WHERE id = $1", [id]);
@@ -211,6 +255,61 @@ export async function getPlantillasBacteriologia() {
   return await queryLocal("SELECT * FROM plantillas_bacteriologia ORDER BY nombre_plantilla");
 }
 
+export async function createPlantillaBacteriologia(data: any) {
+  const result = await executeLocal(
+    `INSERT INTO plantillas_bacteriologia (nombre_plantilla, muestra_default, observacion_directa, tincion_gram, recuento_colonias, cultivo, cultivo_hongos)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [data.nombre_plantilla, data.muestra_default || null, data.observacion_directa || null, data.tincion_gram || null, data.recuento_colonias || null, data.cultivo || null, data.cultivo_hongos || null]
+  );
+  return { id: result.lastInsertId };
+}
+
+export async function updatePlantillaBacteriologia(id: number, data: any) {
+  await executeLocal(
+    `UPDATE plantillas_bacteriologia SET nombre_plantilla=$1, muestra_default=$2, observacion_directa=$3, tincion_gram=$4, recuento_colonias=$5, cultivo=$6, cultivo_hongos=$7 WHERE id=$8`,
+    [data.nombre_plantilla, data.muestra_default || null, data.observacion_directa || null, data.tincion_gram || null, data.recuento_colonias || null, data.cultivo || null, data.cultivo_hongos || null, id]
+  );
+  return { id };
+}
+
+export async function deletePlantillaBacteriologia(id: number) {
+  await executeLocal("DELETE FROM plantillas_bacteriologia WHERE id = $1", [id]);
+  return { ok: true };
+}
+
 export async function getPlantillasMiscelaneos() {
   return await queryLocal("SELECT * FROM plantillas_miscelaneos ORDER BY nombre_examen");
+}
+
+export async function createPlantillaMiscelaneos(data: any) {
+  const result = await executeLocal(
+    `INSERT INTO plantillas_miscelaneos (nombre_examen, metodo, muestra, contenido_plantilla)
+     VALUES ($1, $2, $3, $4)`,
+    [data.nombre_examen, data.metodo || null, data.muestra || null, data.contenido_plantilla || null]
+  );
+  return { id: result.lastInsertId };
+}
+
+export async function updatePlantillaMiscelaneos(id: number, data: any) {
+  await executeLocal(
+    `UPDATE plantillas_miscelaneos SET nombre_examen=$1, metodo=$2, muestra=$3, contenido_plantilla=$4 WHERE id=$5`,
+    [data.nombre_examen, data.metodo || null, data.muestra || null, data.contenido_plantilla || null, id]
+  );
+  return { id };
+}
+
+export async function deletePlantillaMiscelaneos(id: number) {
+  await executeLocal("DELETE FROM plantillas_miscelaneos WHERE id = $1", [id]);
+  return { ok: true };
+}
+
+export async function getExamenesByPacienteId(pacienteId: number) {
+  const rows = await queryLocal(
+    "SELECT * FROM examenes WHERE paciente_id = $1 ORDER BY fecha DESC",
+    [pacienteId]
+  );
+  return rows.map((r: any) => ({
+    ...r,
+    resultados: typeof r.resultados === 'string' ? JSON.parse(r.resultados) : r.resultados,
+  }));
 }

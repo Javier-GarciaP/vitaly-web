@@ -35,6 +35,7 @@ import PSAForm from "@/react-app/components/ExamenForms/PSAForm";
 import { generateQRBase64 } from "@/utils/qr";
 import ReportViewer from "@/react-app/reports/ReportViewer";
 import { getTodayDate } from "@/utils/date";
+import { getPacientes, getExamenes, getFacturas, createExamen, updateExamen, deleteExamen } from "@/react-app/services/api";
 
 const EXAMEN_CONFIG: Record<string, { color: string; icon: any; bg: string }> = {
   Hematología: { color: "text-rose-500", bg: "bg-rose-50", icon: Droplets },
@@ -81,11 +82,11 @@ export default function PanelControlMaster() {
 
   const loadInitialData = async () => {
     try {
-      const [resP, resE, resF] = await Promise.all([fetch("/api/pacientes"), fetch("/api/examenes"), fetch("/api/facturas")]);
-      setPacientes(await resP.json());
-      setExamenes(await resE.json());
-      setFacturas(await resF.json());
-    } catch (e) { console.error("Error cargando datos"); }
+      const [p, e, f] = await Promise.all([getPacientes(), getExamenes(), getFacturas()]);
+      setPacientes(Array.isArray(p) ? p : []);
+      setExamenes(Array.isArray(e) ? e : []);
+      setFacturas(Array.isArray(f) ? f : []);
+    } catch (err) { console.error("Error cargando datos", err); }
   };
 
 
@@ -106,14 +107,19 @@ export default function PanelControlMaster() {
 
   const handleCreateExamen = async (tipo: string) => {
     if (!selectedPacienteId) return;
-    const res = await fetch("/api/examenes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paciente_id: selectedPacienteId, tipo, fecha: hoy, estado: "pendiente", resultados: {}, uuid: crypto.randomUUID() }),
-    });
-    if (res.ok) {
+    try {
+      await createExamen({
+        paciente_id: selectedPacienteId,
+        tipo,
+        fecha: hoy,
+        estado: "pendiente",
+        resultados: {},
+        uuid: crypto.randomUUID(),
+      });
       showNotification("success", "Estudio Añadido", `${tipo} ha sido agregado al expediente`);
       loadInitialData();
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -123,11 +129,9 @@ export default function PanelControlMaster() {
       message: `¿Está seguro de eliminar el estudio de ${ex.tipo}? Esta acción no se puede deshacer.`,
       variant: "danger",
       onConfirm: async () => {
-        const res = await fetch(`/api/examenes/${ex.id}`, { method: "DELETE" });
-        if (res.ok) {
-          showNotification("delete", "Estudio Eliminado", `El estudio de ${ex.tipo} ha sido removido`);
-          loadInitialData();
-        }
+        await deleteExamen(ex.id);
+        showNotification("delete", "Estudio Eliminado", `El estudio de ${ex.tipo} ha sido removido`);
+        loadInitialData();
       }
     });
   };
@@ -135,15 +139,13 @@ export default function PanelControlMaster() {
   const handleSaveResults = async () => {
     if (!activeExamen) return;
     setIsSaving(true);
-    const res = await fetch(`/api/examenes/${activeExamen.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...activeExamen, resultados: editResultados, estado: editEstado }),
-    });
-    if (res.ok) {
+    try {
+      await updateExamen(activeExamen.id, { ...activeExamen, resultados: editResultados, estado: editEstado });
       showNotification("success", "Cambios Guardados", `Resultados de ${activeExamen.tipo} actualizados`);
       setIsEditing(false);
       loadInitialData();
+    } catch (e) {
+      console.error(e);
     }
     setIsSaving(false);
   };

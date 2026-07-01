@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Document } from "@react-pdf/renderer";
+import { getValoresReferencia } from "@/react-app/services/api";
 
 // Importación de contenidos (components dentro de /content)
 import PortadaContent from "./content/PortadaContent";
@@ -36,21 +37,14 @@ const BulkReport: React.FC<BulkReportProps> = ({ bulkData, patient, logoUrl }) =
 
   useEffect(() => {
     const fetchAll = async () => {
-      const tables = [
-        { key: "hematologia", tabla: "hematologia" },
-        { key: "quimica", tabla: "quimica" },
-        { key: "coagulacion", tabla: "coagulacion" },
-        { key: "psa", tabla: "psa" },
-      ];
-
+      const tables = ["hematologia", "quimica", "coagulacion", "psa"];
       const results: { [k: string]: any[] } = {};
       await Promise.all(
         tables.map(async (t) => {
           try {
-            const res = await fetch(`/api/valores-referencia?tabla=${t.tabla}`);
-            results[t.key] = res.ok ? ((await res.json()) as any[]) : [];
+            results[t] = await getValoresReferencia(t) as any[];
           } catch (e) {
-            results[t.key] = [];
+            results[t] = [];
           }
         })
       );
